@@ -1,0 +1,15 @@
+# general config
+window:
+  window_size: [800, 600]
+  fullscreen: false
+  bg_color: [0, 0, 0]
+
+# stimulus config
+stimulus_duration: 1.0
+iti: 1.5
+n_reps: 10
+
+
+# filepaths
+stimuli_fp: C:\Users\Andreja Stajduhar\Music\stimuli\digits_all_250ms
+

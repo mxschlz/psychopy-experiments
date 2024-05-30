@@ -1,0 +1,38 @@
+# set logging level
+loglevel: DEBUG
+# window params
+window:
+  window_size: [800, 600]
+  fullscreen: false
+  bg_color: [0, 0, 0]  # values range from -1 to 1
+  colorspace: rgb
+  screen: 0  # if more than 1 screen is present, do > 0
+
+# text params
+text:
+  color: white
+  units: pix
+  height: 20
+  allowgui: false
+  font: "Calibri"
+
+# stimulus params
+stimuli:
+  method: "random"  # info for TrialHandler
+  stimulus_duration: 1.0
+  iti: 1.5
+  n_reps: 10
+  n_locations: 5  # might change to 3
+  trial_list:
+    - {}
+    - {}
+    - {}
+    - {}
+    - {}
+    - {}
+    - {}
+    - {}
+    - {}
+    - {}
+  fp: C:\PycharmProjects\psychopy-experiments\stimuli\digits_all_250ms
+
