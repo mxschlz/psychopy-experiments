@@ -161,3 +161,5 @@ cython_debug/
 /stimuli/
 /data/
 /ils.pickle
+/WP1/logs/
+/WP1/sequences/

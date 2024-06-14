@@ -1,7 +1,5 @@
 import pickle
 import slab
-import math
-import os
 import librosa
 import numpy as np
 
@@ -187,5 +185,3 @@ if __name__ == '__main__':
 
     # lateralize at given azimuth
     lagged = lateralize(sound, azimuth=azi)
-
-

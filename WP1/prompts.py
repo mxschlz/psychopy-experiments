@@ -11,3 +11,12 @@ number between 1 and 5. 1 is the leftmost location, 5 is the rightmost location.
 
 Press SPACE to begin.
 '''
+
+pause = """
+The block is over. Please take rest as long as you want and press SPACE to continue.
+"""
+
+end = """
+The experiment is over.
+Thank you for participating! You can call the study leader now.
+"""

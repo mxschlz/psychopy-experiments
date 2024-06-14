@@ -1,38 +1,48 @@
-# set logging level
-loglevel: DEBUG
-# window params
-window:
-  window_size: [800, 600]
-  fullscreen: false
-  bg_color: [0, 0, 0]  # values range from -1 to 1
-  colorspace: rgb
-  screen: 0  # if more than 1 screen is present, do > 0
+logger:
+  level: DEBUG
 
-# text params
-text:
-  color: white
-  units: pix
-  height: 20
-  allowgui: false
-  font: "Calibri"
+filepaths:
+  project: C:/PycharmProjects/psychopy-experiments
+  stimuli: C:/PycharmProjects/psychopy-experiments/stimuli
+  sequences: C:/PycharmProjects/psychopy-experiments/WP1/sequences
 
-# stimulus params
-stimuli:
-  method: "random"  # info for TrialHandler
-  stimulus_duration: 1.0
+session:
+  distractor_type: high  # can be low or high
+  n_locations: 3
+  n_digits: 9
+  n_trials: 10  # number of trials per block
+  stimulus_duration: 0.25
+  response_duration: 1.0
   iti: 1.5
-  n_reps: 10
-  n_locations: 5  # might change to 3
-  trial_list:
-    - {}
-    - {}
-    - {}
-    - {}
-    - {}
-    - {}
-    - {}
-    - {}
-    - {}
-    - {}
-  fp: C:\PycharmProjects\psychopy-experiments\stimuli\digits_all_250ms
+  n_blocks: 1
+  level: 65
+  samplerate: 44100
+  timing: seconds
 
+preferences:
+  general:
+    audioLib: sounddevice
+    units: deg
+
+window:
+  size: [1440, 900]
+  pos: [0, 0]
+  color: [0, 0, 0]
+  fullscr: True
+  #winType: pyglet
+  waitBlanking: True
+  screen: 0
+
+monitor:
+  name: default
+  width: 50  # in cm
+  distance: 80  # in cm
+  gamma: 1
+
+mouse:
+  visible: False
+
+eyetracker:
+  model: eyelink
+  CNUM: 9
+  MIN_CALIB_FIX: 1000

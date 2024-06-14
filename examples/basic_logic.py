@@ -3,47 +3,10 @@ import random
 import yaml
 import os
 import sys
-import WP1.instruction as instruction
+import WP1.prompts as instruction
 from utils import utils, set_logging_level
 from exptools2.core import Session
 
-
-# append to path
-try:
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    sys.path.append(script_dir)
-except NameError:
-    print("Cannot append file path to PATH ... ")
-
-
-exp_info = {'participant_nr': ''}  # no default!
-dlg = gui.DlgFromDict(exp_info, title="Participant Info")
-
-if not dlg.OK:
-    quit()
-else:
-    # Quit when either the participant nr or age is not filled in
-    if not exp_info['participant_nr']:
-        quit()
-
-    # Also quit in case of invalid participant nr or age
-    if exp_info['participant_nr'] > str(99):
-        print(f"Invalid participant ID: {exp_info['participant_nr']}")
-        quit()
-    else:  # let's start the experiment!
-        print(f"Started experiment for participant {exp_info['participant_nr']}.")
-
-# Load configuration
-with open('config.yaml', 'r') as file:
-    config = yaml.safe_load(file)
-
-# set logging level
-set_logging_level.set_level(config["loglevel"])
-
-# extract parameters
-windowparams = config["window"]
-textparams = config["text"]
-stimparams = config["stimuli"]
 
 # Set up the window
 window = visual.Window(size=windowparams['window_size'], fullscr=windowparams['fullscreen'],
@@ -63,7 +26,7 @@ fixation = visual.TextStim(window, "+")
 fixation.draw(window)
 
 # Load stimuli
-stimulus_pool = audio.load_stimuli(stimparams["fp"])
+stimulus_pool = utils.load_stimuli(stimparams["fp"])
 
 # Setup trial handler
 trials = data.TrialHandler(nReps=stimparams['n_reps'], method=stimparams["method"], trialList=stimparams['trial_list'])
