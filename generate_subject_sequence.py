@@ -1,14 +1,13 @@
-import io
-
 import pandas as pd
 import numpy as np
 import yaml
 import slab
-from WP1.space_encoding import SPACE_ENCODER
+from WP1.encoding import SPACE_ENCODER
 from utils.signal_processing import lateralize, externalize
 import argparse
 import sys
 import os
+
 
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -40,13 +39,12 @@ def precompute_sequence(subject_id, settings):
     n_blocks = settings["session"]["n_blocks"]
 
     for block in range(n_blocks):
-        # save block sequence as .zip file
+        print(f"Processing block {block}", end="\r")
         filename = f"WP1/sequences/sub-{subject_id}_block_{block}"
         try:
             os.mkdir(filename)
         except FileExistsError:
-            print(f"Directory {filename} already exists")
-            return
+            raise FileExistsError(f"Directory {filename} already exists")
         # hopefully not loop into eternity ...
         while True:
             print(f"Generating trial sequences for subject_id {subject_id}, block {block} ... ", end="\r")

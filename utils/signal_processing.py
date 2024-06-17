@@ -11,7 +11,7 @@ except FileNotFoundError:
     print("Interaural level spectrum could not be found in project. Generating ... ")
     ils = slab.Binaural.make_interaural_level_spectrum()
     print("Saving interaural level spectrum in current working directory ... ")
-    pickle.dump(ils, open('ils.pickle', 'wb'))  # save using pickle
+    pickle.dump(ils, open('../ils.pickle', 'wb'))  # save using pickle
     print("Saving interaural level spectrum is done. Please look in current working directory for ils.pickle! ")
 
 

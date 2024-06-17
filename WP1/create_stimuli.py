@@ -37,15 +37,15 @@ for stimname, stim in zip(os.listdir(stimdir), orig_stims):
     high_pitched = shift_pitch(stim, pitch_factor=high_pitch_factor)  # high pitched
     high_pitched.write(os.path.join(distractor_high_dir, digit + f"_high_pitched_factor_{high_pitch_factor}.wav"))
 
+# make targets
+modulation_freq = 30  # amplitude modulation
+
 # generate target directory
-targetdir = os.path.join(root, "targets")
+targetdir = os.path.join(root, f"targets_{modulation_freq}_Hz")
 try:
     os.mkdir(targetdir)
 except FileExistsError:
     print(f"Directory {targetdir} already exists")
-
-# make targets
-modulation_freq = 40  # amplitude modulation
 
 for stimname, stim in zip(os.listdir(stimdir), orig_stims):
     digit = stimname.split(".")[0]
