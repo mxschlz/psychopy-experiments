@@ -1,37 +1,45 @@
 # Define the instructions
-welcome = '''
-Welcome to the experiment.
+welcome1 = '''
+Willkommen zum Experiment!
+Im kommenden Verlauf des Experiments wirst Du einzelne Nummern von 1 bis 9 aus drei verschiedenen Richtungen hören. 
+In allen Durchgängen erscheinen jeweils drei verschiedene Töne. Alle drei Töne sind jeweils unterschiedliche Nummern, 
+und ein Ton ist der Zielton.
 
-You are about to hear single syllable digits from five unique spatial locations. 
-
-In some trials, one sound is the target, whereas all other sounds are distractor stimuli. The target will always be the 
-digit 5.The distractors will be random numbers, and one of them differs in frequency. 
-Please only focus on the position of the target. If the target appears in a unique location, press the according 
-number between 1 and 5. 1 is the leftmost location, 5 is the rightmost location.
-
-Press SPACE to begin.
+Drücke LEERTASTE, um weiterzublättern.
 '''
 
+welcome2 = """
+Der Zielton ist immer amplituden-moduliert, d.h. er hört sich an, als würde die Stimme
+während der Artikulation leiser und lauter werden. Diesen Ton sollst Du identifizieren und den Inhalt durch Drücken
+einer Taste zwischen 1 und 9 wiedergeben. In manchen Durchgängen ist einer der zwei weiteren Töne ein Ton, 
+welcher eine sehr hohe Tonlage besitzt. Deine Aufgabe ist es im gesamten Experiment, den Zielton durch Drücken der 
+Tasten 1 - 9 zu identifizieren.
+
+Drücke LEERTASTE, um zu beginnen. 
+"""
+
 testing = """
-The upcoming block is a testing block. Here, you can get a grasp of what is about to come in the real experiment. You
-are about to hear a couple of test trials, the recorded responses will not be relevant. Please use this phase to get
-accomodated with the experiment. After this block is over, you can ask questions regarding the experiment and report
-bugs, if there are any. Press SPACE to begin the testing block.
+Der kommende Block ist ein Testblock und dient dazu, Dich mit der Aufgabe vertraut zu machen. Du hörst nun ein Paar
+Test-Durchgänge und kannst Antworten geben, diese werden natürlich nicht gespeichert. Bitte nutze diese Phase, um so
+gut wie möglich mit dem Experiment-Setup vertraut zu werden. Nach diesem Testblock kannst Fragen an die Versuchsleitung 
+stellen oder Probleme benennen, falls etwas nicht stimmen sollte. Nach diesem Testblock geht es mit der Hauptaufgabe
+los.
+
+Drücke LEERTASTE, um zu beginnen.
 """
 
 too_slow = """
-TOO SLOW!
+ZU LANGSAM!
 """
 
 error_notification = """
-WRONG ANSWER!
+FALSCH!
 """
 
 pause = """
-The block is over. Please take rest as long as you want and press SPACE to continue.
+Der Block ist vorbei. Bitte nimm Dir eine Pause. Sobald Du weitermachen möchtest, drücke LEERTASTE.
 """
 
 end = """
-The experiment is over.
-Thank you for participating! You can call the study leader now.
+Das Experiment ist vorbei. Vielen Dank für die Teilnahme! Du kannst nun die Versuchsleitung kontaktieren.
 """
