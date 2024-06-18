@@ -33,6 +33,9 @@ def precompute_sequence(subject_id, settings):
     df = pd.read_excel(f"WP1/all_combinations_{settings['session']['n_locations']}"
                        f"_loudspeakers_{settings['session']['n_digits']}_digits.xlsx")
 
+    # retrieve sound level to adjust sounds to
+    soundlvl = settings["session"]["level"]
+
     # make copy
     df_copy = df.copy()
 
@@ -103,8 +106,9 @@ def precompute_sequence(subject_id, settings):
         print(f"Non Singleton trial block length: {df_final[df_final['SingletonPresent'] == False].__len__()}")
         print(f"Saving block with size {len(df_final)} ... ")
         file_name = f"WP1/sequences/sub-{subject_id}_block_{block}.xlsx"
+        df_final["ITI-Jitter"] = generate_balanced_jitter(df_final, iti=settings["session"]["iti"])
+        df_final["ITI-Jitter"] = round(df_final["ITI-Jitter"], 3)
         df_final.to_excel(file_name, index=False)  # Save as CSV, excluding the row index
-
         print(f"Precomputing trial sounds for subject {subject_id}, block {block} ... ", end="\r")
         sound_sequence = []
 
@@ -114,21 +118,24 @@ def precompute_sequence(subject_id, settings):
         targets = [slab.Sound.read(f"stimuli/targets/{x}") for x in os.listdir(f"stimuli/targets")]
         others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in os.listdir(f"stimuli/digits_all_250ms")]
 
+        # set equal level
+        for s, t, o in zip(singletons, targets, others):
+            s.level = soundlvl
+            t.level = soundlvl
+            o.level = soundlvl
+
         # binauralize
         singletons = [slab.Binaural(data=x) for x in singletons]
         targets = [slab.Binaural(data=x) for x in targets]
         others = [slab.Binaural(data=x) for x in others]
 
-        # retrieve sound level to adjust sounds to
-        soundlvl = settings["session"]["level"]
-
         for i, row in df_final.iterrows():
             print(f"Precompute trialsound for trial {i}, block {block} ... ", end="\r")
             # make trial sound container
             trialsound = slab.Binaural.silence(duration=settings["session"]["stimulus_duration"],
-                                             samplerate=settings["session"]["samplerate"])
+                                               samplerate=settings["session"]["samplerate"])
             # get targets
-            targetval = row["TargetDigit"]
+            targetval = int(row["TargetDigit"])
             targetsound = targets[targetval - 1]
             targetsound.level = soundlvl  # adjust level
             targetloc = row["TargetLoc"]  # get target location
@@ -143,7 +150,7 @@ def precompute_sequence(subject_id, settings):
             if row["SingletonPresent"] == 1:
                 print(f"Singleton present in trial {i}. Computing sound mixture ... ", end="\r")
                 # singleton
-                singletonval = row["SingletonDigit"]
+                singletonval = int(row["SingletonDigit"])
                 singletonsound = singletons[singletonval - 1]
                 singletonsound.level = soundlvl  # adjust level
                 singletonloc = row["SingletonLoc"]  # get target location
@@ -155,7 +162,7 @@ def precompute_sequence(subject_id, settings):
                     singletonsound_rendered.data = singletonsound_rendered[:-samplediff]
                 trialsound.data += singletonsound_rendered.data  # add to trial sound
                 # digit 2
-                digit2val = row["Non-Singleton2Digit"]
+                digit2val = int(row["Non-Singleton2Digit"])
                 digit2sound = others[digit2val - 1]
                 digit2sound.level = soundlvl  # adjust level
                 digit2loc = row["Non-Singleton2Loc"]  # get target location
@@ -170,7 +177,7 @@ def precompute_sequence(subject_id, settings):
             elif row["SingletonPresent"] == 0:
                 print(f"Singleton absent in trial {i}. Computing sound mixture ... ", end="\r")
                 # digit 1
-                digit1val = row["Non-Singleton1Digit"]
+                digit1val = int(row["Non-Singleton1Digit"])
                 digit1sound = others[digit1val - 1]
                 digit1sound.level = soundlvl  # adjust level
                 digit1loc = row["Non-Singleton1Loc"]  # get target location
@@ -182,7 +189,7 @@ def precompute_sequence(subject_id, settings):
                     digit1sound_rendered.data = digit1sound_rendered[:-samplediff]
                 trialsound.data += digit1sound_rendered.data  # add to trial sound
                 # digit 2
-                digit2val = row["Non-Singleton2Digit"]
+                digit2val = int(row["Non-Singleton2Digit"])
                 digit2sound = others[digit2val - 1]
                 digit2sound.level = soundlvl  # adjust level
                 digit2loc = row["Non-Singleton2Loc"]  # get target location
@@ -193,12 +200,32 @@ def precompute_sequence(subject_id, settings):
                     samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
                     digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
                 trialsound.data += digit2sound_rendered.data  # add to trial sound
+            # subtract level difference from final sound file
+            # trialsound.level = trialsound.level - (trialsound.level - soundlvl)
             print(f"Generated trial sound for trial {i}. Appending to sequence ... ", end="\r")
             sound_sequence.append(trialsound.ramp())  # ramp the sound file to avoid clipping
+        # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
-            sound.write(filename=f"{filename}/s_{idx}.wav")
+            sound.write(filename=f"{filename}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
 
-    print("DONE", end="\r", flush=True)
+    print("DONE", end="\r")
+
+
+def generate_balanced_jitter(df, iti, tolerance=0.001):
+    df_0 = df[df['SingletonPresent'] == 0]
+    df_1 = df[df['SingletonPresent'] == 1]
+
+    while True:
+        jitter_0 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_0))
+        jitter_1 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_1))
+
+        mean_jitter_0 = np.mean(jitter_0)
+        mean_jitter_1 = np.mean(jitter_1)
+
+        if abs(mean_jitter_0 - mean_jitter_1) < tolerance:
+            break
+
+    return pd.Series(np.concatenate([jitter_0, jitter_1]), index=df.index)
 
 
 if __name__ == '__main__':
@@ -208,4 +235,3 @@ if __name__ == '__main__':
         settings = yaml.safe_load(file)
 
     df = precompute_sequence(sub_id, settings)
-
