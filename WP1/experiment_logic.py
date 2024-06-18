@@ -13,6 +13,10 @@ class WP1Trial(Trial):
     def __init__(self, session, trial_nr, phase_durations, **kwargs):
         super().__init__(session, trial_nr, phase_durations, **kwargs)
         self.stim = Sound
+        # HACKY AND NOT RECOMMENDED --> special case to implement ITI jitter
+        # add ITI jitter to the trial
+        # self.phase_names.append("iti")
+        self.phase_durations[-1] = self.session.sequence["ITI-Jitter"].iloc[trial_nr]
 
     def draw(self):
         self.session.default_fix.draw()
@@ -23,11 +27,12 @@ class WP1Trial(Trial):
 
         # get response in phase 1
         if self.phase == 1:
-            while self.session.timer.getTime() < 0:
-                if self.current_key is not None:
-                    if self.current_key != self.session.sequence.iloc[self.trial_nr]["TargetDigit"]:
-                        self.session.display_text(text=prompts.error_notification, color=(1.0, 0.0, 0.0),
-                                                  duration=np.abs(self.session.timer.getTime()))
+            # while self.session.timer.getTime() < 0:
+            # if self.current_key is not None:
+            # if self.current_key != self.session.sequence.iloc[self.trial_nr]["TargetDigit"]:
+            # self.session.display_text(text=prompts.error_notification, color=(1.0, 0.0, 0.0),
+            # duration=np.abs(self.session.timer.getTime()))
+            pass
 
         # print too slow warning if response is collected in phase 2
         if self.phase == 2:
@@ -55,12 +60,12 @@ class WP1Session(Session):
 
     def set_block(self, block):
         self.blockdir = os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_{block}")
-        self.display_text(text=f"Initializing block {block} ... ", duration=3.0)
+        self.display_text(text=f"Initializing block {block} out of {self.blocks.__len__()} ... ", duration=3.0)
 
     def load_sequence(self):
         self.sequence = pd.read_excel(self.blockdir + ".xlsx")
 
-    def create_trials(self, n_trials, durations=(.5, .5), timing='seconds'):
+    def create_trials(self, n_trials, durations, timing='seconds'):
         self.trials = []
         for trial_nr in range(n_trials):
             trial = WP1Trial(session=self,
@@ -77,15 +82,17 @@ class WP1Session(Session):
 
     def run(self):
         # welcome the participant
-        self.display_text(text=prompts.welcome, keys="space")
+        self.display_text(text=prompts.welcome1, keys="space")
+        self.display_text(text=prompts.welcome2, keys="space")
+
         if self.test:
             self.display_text(text=prompts.testing, keys="space")
-            self.set_block(block=0)
+            self.set_block(block=3)  # intentionally choose second block
             self.load_sequence()
-            self.create_trials(n_trials=10,  # TODO: more testing trials?
-                               durations=(self.settings["session"]["stimulus_duration"],
+            self.create_trials(n_trials=15,
+                               durations=[self.settings["session"]["stimulus_duration"],
                                           self.settings["session"]["response_duration"],
-                                          self.settings["session"]["iti"]),
+                                          None],
                                timing=self.settings["session"]["timing"])
             self.start_experiment()
             for trial in self.trials:
@@ -95,9 +102,8 @@ class WP1Session(Session):
                 self.set_block(block=block)
                 self.load_sequence()
                 self.create_trials(n_trials=self.n_trials,
-                                   durations=(self.settings["session"]["stimulus_duration"],
-                                              self.settings["session"]["response_duration"],
-                                              self.settings["session"]["iti"]),
+                                   durations=[self.settings["session"]["stimulus_duration"],
+                                              self.settings["session"]["response_duration"]],
                                    timing=self.settings["session"]["timing"])
                 self.start_experiment()
                 for trial in self.trials:
