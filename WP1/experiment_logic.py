@@ -36,11 +36,10 @@ class WP1Trial(Trial):
 
         # print too slow warning if response is collected in phase 2
         if self.phase == 2:
-            if self.session.test:
-                while self.session.timer.getTime() < 0:
-                    if any(self.get_events()):
-                        self.session.display_text(text=prompts.too_slow, color=(1.0, 0.0, 0.0),
-                                                  duration=np.abs(self.session.timer.getTime()))  # red warning
+            while self.session.timer.getTime() < 0:
+                if any(self.get_events()):
+                    self.session.display_text(text=prompts.too_slow, color=(1.0, 0.0, 0.0),
+                                              duration=np.abs(self.session.timer.getTime()))  # red warning
 
 
 class WP1Session(Session):
@@ -55,12 +54,16 @@ class WP1Session(Session):
         self.sequence = pd.DataFrame
         self.logger = set_logging_level.set_level(self.settings["logging"]["level"])
         self.test = test
+        self.this_block = None
+        self.subject_id = int(self.output_str.split("-")[1])
         # slab.set_default_level(self.settings["session"]["level"])
         # print(f"Set stimulus level to {slab.sound._default_level}")
 
     def set_block(self, block):
         self.blockdir = os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_{block}")
-        self.display_text(text=f"Initializing block {block} out of {self.blocks.__len__()} ... ", duration=3.0)
+        self.display_text(text=f"Initialisiere Block {block + 1} von insgesamt {self.blocks.__len__()} Blöcken ... ",
+                          duration=3.0)
+        self.this_block = block
 
     def load_sequence(self):
         self.sequence = pd.read_excel(self.blockdir + ".xlsx")
@@ -72,7 +75,9 @@ class WP1Session(Session):
                              trial_nr=trial_nr,
                              phase_durations=durations,
                              phase_names=["stim", "response", "iti"],
-                             parameters=dict(self.sequence.iloc[trial_nr]),
+                             parameters=dict(self.sequence.iloc[trial_nr],
+                                             block=self.this_block,
+                                             subject_id=self.subject_id),
                              verbose=True,
                              timing=timing)
             sound_path = os.path.join(trial.session.blockdir, f"s_{trial_nr}.wav")  # s_0, s_1, ... .wav
@@ -103,25 +108,29 @@ class WP1Session(Session):
                 self.load_sequence()
                 self.create_trials(n_trials=self.n_trials,
                                    durations=[self.settings["session"]["stimulus_duration"],
-                                              self.settings["session"]["response_duration"]],
+                                              self.settings["session"]["response_duration"],
+                                              None],
                                    timing=self.settings["session"]["timing"])
                 self.start_experiment()
                 for trial in self.trials:
                     trial.run()
+                self.save_data()
+                self.plot_dropped_frames()
                 self.display_text(text=prompts.pause, keys="space")
-        self.display_text(text=prompts.end, keys="space")
+        self.display_text(text=prompts.end, keys="q")
 
 
 if __name__ == '__main__':
     # DEBUGGING
     sess = WP1Session(output_str='sub-99', output_dir="WP1/logs", settings_file="WP1/config.yaml")
+    sess.start_experiment()
     # utils.save_experiment(sess, output_str=sess.name)
     sess.set_block(block=0)
     sess.load_sequence()
     sess.create_trials(n_trials=sess.n_trials,
-                       durations=(sess.settings["session"]["stimulus_duration"],
+                       durations=[sess.settings["session"]["stimulus_duration"],
                                   sess.settings["session"]["response_duration"],
-                                  sess.settings["session"]["iti"]),
+                                  None],
                        timing=sess.settings["session"]["timing"])
     sess.win.close()
 
