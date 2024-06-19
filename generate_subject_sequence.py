@@ -4,7 +4,7 @@ import yaml
 import slab
 from WP1.encoding import SPACE_ENCODER
 from utils.signal_processing import lateralize, externalize
-import argparse
+from utils.utils import get_input_from_dict
 import sys
 import os
 
@@ -16,13 +16,12 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(script_dir)
 sys.path.append(project_root)
 
-parser = argparse.ArgumentParser(description='Generate subject sequence')
-parser.add_argument('--subject_id', "-s", type=int, help='Subject ID (integer)', default=99)
-args = parser.parse_args()
-sub_id = args.subject_id
+info = get_input_from_dict({"subject_id": 99})
 
 
 def precompute_sequence(subject_id, settings):
+    import time
+    start = time.time()
     subject_id = '0' + str(subject_id) if subject_id < 10 else str(subject_id)
 
     if any(str(subject_id) in s for s in os.listdir("WP1/sequences")):
@@ -207,8 +206,9 @@ def precompute_sequence(subject_id, settings):
         # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
             sound.write(filename=f"{filename}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
-
-    print("DONE", end="\r")
+    stop = time.time() / 60
+    print("DONE")
+    print(f"Total time for script running: {stop - start:.2f} minutes")
 
 
 def generate_balanced_jitter(df, iti, tolerance=0.001):
@@ -228,10 +228,9 @@ def generate_balanced_jitter(df, iti, tolerance=0.001):
     return pd.Series(np.concatenate([jitter_0, jitter_1]), index=df.index)
 
 
-if __name__ == '__main__':
-    # load settings
-    settings_path = "WP1/config.yaml"
-    with open(settings_path) as file:
-        settings = yaml.safe_load(file)
+# load settings
+settings_path = "WP1/config.yaml"
+with open(settings_path) as file:
+    settings = yaml.safe_load(file)
 
-    df = precompute_sequence(sub_id, settings)
+precompute_sequence(info["subject_id"], settings)
