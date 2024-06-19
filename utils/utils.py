@@ -1,5 +1,5 @@
 import os
-from psychopy import sound, gui
+from psychopy import sound, gui, __version__
 
 
 def get_input_from_dict(input_dict, title="Input Values"):
@@ -13,8 +13,8 @@ def get_input_from_dict(input_dict, title="Input Values"):
     Returns:
         A dictionary containing the collected input values.
     """
-
-    dlg = gui.DlgFromDict(dictionary=input_dict, title=title)
+    input_dict["PsychoPy Version"] = __version__
+    dlg = gui.DlgFromDict(dictionary=input_dict, title=title, fixed=["PsychoPy Version"])
 
     if dlg.OK:
         return input_dict  # Input values have been updated in the original dictionary
