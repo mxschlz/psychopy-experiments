@@ -48,7 +48,7 @@ class WP1Session(Session):
             print(f"output_str must be of type str, got {type(output_str)}")
             output_str = str(output_str)
         super().__init__(output_str, output_dir=output_dir, settings_file=settings_file)
-        self.blocks = range(starting_block, self.settings["session"]["n_blocks"])
+        self.blocks = range(starting_block, self.settings["session"]["n_blocks"] + 1)
         self.n_trials = self.settings["session"]["n_trials"]
         self.blockdir = str
         self.sequence = pd.DataFrame
