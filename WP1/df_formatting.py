@@ -1,35 +1,52 @@
 import pandas as pd
 import os
 import datetime
+from utils.utils import get_input_from_dict
 
+
+# get current date with seconds to make it unique
 date = datetime.datetime.now().strftime('%B_%d_%Y_%H_%M_%S')
-
-# load up dataframe
+# get subject info
+info = get_input_from_dict({"subject_id": 99})
+# some filepaths
 fp = "C:\PycharmProjects\psychopy-experiments\WP1\logs"
-fn = "sub-02_June_20_2024_12_48_11_events.xlsx"
-fp_clean = fp + "\clean"
+fp_clean = os.path.join(fp, "clean")
 results_path = "C:\PycharmProjects\psychopy-experiments\WP1\\results"
-# load dataframe
-df = pd.read_excel(os.path.join(fp, fn))
+# load up dataframe
+
+
+# get files in log dir
+fn = [x for x in os.listdir(fp) if f'sub-{info["subject_id"]}' in x]
+# filter for excel files
+fn = [x for x in fn if ".xlsx" in x]
+if len(fn) > 1:
+    files = []
+    for file in fn:
+        files.append(pd.read_excel(os.path.join(fp, file), index_col=0))
+    df = pd.concat(files, ignore_index=True)
+elif len(fn) == 1:
+    file = fn[0]
+    df = pd.read_excel(os.path.join(fp, file))
+else:
+    print("Could not find any excel files!")
 # some cleaning
 df = df.fillna(0)
 # delete non numerical space entries
-for i, row in df.iterrows():
-    if row.response == "space":
-        df.response.iloc[i] = 999
+df.loc[df["response"] == "space", "response"] = 999
 # make responses numerical
 df.response = df.response.astype(int)
 # get correct in singleton absent vs present trials
 df["iscorrect"] = df.response == df.TargetDigit
 # save dataframe
-df.to_excel(os.path.join(fp_clean, fn))
+
+df.to_excel(os.path.join(fp_clean, f"{file.split('_')[0]}_clean.xlsx"), index=False)
+
 
 # concatenate
 dfs = []
 # load up dataframe
 for file in os.listdir(fp_clean):
-    df = pd.read_excel(os.path.join(fp_clean, file), index_col=0)
-    dfs.append(pd.read_excel(os.path.join(fp_clean, file), index_col=0))
-df = pd.concat(dfs, ignore_index=True)
-df.pop("Unnamed: 0")
+    dfs.append(pd.read_excel(os.path.join(fp_clean, file)))
+df = pd.concat(dfs, ignore_index=False)
+# df.pop("Unnamed: 0")
 df.to_excel(os.path.join(results_path, f"results_{date}.xlsx"))
