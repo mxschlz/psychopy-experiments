@@ -17,6 +17,9 @@ def get_input_from_dict(input_dict, title="Input Values"):
     dlg = gui.DlgFromDict(dictionary=input_dict, title=title, fixed=["PsychoPy Version"])
 
     if dlg.OK:
+        if input_dict["subject_id"]:
+            if input_dict["subject_id"] < 10:
+                input_dict["subject_id"] = f'0{input_dict["subject_id"]}'
         return input_dict  # Input values have been updated in the original dictionary
     else:
         return None  # User canceled the dialog

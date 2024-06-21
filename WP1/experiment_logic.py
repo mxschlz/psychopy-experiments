@@ -48,7 +48,7 @@ class WP1Session(Session):
             print(f"output_str must be of type str, got {type(output_str)}")
             output_str = str(output_str)
         super().__init__(output_str, output_dir=output_dir, settings_file=settings_file)
-        self.blocks = range(starting_block, self.settings["session"]["n_blocks"] + 1)
+        self.blocks = range(starting_block, self.settings["session"]["n_blocks"])
         self.n_trials = self.settings["session"]["n_trials"]
         self.blockdir = str
         self.sequence = pd.DataFrame
@@ -61,7 +61,7 @@ class WP1Session(Session):
 
     def set_block(self, block):
         self.blockdir = os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_{block}")
-        self.display_text(text=f"Initialisiere Block {block + 1} von insgesamt {self.blocks.__len__()} Blöcken ... ",
+        self.display_text(text=f"Initialisiere Block {block+1} von insgesamt {np.max(self.blocks)+1}... ",
                           duration=3.0)
         self.this_block = block
 
@@ -115,7 +115,7 @@ class WP1Session(Session):
                 for trial in self.trials:
                     trial.run()
                 self.save_data()
-                self.plot_dropped_frames()
+                self.plot_frame_intervals()
                 self.display_text(text=prompts.pause, keys="space")
         self.display_text(text=prompts.end, keys="q")
 
