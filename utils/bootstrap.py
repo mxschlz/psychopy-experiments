@@ -3,7 +3,7 @@ import os
 
 
 results_path = 'C:\PycharmProjects\psychopy-experiments\WP1//results//'
-df = pd.read_excel(os.path.join(results_path, 'results_June_21_2024_14_16_42.xlsx'),index_col=0)
+df = pd.read_excel(os.path.join(results_path, 'results_June_21_2024_14_16_42.xlsx'), index_col=0)
 
 # Get unique subject IDs
 subject_ids = df['subject_id'].unique()

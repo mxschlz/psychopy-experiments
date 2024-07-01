@@ -12,9 +12,6 @@ info = get_input_from_dict({"subject_id": 99})
 fp = "C:\PycharmProjects\psychopy-experiments\WP1\logs"
 fp_clean = os.path.join(fp, "clean")
 results_path = "C:\PycharmProjects\psychopy-experiments\WP1\\results"
-# load up dataframe
-
-
 # get files in log dir
 fn = [x for x in os.listdir(fp) if f'sub-{info["subject_id"]}' in x]
 # filter for excel files
@@ -30,6 +27,7 @@ elif len(fn) == 1:
 else:
     print("Could not find any excel files!")
 # some cleaning
+df.response = pd.to_numeric(df.response,  errors='coerce')
 df = df.fillna(0)
 # delete non numerical space entries
 df.loc[df["response"] == "space", "response"] = 999
