@@ -61,7 +61,7 @@ class SpaceprimeSession(Session):
 
     def set_block(self, block):
         self.blockdir = os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_{block}")
-        self.display_text(text=f"Initialisiere Block {block+1} von insgesamt {np.max(self.blocks)+1}... ",
+        self.display_text(text=f"Initialisiere Block {block+1} von insgesamt {max(self.blocks)+1}... ",
                           duration=3.0)
         self.this_block = block
 
@@ -92,7 +92,7 @@ class SpaceprimeSession(Session):
 
         if self.test:
             self.display_text(text=prompts.testing, keys="space")
-            self.set_block(block=3)  # intentionally choose second block
+            self.set_block(block=3)  # intentionally choose block within
             self.load_sequence()
             self.create_trials(n_trials=15,
                                durations=[self.settings["session"]["stimulus_duration"],
@@ -116,7 +116,8 @@ class SpaceprimeSession(Session):
                     trial.run()
                 self.save_data()
                 self.plot_frame_intervals()
-                self.display_text(text=prompts.pause, keys="space")
+                if not block == max(self.blocks):
+                    self.display_text(text=prompts.pause, keys="space")
         self.display_text(text=prompts.end, keys="q")
 
 
