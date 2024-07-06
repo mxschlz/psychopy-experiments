@@ -1,6 +1,6 @@
 from exptools2.core import Trial, Session
 import os
-import WP1.prompts as prompts
+import SPACEPRIME.prompts as prompts
 import pandas as pd
 from utils import set_logging_level
 import numpy as np
@@ -9,7 +9,7 @@ import time
 from psychopy.sound import Sound
 
 
-class WP1Trial(Trial):
+class SpaceprimeTrial(Trial):
     def __init__(self, session, trial_nr, phase_durations, **kwargs):
         super().__init__(session, trial_nr, phase_durations, **kwargs)
         self.stim = Sound
@@ -42,7 +42,7 @@ class WP1Trial(Trial):
                                               duration=np.abs(self.session.timer.getTime()))  # red warning
 
 
-class WP1Session(Session):
+class SpaceprimeSession(Session):
     def __init__(self, output_str, output_dir=None, settings_file=None, starting_block=0, test=False):
         if not isinstance(output_str, str):
             print(f"output_str must be of type str, got {type(output_str)}")
@@ -71,7 +71,7 @@ class WP1Session(Session):
     def create_trials(self, n_trials, durations, timing='seconds'):
         self.trials = []
         for trial_nr in range(n_trials):
-            trial = WP1Trial(session=self,
+            trial = SpaceprimeTrial(session=self,
                              trial_nr=trial_nr,
                              phase_durations=durations,
                              phase_names=["stim", "response", "iti"],
@@ -122,7 +122,7 @@ class WP1Session(Session):
 
 if __name__ == '__main__':
     # DEBUGGING
-    sess = WP1Session(output_str='sub-99', output_dir="SPACEPRIME/logs", settings_file="SPACEPRIME/config.yaml")
+    sess = SpaceprimeSession(output_str='sub-99', output_dir="SPACEPRIME/logs", settings_file="SPACEPRIME/config.yaml")
     sess.start_experiment()
     # utils.save_experiment(sess, output_str=sess.name)
     sess.set_block(block=0)
