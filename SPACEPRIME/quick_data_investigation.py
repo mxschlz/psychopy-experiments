@@ -11,7 +11,7 @@ sns.set_theme("poster", palette="husl")
 # path for figure saving
 figpath = "C:\PycharmProjects\psychopy-experiments\WP1\\figures"
 # load up dataframe
-fp = "C:\\PycharmProjects\\psychopy-experiments\\WP1\\results\\"
+fp = "C:\\PycharmProjects\\psychopy-experiments\\SPACEPRIME\\results\\"
 file_excel = os.listdir(fp)[0]
 # read dataframe
 df = pd.read_excel(os.path.join(fp, file_excel), index_col=0)

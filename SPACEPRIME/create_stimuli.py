@@ -8,7 +8,7 @@ root = "C:\\PycharmProjects\\psychopy-experiments\\stimuli\\"
 stimdir = os.path.join(root, "digits_all_250ms")
 
 # load settings
-settings_path = "WP1/config.yaml"
+settings_path = "SPACEPRIME/config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 

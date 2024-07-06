@@ -4,7 +4,7 @@ logging:
 filepaths:
   project: C:/PycharmProjects/psychopy-experiments
   stimuli: C:/PycharmProjects/psychopy-experiments/stimuli
-  sequences: C:/PycharmProjects/psychopy-experiments/WP1/sequences
+  sequences: C:/PycharmProjects/psychopy-experiments/SPACEPRIME/sequences
 
 session:
   distractor_type: high  # can be low or high

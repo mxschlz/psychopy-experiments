@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import yaml
 import slab
-from WP1.encoding import SPACE_ENCODER
+from SPACEPRIME.encoding import SPACE_ENCODER
 from utils.signal_processing import lateralize, externalize
 from utils.utils import get_input_from_dict
 import sys
@@ -24,12 +24,12 @@ def precompute_sequence(subject_id, settings):
     start = time.time()
     subject_id = '0' + str(subject_id) if subject_id < 10 else str(subject_id)
 
-    if any(str(subject_id) in s for s in os.listdir("WP1/sequences")):
+    if any(str(subject_id) in s for s in os.listdir("SPACEPRIME/sequences")):
         raise FileExistsError(f"Sequences for sub-{subject_id} has already been created! "
                               f"Please check your sequence directory.")
 
     n_trials = settings["session"]["n_trials"]
-    df = pd.read_excel(f"WP1/all_combinations_{settings['session']['n_locations']}"
+    df = pd.read_excel(f"SPACEPRIME/all_combinations_{settings['session']['n_locations']}"
                        f"_loudspeakers_{settings['session']['n_digits']}_digits.xlsx")
 
     # retrieve sound level to adjust sounds to
@@ -42,7 +42,7 @@ def precompute_sequence(subject_id, settings):
 
     for block in range(n_blocks):
         print(f"Processing block {block}", end="\r")
-        filename = f"WP1/sequences/sub-{subject_id}_block_{block}"
+        filename = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}"
         try:
             os.mkdir(filename)
         except FileExistsError:
@@ -73,11 +73,11 @@ def precompute_sequence(subject_id, settings):
             for i, row in df_combined.iterrows():
                 if row["TargetDigit"] == row["SingletonDigit_previous"]:  # negative identity priming
                     df_combined.loc[i, "IdentityPriming"] = -1
-                if row["SingletonDigit"] == row["TargetDigit_previous"]:  # positive identity priming
+                if row["TargetDigit"] == row["TargetDigit_previous"]:  # positive identity priming
                     df_combined.loc[i, "IdentityPriming"] = 1
                 if row["TargetLoc"] == row["SingletonLoc_previous"]:  # negative spatial priming
                     df_combined.loc[i, "SpatialPriming"] = -1
-                if row["SingletonLoc"] == row["TargetLoc_previous"]:  # positive spatial priming
+                if row["TargetLoc"] == row["TargetLoc_previous"]:  # positive spatial priming
                     df_combined.loc[i, "SpatialPriming"] = 1
 
             # check for roughly equal amount of priming cases
@@ -104,7 +104,7 @@ def precompute_sequence(subject_id, settings):
         print(f"Singleton trial block length: {df_final[df_final['SingletonPresent'] == True].__len__()}")
         print(f"Non Singleton trial block length: {df_final[df_final['SingletonPresent'] == False].__len__()}")
         print(f"Saving block with size {len(df_final)} ... ")
-        file_name = f"WP1/sequences/sub-{subject_id}_block_{block}.xlsx"
+        file_name = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}.xlsx"
         df_final["ITI-Jitter"] = generate_balanced_jitter(df_final, iti=settings["session"]["iti"])
         df_final["ITI-Jitter"] = round(df_final["ITI-Jitter"], 3)
         df_final.to_excel(file_name, index=False)  # Save as CSV, excluding the row index
@@ -229,7 +229,7 @@ def generate_balanced_jitter(df, iti, tolerance=0.001):
 
 
 # load settings
-settings_path = "WP1/config.yaml"
+settings_path = "SPACEPRIME/config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 

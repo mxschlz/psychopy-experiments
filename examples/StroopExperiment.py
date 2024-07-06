@@ -67,5 +67,5 @@ class StroopSession(Session):
 
 if __name__ == '__main__':
 
-    my_sess = StroopSession(output_str='sub-01', output_dir='../WP1/logs', settings_file='../WP1/config.yaml', n_trials=10)
+    my_sess = StroopSession(output_str='sub-01', output_dir='../SPACEPRIME/logs', settings_file='../SPACEPRIME/config.yaml', n_trials=10)
     my_sess.run()

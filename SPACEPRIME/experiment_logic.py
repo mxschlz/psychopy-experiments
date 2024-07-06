@@ -122,7 +122,7 @@ class WP1Session(Session):
 
 if __name__ == '__main__':
     # DEBUGGING
-    sess = WP1Session(output_str='sub-99', output_dir="WP1/logs", settings_file="WP1/config.yaml")
+    sess = WP1Session(output_str='sub-99', output_dir="SPACEPRIME/logs", settings_file="SPACEPRIME/config.yaml")
     sess.start_experiment()
     # utils.save_experiment(sess, output_str=sess.name)
     sess.set_block(block=0)

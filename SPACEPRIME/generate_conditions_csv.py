@@ -3,7 +3,7 @@ from itertools import permutations
 import yaml
 
 # load settings
-settings_path = "WP1/config.yaml"
+settings_path = "SPACEPRIME/config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
@@ -41,7 +41,7 @@ def generate_combinations(settings, save=True):
         print(f"Duplicates found: {duplicate}")
         # clean up
         df = df.fillna(0).astype(int)
-        writer = f"WP1/all_combinations_{len(locations)}_loudspeakers_{len(digits)}_digits.xlsx"
+        writer = f"SPACEPRIME/all_combinations_{len(locations)}_loudspeakers_{len(digits)}_digits.xlsx"
         try:
             df.to_excel(writer, index=False)
         except ValueError:
