@@ -10,11 +10,11 @@ session:
   distractor_type: high  # can be low or high
   n_locations: 3
   n_digits: 9
-  n_trials: 300  # number of trials per block
+  n_trials: 225  # number of trials per block
   stimulus_duration: 0.25
   response_duration: 1.25
   iti: 1.0
-  n_blocks: 6
+  n_blocks: 8
   level: 50  # not the final volume but choose this to avoid clipping audio data
   samplerate: 44100
   timing: seconds
