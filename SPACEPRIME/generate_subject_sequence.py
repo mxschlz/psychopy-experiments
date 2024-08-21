@@ -3,7 +3,7 @@ import numpy as np
 import yaml
 import slab
 from SPACEPRIME.encoding import SPACE_ENCODER
-from utils.signal_processing import lateralize, externalize
+from utils.signal_processing import lateralize, externalize, snr_sound_mixture_two_ears
 from utils.utils import get_input_from_dict
 import sys
 import os
@@ -19,10 +19,12 @@ sys.path.append(project_root)
 info = get_input_from_dict({"subject_id": 99})
 
 
-def precompute_sequence(subject_id, settings):
+def precompute_sequence(subject_id, settings, compute_snr=True):
     import time
-    start = time.time()
-    subject_id = '0' + str(subject_id) if subject_id < 10 else str(subject_id)
+    if compute_snr:
+        snr_container = dict(snr_left=[], snr_right=[], signal_loc=[])
+    start = time.time() / 60
+    # subject_id = '0' + str(subject_id) if subject_id < 10 else str(subject_id)
 
     if any(str(subject_id) in s for s in os.listdir("SPACEPRIME/sequences")):
         raise FileExistsError(f"Sequences for sub-{subject_id} has already been created! "
@@ -114,8 +116,8 @@ def precompute_sequence(subject_id, settings):
         # load sounds
         singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
                        for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
-        targets = [slab.Sound.read(f"stimuli/targets/{x}") for x in os.listdir(f"stimuli/targets")]
-        others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in os.listdir(f"stimuli/digits_all_250ms")]
+        targets = [slab.Sound.read(f"stimuli/targets/{x}") for x in os.listdir(f"../stimuli/targets")]
+        others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in os.listdir(f"../stimuli/digits_all_250ms")]
 
         # set equal level
         for s, t, o in zip(singletons, targets, others):
@@ -203,6 +205,23 @@ def precompute_sequence(subject_id, settings):
             # trialsound.level = trialsound.level - (trialsound.level - soundlvl)
             print(f"Generated trial sound for trial {i}. Appending to sequence ... ", end="\r")
             sound_sequence.append(trialsound.ramp())  # ramp the sound file to avoid clipping
+            # compute snr
+            if compute_snr:
+                signal = targetsound_rendered
+                if row["SingletonPresent"] == 0:
+                    noise = digit1sound_rendered + digit2sound_rendered
+                elif row["SingletonPresent"] == 1:
+                    noise = singletonsound_rendered + digit2sound_rendered
+                snr_left, snr_right = snr_sound_mixture_two_ears(signal, noise)
+                snr_container["snr_left"].append(snr_left[0])
+                snr_container["snr_right"].append(snr_right[0])
+                azimuth, _ = SPACE_ENCODER[targetloc]
+                snr_container["signal_loc"].append(azimuth)
+
+        if compute_snr:
+            df = pd.DataFrame.from_dict(snr_container)
+            file_name_snr = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
+            df.to_excel(file_name_snr, index=False)
         # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
             sound.write(filename=f"{filename}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
@@ -233,4 +252,6 @@ settings_path = "SPACEPRIME/config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
+
 precompute_sequence(info["subject_id"], settings)
+# precompute_sequence(10, settings)
