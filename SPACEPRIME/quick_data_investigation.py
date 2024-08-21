@@ -6,7 +6,7 @@ from utils.stats import permutation_test
 import matplotlib
 matplotlib.use("Qt5Agg")
 plt.ion()
-sns.set_theme("poster", palette="husl")
+
 
 # path for figure saving
 figpath = "C:\PycharmProjects\psychopy-experiments\WP1\\figures"
@@ -36,3 +36,6 @@ plt.close()
 # identity priming reaction time
 sns.barplot(data=results, y=results.rt, hue=results.IdentityPriming)
 plt.close()
+
+
+barplot = sns.barplot(data=results, x="TargetLoc", y="iscorrect")
