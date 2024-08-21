@@ -49,7 +49,8 @@ def lateralize(sound, azimuth, ils=ils):
     else:
         ild = binaural_stim.azimuth_to_ild(azimuth, ils=ils)
         itd = binaural_stim.azimuth_to_itd(azimuth)
-        stim = binaural_stim.itd(itd).ild(ild)
+        # stim = binaural_stim.itd(itd).ild(ild)
+        stim = binaural_stim.itd(itd)
     return stim
 
 
@@ -162,6 +163,23 @@ def externalize(sound, azi, ele):
     return hrtf.apply(idx[0], sound)  # Apply the HRTF to the sound
 
 
+def snr(signal, noise):
+    rms_signal = np.sqrt(np.mean(signal**2, axis=0))
+    rms_noise = np.sqrt(np.mean(noise**2, axis=0))
+    return rms_signal/rms_noise
+
+
+def snr_sound_mixture_two_ears(signal, noise):
+    signal_left = signal.left
+    signal_right = signal.right
+    noise_left = noise.left
+    noise_right = noise.right
+    snr_left = snr(signal_left, noise_left)
+    snr_right = snr(signal_right, noise_right)
+
+    return snr_left, snr_right
+
+
 if __name__ == '__main__':
     # load up sound
     input_file = "C:\\PycharmProjects\\psychopy-experiments\\stimuli\\digits_all_250ms\\1.wav"
@@ -184,4 +202,4 @@ if __name__ == '__main__':
     modulated = modulate_amplitude(sound, modulation_freq=30)
 
     # lateralize at given azimuth
-    lagged = lateralize(sound, azimuth=azi)
+    lagged = lateralize(sound, azimuth=azi[0])
