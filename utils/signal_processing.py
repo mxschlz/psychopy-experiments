@@ -47,7 +47,7 @@ def lateralize(sound, azimuth, ils=ils):
     if not isinstance(azimuth, int):
         raise ValueError("Azimuth must be an integer!")
     else:
-        ild = binaural_stim.azimuth_to_ild(azimuth, ils=ils)
+        # ild = binaural_stim.azimuth_to_ild(azimuth, ils=ils)
         itd = binaural_stim.azimuth_to_itd(azimuth)
         # stim = binaural_stim.itd(itd).ild(ild)
         stim = binaural_stim.itd(itd)
@@ -130,7 +130,7 @@ def modulate_amplitude(sound, modulation_freq):
     return slab.Sound(data=y_modulated, samplerate=sr)
 
 
-def externalize(sound, azi, ele):
+def spatialize(sound, azi, ele):
     """
     Convolves a sound with a head-related transfer function (HRTF) to create
     a spatially localized sound.
@@ -186,12 +186,12 @@ if __name__ == '__main__':
     sound = slab.Sound.read(input_file)
 
     # coordinates
-    azi = [-90, -45, 0, 45, 90]
+    azi = [-90, 0,  90]
     ele = 0
 
     # externalize
     for az in azi:
-        ext = externalize(sound, azi=az, ele=ele)
+        ext = spatialize(sound, azi=az, ele=ele)
         ext.play()
 
     # shift pitch
