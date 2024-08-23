@@ -109,7 +109,7 @@ class SpaceprimeSession(Session):
                 self.create_trials(n_trials=self.n_trials,
                                    durations=[self.settings["session"]["stimulus_duration"],
                                               self.settings["session"]["response_duration"],
-                                              None],
+                                              None],  # this is hacky and usually not recommended (for ITI Jitter)
                                    timing=self.settings["session"]["timing"])
                 self.start_experiment()
                 for trial in self.trials:
