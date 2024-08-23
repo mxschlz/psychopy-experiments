@@ -1,12 +1,12 @@
 logging:
-  level: DEBUG
+  level: DEBUG  # choose which logging level you want
 
-filepaths:
+filepaths:  # soome relevant filepaths
   project: C:/PycharmProjects/psychopy-experiments
   stimuli: C:/PycharmProjects/psychopy-experiments/stimuli
   sequences: C:/PycharmProjects/psychopy-experiments/SPACEPRIME/sequences
 
-session:
+session:  # these params are relevant for the generation of the possible combinations excel sheet or trial sequence
   distractor_type: high  # can be low or high
   n_locations: 3
   n_digits: 9
@@ -19,9 +19,9 @@ session:
   samplerate: 44100
   timing: seconds
 
-preferences:
+preferences:  # set some preferences
   general:
-    audioLib: sounddevice
+    audioLib: sounddevice  # define sound device. Possible options can be drawn from PsychoPy homepage
     units: deg
 
 window:
