@@ -1,5 +1,5 @@
 logging:
-  level: DEBUG  # choose which logging level you want
+  level: DEBUG  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
 
 filepaths:  # soome relevant filepaths
   project: C:/PycharmProjects/psychopy-experiments
@@ -14,10 +14,22 @@ session:  # these params are relevant for the generation of the possible combina
   stimulus_duration: 0.25
   response_duration: 1.25
   iti: 1.0
-  n_blocks: 8
+  n_blocks: 2
   level: 50  # not the final volume but choose this to avoid clipping audio data
   samplerate: 44100
   timing: seconds
+
+trial_sequence:
+  conditions: [1, 2, 3]  # C, NP and PP
+  prop_c: 0.6  # 60 % C
+  prop_np: 0.2  # 20 % NP
+  prop_pp: 0.2  #  20 % PP
+  rule_violation_factor: 1000
+  num_generations: 3000  # 3000 iterations for genetic algorithm
+  num_parents_mating: 10  #
+  sol_per_pop: 200  # 200 children per generation
+  keep_parents: 2  # Elitism
+  mutation_percent_genes: 5
 
 preferences:  # set some preferences
   general:
