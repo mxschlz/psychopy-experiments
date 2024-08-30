@@ -25,7 +25,7 @@ trial_sequence:
   prop_np: 0.2  # 20 % NP
   prop_pp: 0.2  #  20 % PP
   rule_violation_factor: 1000
-  num_generations: 3000  # 3000 iterations for genetic algorithm
+  num_generations: 5000  # 3000 iterations for genetic algorithm
   num_parents_mating: 10  #
   sol_per_pop: 200  # 200 children per generation
   keep_parents: 2  # Elitism
@@ -52,7 +52,7 @@ monitor:
   gamma: 1
 
 mouse:
-  visible: False
+  visible: True
 
 eyetracker:
   model: eyelink
