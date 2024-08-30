@@ -5,6 +5,7 @@ import random
 from collections import Counter
 import seaborn as sns
 import logging
+import heapq
 
 
 def make_pygad_trial_sequence(fig_path, num_trials=225, conditions=[1, 2, 3], prop_c=0.6, prop_np=0.2, prop_pp=0.2,
@@ -56,7 +57,8 @@ def make_pygad_trial_sequence(fig_path, num_trials=225, conditions=[1, 2, 3], pr
                            parent_selection_type="sss",
                            keep_parents=keep_parents,  # Elitism: keep top parents
                            mutation_type="random",
-                           mutation_percent_genes=mutation_percent_genes
+                           mutation_percent_genes=mutation_percent_genes,
+                           suppress_warnings=True
                            )
 
     ga_instance.run()
@@ -106,8 +108,8 @@ def insert_singleton_present_trials(sequence, fig_path):
         sp_indices = get_element_indices(copy, element="SP")
         distances_sp = np.diff(sp_indices)
         occurrences = Counter(distances_sp)
-        keys = list(occurrences.keys())
-        if occurrences[keys[0]] < occurrences[keys[1]] + occurrences[keys[2]]:
+        top_three_keys = heapq.nlargest(3, occurrences, key=occurrences.get)
+        if occurrences[top_three_keys[0]] < occurrences[top_three_keys[1]] + occurrences[top_three_keys[2]]:
             logging.info(f"Found the following occurrences of sp distances: {list(occurrences.items())}.")
             break
         else:
