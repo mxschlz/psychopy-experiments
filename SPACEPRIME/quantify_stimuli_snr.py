@@ -3,7 +3,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 plt.ion()
 
-seq_fp = "C:\PycharmProjects\psychopy-experiments\SPACEPRIME\sequences\sub-11_block_0_snr.xlsx"
+seq_fp = "C:\PycharmProjects\psychopy-experiments\SPACEPRIME\sequences\sub-999_block_0_snr.xlsx"
 
 df = pd.read_excel(seq_fp)
 mosaic = """
