@@ -5,7 +5,6 @@ import slab
 from SPACEPRIME.encoding import SPACE_ENCODER
 from utils.signal_processing import spatialize, snr_sound_mixture_two_ears
 from utils.utils import get_input_from_dict
-from utils import set_logging_level
 from SPACEPRIME.trial_sequence_pygad import (make_pygad_trial_sequence, insert_singleton_present_trials,
                                              get_element_indices, print_final_traits)
 import os
@@ -14,18 +13,12 @@ import matplotlib.pyplot as plt
 import logging
 
 
-# info = get_input_from_dict({"subject_id": 99})
+info = get_input_from_dict({"subject_id": 99})
 
 # load settings
 settings_path = "SPACEPRIME/config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
-
-# TODO: debug precompute_sequence()
-# temporary
-subject_id = 999
-logging_level = "INFO"
-compute_snr = True
 
 
 def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=True):
@@ -60,9 +53,9 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         try:
             os.mkdir(dirname)
         except FileExistsError:
-            raise FileExistsError(f"Directory {dirname} already exists")
+            logging.warning(FileExistsError(f"Directory {dirname} already exists! Moving on ... "))
         sequence, sequence_labels, fitness = make_pygad_trial_sequence(
-            fig_path=settings["filepaths"]["sequences"] + "/logs" + f"/sub-{subject_id}_sequence_fitness.png",
+            fig_path=settings["filepaths"]["sequences"] + "/logs" + f"/sub-{subject_id}_block-{block}sequence_fitness.png",
             num_trials=n_trials,
             conditions=settings["trial_sequence"]["conditions"],
             prop_c=settings["trial_sequence"]["prop_c"],
@@ -77,11 +70,10 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         )
         sequence_final = insert_singleton_present_trials(sequence_labels,
                                                          fig_path=settings["filepaths"]["sequences"] + "/logs" +
-                                                                  f"/sub-{subject_id}_sequence_hist_sp_trials.png")
+                                                                  f"/sub-{subject_id}_sequence_block-{block}_hist_sp_trials.png")
 
         c_indices = get_element_indices(sequence_final, element="C")
         distances_c = np.diff(c_indices)
-
         # plot the stuff
         sns.histplot(x=distances_c)
         plt.title("Histogram of distances between C trials")
@@ -98,6 +90,10 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         prev_singleton_loc = None
         # iterate over sequence
         for i, element in enumerate(sequence_final):
+            if i == 0:
+                if "C" not in element:
+                    raise ValueError("First trial is not a control trial. This is a very rare occasion, please restart "
+                                     "sequence generation!")
             if i > 0:
                 previous_element = sequence_final[i - 1]
             else:
@@ -107,9 +103,12 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                 sample = df[df["SingletonPresent"] == select_singleton_present].sample()
                 # set previous singleton loc and digit to None when previous trial was SA and current trial is SA too
                 if i > 0:
+                    # some emergency operations in case the trial sequence deviates from expectancies
                     if "SP" not in element and "SP" not in previous_element:
                         prev_singleton_loc = None
                         prev_singleton_digit = None
+                    if "NP" in element and "NP" in previous_element:
+                        element = element.replace("NP", "C")
                 # the following are the conditions of negative, no, and positive priming
                 if "C" in element:
                     if (
@@ -145,24 +144,25 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
             prev_target_loc = sample["TargetLoc"].values[0]
             prev_singleton_loc = sample["SingletonLoc"].values[0]
 
-            df_final = trial_sequence._append(sample)
+            trial_sequence = trial_sequence._append(sample)
             logging.debug(
-                f"Appended sample to trial sequence. Length of current trial sequence: {df_final.__len__()}")
+                f"Appended sample to trial sequence. Length of current trial sequence: {trial_sequence.__len__()}")
 
-        df_final.reset_index(drop=True, inplace=True)
-        print_final_traits(df_final)
-        df_final["ITI-Jitter"] = generate_balanced_jitter(df_final, iti=settings["session"]["iti"])
-        df_final["ITI-Jitter"] = round(df_final["ITI-Jitter"], 3)
+        trial_sequence.reset_index(drop=True, inplace=True)
+        print_final_traits(trial_sequence)
+        trial_sequence["ITI-Jitter"] = generate_balanced_jitter(trial_sequence, iti=settings["session"]["iti"])
+        trial_sequence["ITI-Jitter"] = round(trial_sequence["ITI-Jitter"], 3)
         file_name = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}.xlsx"
-        df_final.to_excel(file_name, index=False)  # Save as CSV, excluding the row index
+        trial_sequence.to_excel(file_name, index=False)  # Save as CSV, excluding the row index
         logging.info(f"Precomputing trial sounds for subject {subject_id}, block {block} ... ")
-        sound_sequence = []
 
+        sound_sequence = []
         # load sounds
         singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
                       for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
-        targets = [slab.Sound.read(f"stimuli/targets/{x}") for x in os.listdir(f"../stimuli/targets")]
-        others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in os.listdir(f"../stimuli/digits_all_250ms")]
+        targets = [slab.Sound.read(f"stimuli/targets/{x}") for x in os.listdir(f"stimuli/targets")]
+        others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in
+                  os.listdir(f"stimuli/digits_all_250ms")]
 
         # set equal level
         for s, t, o in zip(singletons, targets, others):
@@ -175,7 +175,7 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         targets = [slab.Binaural(data=x) for x in targets]
         others = [slab.Binaural(data=x) for x in others]
 
-        for i, row in df_final.iterrows():
+        for i, row in trial_sequence.iterrows():
             logging.debug(f"Precompute trialsound for trial {i}, block {block} ... ")
             # make trial sound container
             trialsound = slab.Binaural.silence(duration=settings["session"]["stimulus_duration"],
@@ -264,15 +264,15 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                 snr_container["signal_loc"].append(azimuth)
 
         if compute_snr:
-            df = pd.DataFrame.from_dict(snr_container)
+            df_snr = pd.DataFrame.from_dict(snr_container)
             file_name_snr = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
-            df.to_excel(file_name_snr, index=False)
+            df_snr.to_excel(file_name_snr, index=False)
         # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
             sound.write(filename=f"{dirname}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
     stop = time.time() / 60
     logging.info("DONE")
-    logging.info(f"Total time for script running: {stop - start:.2f} minutes")
+    logging.info(f"Total time for block {block} script running: {stop - start:.2f} minutes")
 
 
 def generate_balanced_jitter(df, iti, tolerance=0.001):
@@ -292,5 +292,4 @@ def generate_balanced_jitter(df, iti, tolerance=0.001):
     return pd.Series(np.concatenate([jitter_0, jitter_1]), index=df.index)
 
 
-if __name__ == "__main__":
-    precompute_sequence(subject_id=subject_id, settings=settings)
+precompute_sequence(subject_id=info["subject_id"], settings=settings)
