@@ -8,7 +8,7 @@ import logging
 import heapq
 
 
-def make_pygad_trial_sequence(fig_path, num_trials=225, conditions=[1, 2, 3], prop_c=0.6, prop_np=0.2, prop_pp=0.2,
+def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=[1, 2, 3], prop_c=0.6, prop_np=0.2, prop_pp=0.2,
                               rule_violation_factor=1000, num_generations=3000, num_parents_mating=10,
                               sol_per_pop=200, keep_parents=2, mutation_percent_genes=5):
     # Define Trial Parameters
@@ -81,7 +81,7 @@ def make_pygad_trial_sequence(fig_path, num_trials=225, conditions=[1, 2, 3], pr
     return solution, sequence_labels, solution_fitness
 
 
-def insert_singleton_present_trials(sequence, fig_path):
+def insert_singleton_present_trials(sequence, fig_path=None):
     while True:
         copy = sequence.copy()
         # Calculate the desired number of "SingletonPresent" == 1 trials
