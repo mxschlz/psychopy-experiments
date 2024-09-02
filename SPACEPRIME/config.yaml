@@ -18,6 +18,14 @@ session:  # these params are relevant for the generation of the possible combina
   level: 50  # not the final volume but choose this to avoid clipping audio data
   samplerate: 44100
   timing: seconds
+  response_device: mouse  # can be mouse or keypad
+  fixation_type: circle  # can be circle or cross
+
+numpad:
+  digits: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  width: 15
+  height: 15
+  spacing: 0
 
 trial_sequence:
   conditions: [1, 2, 3]  # C, NP and PP
