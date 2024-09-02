@@ -96,7 +96,7 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                                     f"This is a very rare occasion and will be fixed. \n"
                                     f"Old first trial: {element} \n"
                                     f"New first trial: C")
-                    element = "C_SP"
+                    element = "C_SP"  # Just to be sure in case i + 1 is a NP trial
             if i > 0:
                 previous_element = sequence_final[i - 1]
             else:
@@ -273,9 +273,9 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
             sound.write(filename=f"{dirname}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
-    stop = time.time() / 60
+        stop = time.time() / 60
     logging.info("DONE")
-    logging.info(f"Total time for block {block} script running: {stop - start:.2f} minutes")
+    logging.info(f"Total script running time: {stop - start:.2f} minutes")
 
 
 def generate_balanced_jitter(df, iti, tolerance=0.001):
