@@ -92,8 +92,11 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         for i, element in enumerate(sequence_final):
             if i == 0:
                 if "C" not in element:
-                    raise ValueError("First trial is not a control trial. This is a very rare occasion, please restart "
-                                     "sequence generation!")
+                    logging.warning(f"First trial is not a control trial. "
+                                    f"This is a very rare occasion and will be fixed. \n"
+                                    f"Old first trial: {element} \n"
+                                    f"New first trial: C")
+                    element = "C_SP"
             if i > 0:
                 previous_element = sequence_final[i - 1]
             else:
