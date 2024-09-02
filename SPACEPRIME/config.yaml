@@ -14,7 +14,7 @@ session:  # these params are relevant for the generation of the possible combina
   stimulus_duration: 0.25
   response_duration: 1.25
   iti: 1.0
-  n_blocks: 2
+  n_blocks: 8
   level: 50  # not the final volume but choose this to avoid clipping audio data
   samplerate: 44100
   timing: seconds
