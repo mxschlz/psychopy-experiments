@@ -7,7 +7,7 @@ SET CONDA_ENV=psypy
 SET PROJECT_DIR=C:\PycharmProjects\psychopy-experiments
 
 :: Replace with the actual name of your Python script
-SET PYTHON_SCRIPT=run_WP1.py
+SET PYTHON_SCRIPT=run_Spaceprime.py
 
 :: Activate the Anaconda environment
 CALL conda activate %CONDA_ENV%
