@@ -5,7 +5,6 @@ import pandas as pd
 from utils import set_logging_level
 import numpy as np
 import time
-
 from psychopy.sound import Sound
 
 
@@ -19,7 +18,11 @@ class SpaceprimeTrial(Trial):
         self.phase_durations[-1] = self.session.sequence["ITI-Jitter"].iloc[trial_nr]
 
     def draw(self):
-        self.session.default_fix.draw()
+        # do stuff independent of phases
+        if self.session.response_device == "mouse":
+            self.session.display_response_box()
+        elif self.session.response_device == "keypad":
+            self.session.default_fix.draw()
         # play stimulus in phase 0
         if self.phase == 0:
             self.stim.play()
@@ -37,7 +40,7 @@ class SpaceprimeTrial(Trial):
         # print too slow warning if response is collected in phase 2
         if self.phase == 2:
             while self.session.timer.getTime() < 0:
-                if any(self.get_events()):
+                if any(self.get_events()) or any(self.session.mouse.getPressed()):
                     self.session.display_text(text=prompts.too_slow, color=(1.0, 0.0, 0.0),
                                               duration=np.abs(self.session.timer.getTime()))  # red warning
 
@@ -59,6 +62,10 @@ class SpaceprimeSession(Session):
         # slab.set_default_level(self.settings["session"]["level"])
         # print(f"Set stimulus level to {slab.sound._default_level}")
 
+    def display_response_box(self):
+        for stimulus in self.virtual_response_box:
+            stimulus.draw()
+
     def set_block(self, block):
         self.blockdir = os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_{block}")
         self.display_text(text=f"Initialisiere Block {block+1} von insgesamt {max(self.blocks)+1}... ",
@@ -72,14 +79,14 @@ class SpaceprimeSession(Session):
         self.trials = []
         for trial_nr in range(n_trials):
             trial = SpaceprimeTrial(session=self,
-                             trial_nr=trial_nr,
-                             phase_durations=durations,
-                             phase_names=["stim", "response", "iti"],
-                             parameters=dict(self.sequence.iloc[trial_nr],
-                                             block=self.this_block,
-                                             subject_id=self.subject_id),
-                             verbose=True,
-                             timing=timing)
+                                    trial_nr=trial_nr,
+                                    phase_durations=durations,
+                                    phase_names=["stim", "response", "iti"],
+                                    parameters=dict(self.sequence.iloc[trial_nr],
+                                                    block=self.this_block,
+                                                    subject_id=self.subject_id),
+                                    verbose=True,
+                                    timing=timing)
             sound_path = os.path.join(trial.session.blockdir, f"s_{trial_nr}.wav")  # s_0, s_1, ... .wav
             trial.stim = Sound(sound_path)
             # trial.stim = slab.Binaural.read(sound_path)
@@ -92,7 +99,7 @@ class SpaceprimeSession(Session):
 
         if self.test:
             self.display_text(text=prompts.testing, keys="space")
-            self.set_block(block=3)  # intentionally choose block within
+            self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
             self.create_trials(n_trials=15,
                                durations=[self.settings["session"]["stimulus_duration"],
@@ -122,18 +129,40 @@ class SpaceprimeSession(Session):
 
 
 if __name__ == '__main__':
+    import psychopy
     # DEBUGGING
-    sess = SpaceprimeSession(output_str='sub-99', output_dir="SPACEPRIME/logs", settings_file="SPACEPRIME/config.yaml")
-    sess.start_experiment()
-    # utils.save_experiment(sess, output_str=sess.name)
-    sess.set_block(block=0)
+    sess = SpaceprimeSession(output_str='sub-999', output_dir="SPACEPRIME/logs", settings_file="SPACEPRIME/config.yaml")
+    # sess.display_text(text=prompts.testing, keys="space")
+    sess.set_block(block=1)  # intentionally choose block within
     sess.load_sequence()
-    sess.create_trials(n_trials=sess.n_trials,
+    sess.create_trials(n_trials=15,
                        durations=[sess.settings["session"]["stimulus_duration"],
                                   sess.settings["session"]["response_duration"],
                                   None],
                        timing=sess.settings["session"]["timing"])
-    sess.win.close()
+    sess.start_experiment()
+    sess.display_response_box()
+    #for trial in sess.trials:
+        #trial.run()
+    sess.win.flip()
 
-    # sess.run()
-    # sess.quit()
+    while True:
+        # Handle mouse clicks
+        for i, stimulus in enumerate(sess.virtual_response_box):  # skip the rectangle (i==0)
+            if i == 0:
+                continue
+            if stimulus.contains(sess.mouse):
+                print("Mouse position recognized")
+                stimulus.color = "red"
+
+                # sess.win.callOnFlip(change_color)  # Schedule color change for next flip
+                # show feedback by digit color change
+
+            # sess.mouse.clickReset()  # Update mouse position
+            # sess.win.flip()  # Flip the window to display any changes
+        event = psychopy.event.getKeys()
+        if len(event) > 0:
+            sess.win.close()
+            break
+    #time.sleep(5)
+    # sess.win.close()
