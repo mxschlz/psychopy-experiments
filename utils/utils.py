@@ -1,5 +1,7 @@
 import os
 from psychopy import sound, gui, __version__
+import pandas as pd
+import numpy as np
 
 
 def get_input_from_dict(input_dict, title="Input Values"):
@@ -53,6 +55,23 @@ def load_stimuli(stimdir):
         stim_fp = os.path.join(stimdir, stimname)
         stimulus_pool.append(sound.Sound(stim_fp))
     return stimulus_pool
+
+
+def generate_balanced_jitter(df, iti, tolerance=0.001):
+    df_0 = df[df['SingletonPresent'] == 0]
+    df_1 = df[df['SingletonPresent'] == 1]
+
+    while True:
+        jitter_0 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_0))
+        jitter_1 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_1))
+
+        mean_jitter_0 = np.mean(jitter_0)
+        mean_jitter_1 = np.mean(jitter_1)
+
+        if abs(mean_jitter_0 - mean_jitter_1) < tolerance:
+            break
+
+    return pd.Series(np.concatenate([jitter_0, jitter_1]), index=df.index)
 
 
 if __name__ == '__main__':
