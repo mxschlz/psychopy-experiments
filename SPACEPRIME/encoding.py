@@ -15,3 +15,11 @@ RESPONSE_ENCODER = {
     "up": 8,
     "pageup": 9
 }
+
+EEG_TRIGGER_MAP = {
+    "block_onset": 1,
+    "start_experiment": 2,
+    "end_experiment": 3,
+    "response": 4,
+    "lol": 5
+}
