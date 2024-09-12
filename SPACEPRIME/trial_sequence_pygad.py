@@ -73,10 +73,11 @@ def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=[1, 2, 3
                  f"Positive priming trials: {solution.tolist().count(3)} ")
     sequence_labels = ["C" if x == 1 else "NP" if x == 2 else "PP" for x in list(solution)]  # 1 C, 2 NP, 3 PP
     if fig_path:
-        ga_instance.plot_fitness(save_dir=fig_path,
-                                 title=f"Trial sequence fitness: {round(solution_fitness, 5)}",
-                                 color="black")
-        plt.close()
+        pass
+        #ga_instance.plot_fitness(save_dir=fig_path,
+                                 #title=f"Trial sequence fitness: {round(solution_fitness, 5)}",
+                                 #color="black")
+        #plt.close()
 
     return solution, sequence_labels, solution_fitness
 
