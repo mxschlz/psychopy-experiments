@@ -5,13 +5,13 @@ import numpy as np
 
 
 try:
-    ils = pickle.load(open('ils.pickle', 'rb'))  # load pickle
+    ils = pickle.load(open('../utils/ils.pickle', 'rb'))  # load pickle
     print("Interaural level spectrum found. Loading ... ")
 except FileNotFoundError:
     print("Interaural level spectrum could not be found in project. Generating ... ")
     ils = slab.Binaural.make_interaural_level_spectrum()
     print("Saving interaural level spectrum in current working directory ... ")
-    pickle.dump(ils, open('../ils.pickle', 'wb'))  # save using pickle
+    pickle.dump(ils, open('ils.pickle', 'wb'))  # save using pickle
     print("Saving interaural level spectrum is done. Please look in current working directory for ils.pickle! ")
 
 
@@ -163,9 +163,13 @@ def spatialize(sound, azi, ele):
     return hrtf.apply(idx[0], sound)  # Apply the HRTF to the sound
 
 
+def rms(signal):
+    return np.sqrt(np.mean(signal**2, axis=0))
+
+
 def snr(signal, noise):
-    rms_signal = np.sqrt(np.mean(signal**2, axis=0))
-    rms_noise = np.sqrt(np.mean(noise**2, axis=0))
+    rms_signal = rms(signal)
+    rms_noise = rms(noise)
     return rms_signal/rms_noise
 
 
