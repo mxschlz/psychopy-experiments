@@ -3,8 +3,8 @@ import numpy as np
 import yaml
 import slab
 from SPACEPRIME.encoding import SPACE_ENCODER
-from utils.signal_processing import spatialize, snr_sound_mixture_two_ears
-from utils.utils import get_input_from_dict
+from utils.signal_processing import spatialize, snr_sound_mixture_two_ears, rms
+from utils.utils import get_input_from_dict, generate_balanced_jitter
 from SPACEPRIME.trial_sequence_pygad import (make_pygad_trial_sequence, insert_singleton_present_trials,
                                              get_element_indices, print_final_traits)
 import os
@@ -16,7 +16,7 @@ import logging
 info = get_input_from_dict({"subject_id": 99})
 
 # load settings
-settings_path = "SPACEPRIME/config.yaml"
+settings_path = "../SPACEPRIME/config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
@@ -41,21 +41,55 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
     # determine how many trials
     n_trials = settings["session"]["n_trials"]
     # load conditions file
-    df = pd.read_excel(f"SPACEPRIME/all_combinations_{settings['session']['n_locations']}"
+    df = pd.read_excel(f"../SPACEPRIME/all_combinations_{settings['session']['n_locations']}"
                        f"_loudspeakers_{settings['session']['n_digits']}_digits.xlsx")
     # retrieve sound level to adjust sounds to
     soundlvl = settings["session"]["level"]
     n_blocks = settings["session"]["n_blocks"]
+    switch_pitch_after = n_blocks // 2  # pitch everything but singletons after 50 % of blocks
+    # load sounds
+    singletons = [slab.Sound.read(f"../stimuli/distractors_{settings['session']['distractor_type']}/{x}")
+                  for x in os.listdir(f"../stimuli/distractors_{settings['session']['distractor_type']}")]
+    targets_high = [slab.Sound.read(f"../stimuli/targets_high_30_Hz/{x}") for x in
+                    os.listdir(f"../stimuli/targets_high_30_hz")]
+    targets_low = [slab.Sound.read(f"../stimuli/targets_low_30_Hz/{x}") for x in
+                   os.listdir(f"../stimuli/targets_low_30_hz")]
+    others = [slab.Sound.read(f"../stimuli/digits_all_250ms/{x}") for x in
+              os.listdir(f"../stimuli/digits_all_250ms")]
+
+    # set equal level --> this sets the RMS value of all sounds to an equal level :)
+    for s, th, tl, o in zip(singletons, targets_high, targets_low, others):
+        s.level = soundlvl
+        th.level = soundlvl
+        tl.level = soundlvl
+        o.level = soundlvl
+
+    # binauralize if not freefield mode
+    if not settings["mode"]["freefield"]:
+        singletons = [slab.Binaural(data=x) for x in singletons]
+        targets_low = [slab.Binaural(data=x) for x in targets_low]
+        targets_high = [slab.Binaural(data=x) for x in targets_high]
+        others = [slab.Binaural(data=x) for x in others]
+
+    # start with low-pitched targets
+    targets = targets_low
+    singletons_copy = singletons.copy()
+    others_copy = others.copy()
     # iterate over block
     for block in range(n_blocks):
+        print(f"Running block {block}")
+        if block >= switch_pitch_after:
+            targets = targets_high
+            others = singletons_copy
+            singletons = others_copy
         logging.info(f"Processing block {block}")
-        dirname = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}"
+        dirname = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}"
         try:
             os.mkdir(dirname)
         except FileExistsError:
             logging.warning(FileExistsError(f"Directory {dirname} already exists! Moving on ... "))
         sequence, sequence_labels, fitness = make_pygad_trial_sequence(
-            fig_path=settings["filepaths"]["sequences"] + "/logs" + f"/sub-{subject_id}_block-{block}sequence_fitness.png",
+            fig_path=settings["filepaths"]["sequences"] + "/logs" + f"/sub-{subject_id}_block-{block}_sequence_fitness.png",
             num_trials=n_trials,
             conditions=settings["trial_sequence"]["conditions"],
             prop_c=settings["trial_sequence"]["prop_c"],
@@ -78,7 +112,8 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         sns.histplot(x=distances_c)
         plt.title("Histogram of distances between C trials")
         plt.savefig(
-            settings["filepaths"]["sequences"] + "/logs" + f"/sub-{subject_id}_sequence_hist_control_trials.png")
+            settings["filepaths"]["sequences"] + "/logs" + f"/sub-{subject_id}_sequence_hist_block{block}_"
+                                                           f"diff_control_trials.png")
         plt.close()
 
         # instantiate final trial sequence as placeholder
@@ -102,6 +137,7 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
             else:
                 previous_element = None
             while True:  # Loop until a valid trial is found
+                print(f"Looping to find optimal sequence ... ")
                 select_singleton_present = True if "SP" in element else False
                 sample = df[df["SingletonPresent"] == select_singleton_present].sample()
                 # set previous singleton loc and digit to None when previous trial was SA and current trial is SA too
@@ -155,34 +191,19 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         print_final_traits(trial_sequence)
         trial_sequence["ITI-Jitter"] = generate_balanced_jitter(trial_sequence, iti=settings["session"]["iti"])
         trial_sequence["ITI-Jitter"] = round(trial_sequence["ITI-Jitter"], 3)
-        file_name = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}.xlsx"
+        file_name = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}.xlsx"
         trial_sequence.to_excel(file_name, index=False)  # Save as CSV, excluding the row index
         logging.info(f"Precomputing trial sounds for subject {subject_id}, block {block} ... ")
 
-        sound_sequence = []
-        # load sounds
-        singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
-                      for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
-        targets = [slab.Sound.read(f"stimuli/targets/{x}") for x in os.listdir(f"stimuli/targets")]
-        others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in
-                  os.listdir(f"stimuli/digits_all_250ms")]
-
-        # set equal level
-        for s, t, o in zip(singletons, targets, others):
-            s.level = soundlvl
-            t.level = soundlvl
-            o.level = soundlvl
-
-        # binauralize
-        singletons = [slab.Binaural(data=x) for x in singletons]
-        targets = [slab.Binaural(data=x) for x in targets]
-        others = [slab.Binaural(data=x) for x in others]
-
+        sound_sequence = []  # sound sequence placeholder
         for i, row in trial_sequence.iterrows():
             logging.debug(f"Precompute trialsound for trial {i}, block {block} ... ")
             # make trial sound container
-            trialsound = slab.Binaural.silence(duration=settings["session"]["stimulus_duration"],
-                                               samplerate=settings["session"]["samplerate"])
+            if not settings["mode"]["freefield"]:
+                trialsound = slab.Binaural.silence(duration=settings["session"]["stimulus_duration"],
+                                                   samplerate=settings["session"]["samplerate"])
+            else:
+                trialsound = []
             # get targets
             targetval = int(row["TargetDigit"])
             targetsound = targets[targetval - 1]
@@ -268,7 +289,7 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
 
         if compute_snr:
             df_snr = pd.DataFrame.from_dict(snr_container)
-            file_name_snr = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
+            file_name_snr = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
             df_snr.to_excel(file_name_snr, index=False)
         # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
@@ -276,23 +297,6 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         stop = time.time() / 60
     logging.info("DONE")
     logging.info(f"Total script running time: {stop - start:.2f} minutes")
-
-
-def generate_balanced_jitter(df, iti, tolerance=0.001):
-    df_0 = df[df['SingletonPresent'] == 0]
-    df_1 = df[df['SingletonPresent'] == 1]
-
-    while True:
-        jitter_0 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_0))
-        jitter_1 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_1))
-
-        mean_jitter_0 = np.mean(jitter_0)
-        mean_jitter_1 = np.mean(jitter_1)
-
-        if abs(mean_jitter_0 - mean_jitter_1) < tolerance:
-            break
-
-    return pd.Series(np.concatenate([jitter_0, jitter_1]), index=df.index)
 
 
 precompute_sequence(subject_id=info["subject_id"], settings=settings)
