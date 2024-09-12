@@ -1,7 +1,7 @@
 logging:
   level: DATA  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
 
-filepaths:  # soome relevant filepaths
+filepaths:  # some relevant filepaths
   project: C:/PycharmProjects/psychopy-experiments
   stimuli: C:/PycharmProjects/psychopy-experiments/stimuli
   sequences: C:/PycharmProjects/psychopy-experiments/SPACEPRIME/sequences
@@ -41,6 +41,12 @@ preferences:  # set some preferences
   general:
     audioLib: PTB  # define sound device. Possible options can be drawn from PsychoPy homepage
     units: deg
+    audioLatencyMode: 3
+
+mode:
+  record_eeg: True  # whether you want to record eeg data or not
+  freefield: False  # whether you want to use a free-field setup. False means headphone usage
+  eyetracking_on: False  # whether you want to run the eye tracker
 
 window:
   size: [1920, 1200]
@@ -65,3 +71,7 @@ eyetracker:
   model: eyelink
   CNUM: 9
   MIN_CALIB_FIX: 1000
+  address: '100.1.1.1'
+  dot_size: 0.1  # in deg
+  options:
+    calibration_type: HV3
