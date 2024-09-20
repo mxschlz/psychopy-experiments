@@ -44,7 +44,7 @@ preferences:  # set some preferences
     audioLatencyMode: 3
 
 mode:
-  record_eeg: True  # whether you want to record eeg data or not
+  record_eeg: False  # whether you want to record eeg data or not
   freefield: False  # whether you want to use a free-field setup. False means headphone usage
   eyetracking_on: False  # whether you want to run the eye tracker
 
