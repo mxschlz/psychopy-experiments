@@ -19,7 +19,7 @@ fn = [x for x in fn if ".xlsx" in x]
 if len(fn) > 1:
     files = []
     for file in fn:
-        files.append(pd.read_excel(os.path.join(fp, file), index_col=0))
+        files.append(pd.read_excel(os.path.join(fp, file)))
     df = pd.concat(files, ignore_index=True)
 elif len(fn) == 1:
     file = fn[0]
