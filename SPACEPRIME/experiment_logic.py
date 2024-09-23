@@ -26,8 +26,9 @@ class SpaceprimeTrial(Trial):
         # play stimulus in phase 0
         if self.phase == 0:
             self.session.virtual_response_box[0].lineColor = "black"
-            self.stim.play()
-            core.wait(self.stim.duration)
+            if not self.stim.isPlaying:  # wait until stimulus is presented
+                self.stim.play()
+            # core.wait(self.stim.duration)
 
         # get response in phase 1
         if self.phase == 1:
