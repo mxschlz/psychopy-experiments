@@ -1,21 +1,20 @@
 # Define the instructions
 welcome1 = '''
 Willkommen zum Experiment!
-Im kommenden Verlauf des Experiments wirst Du einzelne Nummern von 1 bis 9 aus drei verschiedenen Richtungen hören. 
-In allen Durchgängen erscheinen jeweils drei verschiedene Töne. Alle drei Töne sind jeweils unterschiedliche Nummern, 
+Im kommenden Verlauf des Experiments wirst Du gleichzeitig einzelne Nummern von 1 bis 9 aus drei verschiedenen Richtungen hören. 
+In allen Durchgängen erscheinen jeweils drei verschiedene Töne. Alle drei Töne bestehen aus jeweils unterschiedlichen Nummern, 
 und ein Ton ist der Zielton.
 
 Drücke LEERTASTE, um weiterzublättern.
 '''
 
 welcome2 = """
-Der Zielton ist immer amplituden-moduliert, d.h. er hört sich an, als würde die Stimme
-während der Artikulation leiser und lauter werden. Diesen Ton sollst Du identifizieren und den Inhalt durch Drücken
-einer Taste zwischen 1 und 9 wiedergeben. In manchen Durchgängen ist einer der zwei weiteren Töne ein Ton, 
-welcher eine sehr hohe Tonlage besitzt. Deine Aufgabe ist es im gesamten Experiment, den Zielton durch Drücken der 
-Tasten 1 - 9 zu identifizieren.
+Der Zielton ist immer amplituden-moduliert, d.h. er hört sich an, als würde die Stimme während der Artikulation leiser 
+und lauter werden. Diesen Ton sollst Du identifizieren und den Inhalt durch Drücken einer Taste zwischen 1 und 9 auf 
+dem Bildschirm wiedergeben. In manchen Durchgängen ist einer der zwei weiteren Töne ein Ton, welcher eine abweichende 
+Tonlage besitzt. Deine Aufgabe ist es im gesamten Experiment, den Zielton durch Drücken der Tasten 1 - 9 zu identifizieren.
 
-Drücke LEERTASTE, um zu beginnen. 
+Drücke LEERTASTE, um zu starten. 
 """
 
 testing = """
