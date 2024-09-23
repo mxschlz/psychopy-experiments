@@ -71,17 +71,33 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         targets_high = [slab.Binaural(data=x) for x in targets_high]
         others = [slab.Binaural(data=x) for x in others]
 
-    # start with low-pitched targets
-    targets = targets_low
+    subject_id_is_even = None
     singletons_copy = singletons.copy()
     others_copy = others.copy()
+    # if subject_id is even, start with low-pitched targets
+    if subject_id % 2 is False:
+        subject_id_is_even = True
+        targets = targets_low
+        singletons = singletons_copy
+        others = others_copy
+    elif subject_id % 2 is True:
+        subject_id_is_even = False
+        targets = targets_high
+        others = singletons_copy
+        singletons = others_copy
     # iterate over block
     for block in range(n_blocks):
         print(f"Running block {block}")
         if block >= switch_pitch_after:
-            targets = targets_high
-            others = singletons_copy
-            singletons = others_copy
+            # really confusing but this should do the trick
+            if subject_id_is_even:
+                targets = targets_high
+                others = singletons_copy
+                singletons = others_copy
+            elif not subject_id_is_even:
+                targets = targets_low
+                singletons = singletons_copy
+                others = others_copy
         logging.info(f"Processing block {block}")
         dirname = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}"
         try:
@@ -204,96 +220,99 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                                                    samplerate=settings["session"]["samplerate"])
             else:
                 trialsound = []
-            # get targets
-            targetval = int(row["TargetDigit"])
-            targetsound = targets[targetval - 1]
-            targetsound.level = soundlvl  # adjust level
-            targetloc = row["TargetLoc"]  # get target location
-            azimuth, ele = SPACE_ENCODER[targetloc]  # get coords
-            # targetsound_lateralized = lateralize(sound=targetsound, azimuth=azimuth)  # ITD and ILD
-            targetsound_rendered = spatialize(targetsound, azi=azimuth, ele=ele)  # add HRTF
-            if targetsound_rendered.data.shape != trialsound.data.shape:
-                samplediff = targetsound_rendered.data.shape[0] - trialsound.data.shape[0]
-                targetsound_rendered.data = targetsound_rendered[:-samplediff]
-            trialsound.data += targetsound_rendered.data  # add to trial sound
+            if not settings["mode"]["freefield"]:
+                # get targets
+                targetval = int(row["TargetDigit"])
+                targetsound = targets[targetval - 1]
+                targetsound.level = soundlvl  # adjust level
+                targetloc = row["TargetLoc"]  # get target location
+                azimuth, ele = SPACE_ENCODER[targetloc]  # get coords
+                # targetsound_lateralized = lateralize(sound=targetsound, azimuth=azimuth)  # ITD and ILD
+                targetsound_rendered = spatialize(targetsound, azi=azimuth, ele=ele)  # add HRTF
+                if targetsound_rendered.data.shape != trialsound.data.shape:
+                    samplediff = targetsound_rendered.data.shape[0] - trialsound.data.shape[0]
+                    targetsound_rendered.data = targetsound_rendered[:-samplediff]
+                trialsound.data += targetsound_rendered.data  # add to trial sound
 
-            if row["SingletonPresent"] == 1:
-                logging.debug(f"Singleton present in trial {i}. Computing sound mixture ... ")
-                # singleton
-                singletonval = int(row["SingletonDigit"])
-                singletonsound = singletons[singletonval - 1]
-                singletonsound.level = soundlvl  # adjust level
-                singletonloc = row["SingletonLoc"]  # get target location
-                azimuth, ele = SPACE_ENCODER[singletonloc]  # get coords
-                # singletonsound_lateralized = lateralize(sound=singletonsound, azimuth=azimuth)  # ITD and ILD
-                singletonsound_rendered = spatialize(singletonsound, azi=azimuth, ele=ele)  # add HRTF
-                if singletonsound_rendered.data.shape != trialsound.data.shape:
-                    samplediff = singletonsound_rendered.data.shape[0] - trialsound.data.shape[0]
-                    singletonsound_rendered.data = singletonsound_rendered[:-samplediff]
-                trialsound.data += singletonsound_rendered.data  # add to trial sound
-                # digit 2
-                digit2val = int(row["Non-Singleton2Digit"])
-                digit2sound = others[digit2val - 1]
-                digit2sound.level = soundlvl  # adjust level
-                digit2loc = row["Non-Singleton2Loc"]  # get target location
-                azimuth, ele = SPACE_ENCODER[digit2loc]  # get coords
-                # digit2sound_lateralized = lateralize(sound=digit2sound, azimuth=azimuth)  # ITD and ILD
-                digit2sound_rendered = spatialize(digit2sound, azi=azimuth, ele=ele)  # add HRTF
-                if digit2sound_rendered.data.shape != trialsound.data.shape:
-                    samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
-                    digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
-                trialsound.data += digit2sound_rendered.data  # add to trial sound
+                if row["SingletonPresent"] == 1:
+                    logging.debug(f"Singleton present in trial {i}. Computing sound mixture ... ")
+                    # singleton
+                    singletonval = int(row["SingletonDigit"])
+                    singletonsound = singletons[singletonval - 1]
+                    singletonsound.level = soundlvl  # adjust level
+                    singletonloc = row["SingletonLoc"]  # get target location
+                    azimuth, ele = SPACE_ENCODER[singletonloc]  # get coords
+                    # singletonsound_lateralized = lateralize(sound=singletonsound, azimuth=azimuth)  # ITD and ILD
+                    singletonsound_rendered = spatialize(singletonsound, azi=azimuth, ele=ele)  # add HRTF
+                    if singletonsound_rendered.data.shape != trialsound.data.shape:
+                        samplediff = singletonsound_rendered.data.shape[0] - trialsound.data.shape[0]
+                        singletonsound_rendered.data = singletonsound_rendered[:-samplediff]
+                    trialsound.data += singletonsound_rendered.data  # add to trial sound
+                    # digit 2
+                    digit2val = int(row["Non-Singleton2Digit"])
+                    digit2sound = others[digit2val - 1]
+                    digit2sound.level = soundlvl  # adjust level
+                    digit2loc = row["Non-Singleton2Loc"]  # get target location
+                    azimuth, ele = SPACE_ENCODER[digit2loc]  # get coords
+                    # digit2sound_lateralized = lateralize(sound=digit2sound, azimuth=azimuth)  # ITD and ILD
+                    digit2sound_rendered = spatialize(digit2sound, azi=azimuth, ele=ele)  # add HRTF
+                    if digit2sound_rendered.data.shape != trialsound.data.shape:
+                        samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
+                        digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
+                    trialsound.data += digit2sound_rendered.data  # add to trial sound
 
-            elif row["SingletonPresent"] == 0:
-                logging.debug(f"Singleton absent in trial {i}. Computing sound mixture ... ")
-                # digit 1
-                digit1val = int(row["Non-Singleton1Digit"])
-                digit1sound = others[digit1val - 1]
-                digit1sound.level = soundlvl  # adjust level
-                digit1loc = row["Non-Singleton1Loc"]  # get target location
-                azimuth, ele = SPACE_ENCODER[digit1loc]  # get coords
-                # digit1sound_lateralized = lateralize(sound=digit1sound, azimuth=azimuth)  # ITD and ILD
-                digit1sound_rendered = spatialize(digit1sound, azi=azimuth, ele=ele)  # add HRTF
-                if digit1sound_rendered.data.shape != trialsound.data.shape:
-                    samplediff = digit1sound_rendered.data.shape[0] - trialsound.data.shape[0]
-                    digit1sound_rendered.data = digit1sound_rendered[:-samplediff]
-                trialsound.data += digit1sound_rendered.data  # add to trial sound
-                # digit 2
-                digit2val = int(row["Non-Singleton2Digit"])
-                digit2sound = others[digit2val - 1]
-                digit2sound.level = soundlvl  # adjust level
-                digit2loc = row["Non-Singleton2Loc"]  # get target location
-                azimuth, ele = SPACE_ENCODER[digit2loc]  # get coords
-                # digit2sound_lateralized = lateralize(sound=digit2sound, azimuth=azimuth)  # ITD and ILD
-                digit2sound_rendered = spatialize(digit2sound, azi=azimuth, ele=ele)  # add HRTF
-                if digit2sound_rendered.data.shape != trialsound.data.shape:
-                    samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
-                    digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
-                trialsound.data += digit2sound_rendered.data  # add to trial sound
-            # subtract level difference from final sound file
-            # trialsound.level = trialsound.level - (trialsound.level - soundlvl)
-            logging.debug(f"Generated trial sound for trial {i}. Appending to sequence ... ")
-            sound_sequence.append(trialsound.ramp())  # ramp the sound file to avoid clipping
-            # compute snr
-            if compute_snr:
-                signal = targetsound_rendered
-                if row["SingletonPresent"] == 0:
-                    noise = digit1sound_rendered + digit2sound_rendered
-                elif row["SingletonPresent"] == 1:
-                    noise = singletonsound_rendered + digit2sound_rendered
-                snr_left, snr_right = snr_sound_mixture_two_ears(signal, noise)
-                snr_container["snr_left"].append(snr_left[0])
-                snr_container["snr_right"].append(snr_right[0])
-                azimuth, _ = SPACE_ENCODER[targetloc]
-                snr_container["signal_loc"].append(azimuth)
+                elif row["SingletonPresent"] == 0:
+                    logging.debug(f"Singleton absent in trial {i}. Computing sound mixture ... ")
+                    # digit 1
+                    digit1val = int(row["Non-Singleton1Digit"])
+                    digit1sound = others[digit1val - 1]
+                    digit1sound.level = soundlvl  # adjust level
+                    digit1loc = row["Non-Singleton1Loc"]  # get target location
+                    azimuth, ele = SPACE_ENCODER[digit1loc]  # get coords
+                    # digit1sound_lateralized = lateralize(sound=digit1sound, azimuth=azimuth)  # ITD and ILD
+                    digit1sound_rendered = spatialize(digit1sound, azi=azimuth, ele=ele)  # add HRTF
+                    if digit1sound_rendered.data.shape != trialsound.data.shape:
+                        samplediff = digit1sound_rendered.data.shape[0] - trialsound.data.shape[0]
+                        digit1sound_rendered.data = digit1sound_rendered[:-samplediff]
+                    trialsound.data += digit1sound_rendered.data  # add to trial sound
+                    # digit 2
+                    digit2val = int(row["Non-Singleton2Digit"])
+                    digit2sound = others[digit2val - 1]
+                    digit2sound.level = soundlvl  # adjust level
+                    digit2loc = row["Non-Singleton2Loc"]  # get target location
+                    azimuth, ele = SPACE_ENCODER[digit2loc]  # get coords
+                    # digit2sound_lateralized = lateralize(sound=digit2sound, azimuth=azimuth)  # ITD and ILD
+                    digit2sound_rendered = spatialize(digit2sound, azi=azimuth, ele=ele)  # add HRTF
+                    if digit2sound_rendered.data.shape != trialsound.data.shape:
+                        samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
+                        digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
+                    trialsound.data += digit2sound_rendered.data  # add to trial sound
+                # subtract level difference from final sound file
+                # trialsound.level = trialsound.level - (trialsound.level - soundlvl)
+                logging.debug(f"Generated trial sound for trial {i}. Appending to sequence ... ")
+                sound_sequence.append(trialsound.ramp())  # ramp the sound file to avoid clipping
+                # compute snr
+                if compute_snr:
+                    signal = targetsound_rendered
+                    if row["SingletonPresent"] == 0:
+                        noise = digit1sound_rendered + digit2sound_rendered
+                    elif row["SingletonPresent"] == 1:
+                        noise = singletonsound_rendered + digit2sound_rendered
+                    snr_left, snr_right = snr_sound_mixture_two_ears(signal, noise)
+                    snr_container["snr_left"].append(snr_left[0])
+                    snr_container["snr_right"].append(snr_right[0])
+                    azimuth, _ = SPACE_ENCODER[targetloc]
+                    snr_container["signal_loc"].append(azimuth)
 
-        if compute_snr:
-            df_snr = pd.DataFrame.from_dict(snr_container)
-            file_name_snr = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
-            df_snr.to_excel(file_name_snr, index=False)
-        # write sound to .wav
-        for idx, sound in enumerate(sound_sequence):
-            sound.write(filename=f"{dirname}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
+                if compute_snr:
+                    df_snr = pd.DataFrame.from_dict(snr_container)
+                    file_name_snr = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
+                    df_snr.to_excel(file_name_snr, index=False)
+                # write sound to .wav
+                for idx, sound in enumerate(sound_sequence):
+                    sound.write(filename=f"{dirname}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
+            elif settings["mode"]["freefield"]:
+                pass  # TODO: continue here
         stop = time.time() / 60
     logging.info("DONE")
     logging.info(f"Total script running time: {stop - start:.2f} minutes")
