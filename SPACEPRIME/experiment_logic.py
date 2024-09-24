@@ -105,7 +105,12 @@ class SpaceprimeSession(Session):
         # welcome the participant
         self.display_text(text=prompts.welcome1, keys="space")
         self.display_text(text=prompts.welcome2, keys="space")
-
+        if self.settings["mode"]["camera"]:
+            self.display_text(text=prompts.camera_calibration, keys="space")
+            self.default_fix.draw()
+            self.win.flip()
+            self.send_trigger("camera_baseline")
+            core.wait(10)
         if self.test:
             self.display_text(text=prompts.testing, keys="space")
             self.set_block(block=1)  # intentionally choose block within
