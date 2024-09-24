@@ -27,6 +27,13 @@ los.
 Drücke LEERTASTE, um zu beginnen.
 """
 
+camera_calibration = """
+Bitte schaue für die nächsten 10 Sekunden auf den Fixationspunkt. Achte darauf, dass dein Kopf und deine Augen geradeaus
+auf den Punkt gerichtet sind. Danach geht es mit dem Experiment weiter.
+
+Drücke LEERTASTE, um zu beginnen.
+"""
+
 too_slow = """
 ZU LANGSAM!
 """
