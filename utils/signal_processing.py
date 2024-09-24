@@ -5,17 +5,17 @@ import numpy as np
 
 
 try:
-    ils = pickle.load(open('../utils/ils.pickle', 'rb'))  # load pickle
+    ils = pickle.load(open('ils.pickle', 'rb'))  # load pickle
     print("Interaural level spectrum found. Loading ... ")
 except FileNotFoundError:
-    print("Interaural level spectrum could not be found in project. Generating ... ")
-    ils = slab.Binaural.make_interaural_level_spectrum()
-    print("Saving interaural level spectrum in current working directory ... ")
-    pickle.dump(ils, open('ils.pickle', 'wb'))  # save using pickle
-    print("Saving interaural level spectrum is done. Please look in current working directory for ils.pickle! ")
+    print("Interaural level spectrum could not be found in project.")
+    #ils = slab.Binaural.make_interaural_level_spectrum()
+    #print("Saving interaural level spectrum in current working directory ... ")
+    #pickle.dump(ils, open('ils.pickle', 'wb'))  # save using pickle
+    #print("Saving interaural level spectrum is done. Please look in current working directory for ils.pickle! ")
 
 
-def lateralize(sound, azimuth, ils=ils):
+def lateralize(sound, azimuth, ils=None):
     """
     Creates a lateralized (binaural) version of a monaural sound source.
 
