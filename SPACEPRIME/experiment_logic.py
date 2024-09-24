@@ -25,7 +25,8 @@ class SpaceprimeTrial(Trial):
             self.session.default_fix.draw()
         # play stimulus in phase 0
         if self.phase == 0:
-            self.session.virtual_response_box[0].lineColor = "black"
+            if self.session.response_device == "mouse":
+                self.session.virtual_response_box[0].lineColor = "black"
             if not self.stim.isPlaying:  # wait until stimulus is presented
                 self.stim.play()
             # core.wait(self.stim.duration)
@@ -64,6 +65,9 @@ class SpaceprimeSession(Session):
         self.this_block = None
         self.subject_id = int(self.output_str.split("-")[1])
         self.trials = []
+        # TODO: cannot set port address
+        if self.settings["mode"]["record_eeg"]:
+            self.port = parallel.setPortAddress("0xCFF8")  # set address of port
         # slab.set_default_level(self.settings["session"]["level"])
         # print(f"Set stimulus level to {slab.sound._default_level}")
 
@@ -98,9 +102,6 @@ class SpaceprimeSession(Session):
             self.trials.append(trial)
 
     def run(self):
-        # TODO: where to set the port address?
-        if self.settings["mode"]["record_eeg"]:
-            parallel.setPortAddress("0xCFF8")  # set address of port
         self.send_trigger("experiment_onset")
         # welcome the participant
         self.display_text(text=prompts.welcome1, keys="space")
