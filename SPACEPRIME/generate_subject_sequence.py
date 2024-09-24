@@ -3,7 +3,7 @@ import numpy as np
 import yaml
 import slab
 from SPACEPRIME.encoding import SPACE_ENCODER
-from utils.signal_processing import spatialize, snr_sound_mixture_two_ears, rms
+from utils.signal_processing import spatialize, snr_sound_mixture_two_ears
 from utils.utils import get_input_from_dict, generate_balanced_jitter
 from SPACEPRIME.trial_sequence_pygad import (make_pygad_trial_sequence, insert_singleton_present_trials,
                                              get_element_indices, print_final_traits)
@@ -75,12 +75,12 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
     singletons_copy = singletons.copy()
     others_copy = others.copy()
     # if subject_id is even, start with low-pitched targets
-    if subject_id % 2 is False:
+    if subject_id % 2 == 0:
         subject_id_is_even = True
         targets = targets_low
         singletons = singletons_copy
         others = others_copy
-    elif subject_id % 2 is True:
+    elif subject_id % 2 != 0:
         subject_id_is_even = False
         targets = targets_high
         others = singletons_copy
