@@ -40,13 +40,14 @@ trial_sequence:
 preferences:  # set some preferences
   general:
     audioLib: PTB  # define sound device. Possible options can be drawn from PsychoPy homepage
-    units: deg
-    audioLatencyMode: 3
+    units: deg  # visual angle in degree
+    audioLatencyMode: 3  # use aggressive latency mode
 
 mode:
   record_eeg: False  # whether you want to record eeg data or not
   freefield: False  # whether you want to use a free-field setup. False means headphone usage
-  eyetracking_on: False  # whether you want to run the eye tracker
+  camera: True  # whether you want to run the eye tracker
+  eyetracking_on: False  # whether to use the eyetracker class or not --> not needed with camera setup :)
 
 window:
   size: [1920, 1200]
