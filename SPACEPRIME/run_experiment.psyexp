@@ -114,7 +114,7 @@
       <CodeComponent name="code" plugin="None">
         <Param val="" valType="extendedCode" updates="constant" name="Before Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
-        <Param val="#hallo" valType="extendedCode" updates="constant" name="Begin Experiment"/>
+        <Param val="from experiment_logic import SpaceprimeSession&amp;#10;from utils.utils import get_input_from_dict&amp;#10;&amp;#10;info = get_input_from_dict({&quot;subject_id&quot;: 99,  # enter subject id&amp;#10;                            &quot;test&quot;: True,  # enter if test run (1) or not (0)&amp;#10;                            &quot;block&quot;: 0})&amp;#10;&amp;#10;# create subject sequence&amp;#10;# generate_subject_sequence(subject_id=info[&quot;subject_id&quot;])&amp;#10;sess = SpaceprimeSession(output_str=f'sub-{info[&quot;subject_id&quot;]}', output_dir=&quot;logs&quot;,&amp;#10;                         settings_file=&quot;config.yaml&quot;,&amp;#10;                         starting_block=info[&quot;block&quot;], test=True if info[&quot;test&quot;] == 1 else False)&amp;#10;sess.run()&amp;#10;sess.quit()&amp;#10;" valType="extendedCode" updates="constant" name="Begin Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="" valType="extendedCode" updates="constant" name="Begin Routine"/>
