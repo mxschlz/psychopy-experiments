@@ -67,7 +67,7 @@ class SpaceprimeSession(Session):
         self.trials = []
         # TODO: cannot set port address
         if self.settings["mode"]["record_eeg"]:
-            self.port = parallel.setPortAddress("0xCFF8")  # set address of port
+            self.port = parallel.setPortAddress(0xCFF8)  # set address of port
         # slab.set_default_level(self.settings["session"]["level"])
         # print(f"Set stimulus level to {slab.sound._default_level}")
 
