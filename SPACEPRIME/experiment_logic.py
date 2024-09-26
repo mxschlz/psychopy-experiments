@@ -2,10 +2,12 @@ from exptools2.core import Trial, Session
 import os
 import prompts as prompts
 import pandas as pd
-from utils import set_logging_level
+from SPACEPRIME.utils import set_logging_level
 from psychopy.sound import Sound
 from psychopy import parallel, core
 from encoding import EEG_TRIGGER_MAP, PRIMING
+import psychopy
+import slab
 
 
 class SpaceprimeTrial(Trial):
@@ -16,6 +18,7 @@ class SpaceprimeTrial(Trial):
         # add ITI jitter to the trial
         # self.phase_names.append("iti")
         self.phase_durations[-1] = self.session.sequence["ITI-Jitter"].iloc[trial_nr]
+        self.trigger_name = None
 
     def draw(self):
         # do stuff independent of phases
@@ -27,8 +30,10 @@ class SpaceprimeTrial(Trial):
         if self.phase == 0:
             if self.session.response_device == "mouse":
                 self.session.virtual_response_box[0].lineColor = "black"
-            if not self.stim.isPlaying:  # wait until stimulus is presented
-                self.stim.play()
+            # if not self.stim.isPlaying:  # wait until stimulus is presented TODO: use this with psychopy Sound class
+            self.session.send_trigger(self.trigger_name)
+            self.stim.play()
+            core.wait(self.stim.duration)
             # core.wait(self.stim.duration)
 
         # get response in phase 1
@@ -65,9 +70,8 @@ class SpaceprimeSession(Session):
         self.this_block = None
         self.subject_id = int(self.output_str.split("-")[1])
         self.trials = []
-        # TODO: cannot set port address
         if self.settings["mode"]["record_eeg"]:
-            self.port = parallel.ParallelPort('0xCFF8')  # set address of port
+            self.port = parallel.ParallelPort(0xCFF8)  # set address of port
         # slab.set_default_level(self.settings["session"]["level"])
         # print(f"Set stimulus level to {slab.sound._default_level}")
 
@@ -95,10 +99,10 @@ class SpaceprimeSession(Session):
                                                     subject_id=self.subject_id),
                                     verbose=True,
                                     timing=timing,
-                                    draw_each_frame=True)  # TODO: figure out if True or False is more suitable
+                                    draw_each_frame=True)
             sound_path = os.path.join(trial.session.blockdir, f"s_{trial_nr}.wav")  # s_0, s_1, ... .wav
-            trial.stim = Sound(sound_path)
-            # trial.stim = slab.Binaural.read(sound_path)
+            #trial.stim = Sound(sound_path)
+            trial.stim = slab.Binaural.read(sound_path)  # TODO: this should be changed to psychopy Sound
             self.trials.append(trial)
 
     def run(self):
@@ -110,8 +114,9 @@ class SpaceprimeSession(Session):
             self.display_text(text=prompts.camera_calibration, keys="space")
             self.default_fix.draw()
             self.win.flip()
-            self.send_trigger("camera_baseline")
+            self.send_trigger("camera_calibration_onset")
             core.wait(10)
+            self.send_trigger("camera_calibration_offset")
         if self.test:
             self.display_text(text=prompts.testing, keys="space")
             self.set_block(block=1)  # intentionally choose block within
@@ -124,12 +129,12 @@ class SpaceprimeSession(Session):
             self.start_experiment()
             for trial in self.trials:
                 self.send_trigger("trial_onset")
-                trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
-                self.send_trigger(trigger_name)
+                trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
                 trial.run()
                 self.send_trigger("trial_offset")
         else:
             self.start_experiment()
+            self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space")
             for block in self.blocks:
                 self.send_trigger("block_onset")
                 self.set_block(block=block)
@@ -142,8 +147,7 @@ class SpaceprimeSession(Session):
                 for trial in self.trials:
                     # make sure the default is black line color
                     self.send_trigger("trial_onset")
-                    trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
-                    self.send_trigger(trigger_name)
+                    trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
                     trial.run()
                     self.send_trigger("trial_offset")
                 self.save_data()
@@ -160,18 +164,17 @@ class SpaceprimeSession(Session):
             # get corresponding trigger value:
             trigger_value = EEG_TRIGGER_MAP[event_name]
             # send trigger to EEG:
-            parallel.setData(trigger_value)
-            core.wait(0.003)  # you need a break between the triggers: wait for 3 ms
+            self.port.setData(trigger_value)
+            core.wait(0.001)  # you need a break between the triggers: wait for 3 ms
             # turn off EEG trigger
-            parallel.setData(0)
+            self.port.setData(0)
         else:
             pass
 
 
 if __name__ == '__main__':
-    import psychopy
     # DEBUGGING
-    sess = SpaceprimeSession(output_str='sub-99', output_dir="SPACEPRIME/logs", settings_file="SPACEPRIME/config.yaml")
+    sess = SpaceprimeSession(output_str='sub-99', output_dir="logs", settings_file="config.yaml")
     # sess.display_text(text=prompts.testing, keys="space")
     sess.set_block(block=1)  # intentionally choose block within
     sess.load_sequence()
@@ -182,8 +185,6 @@ if __name__ == '__main__':
                        timing=sess.settings["session"]["timing"])
     sess.start_experiment()
     sess.display_response_box()
-    #for trial in sess.trials:
-        #trial.run()
     sess.win.flip()
 
     while True:
