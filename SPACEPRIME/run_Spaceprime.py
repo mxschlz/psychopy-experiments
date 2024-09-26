@@ -1,6 +1,7 @@
 from SPACEPRIME.experiment_logic import SpaceprimeSession
 from utils.utils import get_input_from_dict
 
+
 info = get_input_from_dict({"subject_id": 99,  # enter subject id
                             "test": True,  # enter if test run (1) or not (0)
                             "block": 0})
