@@ -23,6 +23,8 @@ with open(settings_path) as file:
 
 def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=True):
     import time
+    # get relevant params from settings
+    freefield = settings["mode"]['freefield']
     # log print statements
     logging.basicConfig(filename=settings["filepaths"]["sequences"]+"/logs"+f"/sub-{subject_id}_trial_sequence_log.txt",
                         level=logging_level,
@@ -65,7 +67,7 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         o.level = soundlvl
 
     # binauralize if not freefield mode
-    if not settings["mode"]["freefield"]:
+    if not freefield:
         singletons = [slab.Binaural(data=x) for x in singletons]
         targets_low = [slab.Binaural(data=x) for x in targets_low]
         targets_high = [slab.Binaural(data=x) for x in targets_high]
@@ -215,12 +217,12 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         for i, row in trial_sequence.iterrows():
             logging.debug(f"Precompute trialsound for trial {i}, block {block} ... ")
             # make trial sound container
-            if not settings["mode"]["freefield"]:
+            if not freefield:
                 trialsound = slab.Binaural.silence(duration=settings["session"]["stimulus_duration"],
                                                    samplerate=settings["session"]["samplerate"])
             else:
                 trialsound = []
-            if not settings["mode"]["freefield"]:
+            if not freefield:
                 # get targets
                 targetval = int(row["TargetDigit"])
                 targetsound = targets[targetval - 1]
@@ -308,12 +310,15 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                     df_snr = pd.DataFrame.from_dict(snr_container)
                     file_name_snr = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
                     df_snr.to_excel(file_name_snr, index=False)
-                # write sound to .wav
-                for idx, sound in enumerate(sound_sequence):
-                    sound.write(filename=f"{dirname}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
-            elif settings["mode"]["freefield"]:
-                pass  # TODO: continue here
-        stop = time.time() / 60
+            # TODO: continue here
+            elif freefield:
+                pass
+        # write sound to .wav
+        for idx, sound in enumerate(sound_sequence):
+            print(f"Writing sound {idx}")
+            sound.write(filename=f"{dirname}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
+
+    stop = time.time() / 60
     logging.info("DONE")
     logging.info(f"Total script running time: {stop - start:.2f} minutes")
 
