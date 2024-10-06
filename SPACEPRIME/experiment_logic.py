@@ -101,8 +101,8 @@ class SpaceprimeSession(Session):
                                     timing=timing,
                                     draw_each_frame=True)
             sound_path = os.path.join(trial.session.blockdir, f"s_{trial_nr}.wav")  # s_0, s_1, ... .wav
-            #trial.stim = Sound(sound_path)
-            trial.stim = slab.Binaural.read(sound_path)  # TODO: this should be changed to psychopy Sound
+            trial.stim = Sound(sound_path)
+            # trial.stim = slab.Binaural.read(sound_path)  # TODO: this should be changed to psychopy Sound
             self.trials.append(trial)
 
     def run(self):
@@ -115,7 +115,7 @@ class SpaceprimeSession(Session):
             self.default_fix.draw()
             self.win.flip()
             self.send_trigger("camera_calibration_onset")
-            core.wait(10)
+            core.wait(1)
             self.send_trigger("camera_calibration_offset")
         if self.test:
             self.display_text(text=prompts.testing, keys="space")
