@@ -24,25 +24,22 @@ class Sound(object):
 
 		self.too_high_vol_txt = 'volume attentuation by more than 120dB not useful'
 		if mul > 120:
-			print
-			self.too_high_vol_txt
+			print(self.too_high_vol_txt)
 			sys.exit()
 
 		self.device = device
 		try:
 			sf = __import__('soundfile')
 		except ImportError:
-			print
-			'soundfile Module missing, but it is necessary for sound playback'
+			print('soundfile Module missing, but it is necessary for sound playback')
 			sys.exit()
 		try:
 			self.sd = __import__('sounddevice')
 		except ImportError:
-			print
-			'sounddevice module missing, but it is necessary for sound playback'
+			print('sounddevice module missing, but it is necessary for sound playback')
 			sys.exit()
 		self.data, self.sr = sf.read(filename, dtype='float32')
-		self.data = self.data * (10 ** (-mul / 20))
+		self.data = self.data * (10 ** (mul / 20))
 
 		self.duration = self.data.shape[0] / self.sr
 
@@ -54,8 +51,7 @@ class Sound(object):
 
 	def change_volume(self, mul=1):
 		if mul > 120:
-			print
-			self.too_high_vol_txt
+			print(self.too_high_vol_txt)
 		else:
-			self.data = self.data * (10 ** (-mul / 20))
+			self.data = self.data * (10 ** (mul / 20))
 
