@@ -3,11 +3,11 @@ import os
 import prompts as prompts
 import pandas as pd
 from SPACEPRIME.utils import set_logging_level
-from psychopy.sound import Sound
+#from psychopy.sound import Sound
+from sound import Sound
 from psychopy import parallel, core
 from encoding import EEG_TRIGGER_MAP, PRIMING
 import psychopy
-import slab
 
 
 class SpaceprimeTrial(Trial):
@@ -101,8 +101,10 @@ class SpaceprimeSession(Session):
                                     timing=timing,
                                     draw_each_frame=True)
             sound_path = os.path.join(trial.session.blockdir, f"s_{trial_nr}.wav")  # s_0, s_1, ... .wav
-            trial.stim = Sound(sound_path)
-            # trial.stim = slab.Binaural.read(sound_path)  # TODO: this should be changed to psychopy Sound
+            #trial.stim = Sound(sound_path)
+            trial.stim = Sound(filename=sound_path, device=self.settings["soundconfig"]["device"],
+                               mul=self.settings["soundconfig"]["mul"]) #TODO: eventually change this to psychopy sound
+            # trial.stim = slab.Binaural.read(sound_path)
             self.trials.append(trial)
 
     def run(self):
@@ -115,7 +117,7 @@ class SpaceprimeSession(Session):
             self.default_fix.draw()
             self.win.flip()
             self.send_trigger("camera_calibration_onset")
-            core.wait(1)
+            core.wait(10)
             self.send_trigger("camera_calibration_offset")
         if self.test:
             self.display_text(text=prompts.testing, keys="space")
@@ -165,7 +167,7 @@ class SpaceprimeSession(Session):
             trigger_value = EEG_TRIGGER_MAP[event_name]
             # send trigger to EEG:
             self.port.setData(trigger_value)
-            core.wait(0.001)  # you need a break between the triggers: wait for 3 ms
+            core.wait(0.003)  # TODO: is 3 ms enough?
             # turn off EEG trigger
             self.port.setData(0)
         else:
