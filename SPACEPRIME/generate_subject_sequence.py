@@ -77,12 +77,12 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
     singletons_copy = singletons.copy()
     others_copy = others.copy()
     # if subject_id is even, start with low-pitched targets
-    if subject_id % 2 == 0:
+    if int(subject_id) % 2 == 0:
         subject_id_is_even = True
         targets = targets_low
         singletons = singletons_copy
         others = others_copy
-    elif subject_id % 2 != 0:
+    elif int(subject_id) % 2 != 0:
         subject_id_is_even = False
         targets = targets_high
         others = singletons_copy
