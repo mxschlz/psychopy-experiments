@@ -3,15 +3,15 @@ import os
 import datetime
 from utils.utils import get_input_from_dict
 
-
+print(os.getcwd())
 # get current date with seconds to make it unique
 date = datetime.datetime.now().strftime('%B_%d_%Y_%H_%M_%S')
 # get subject info
 info = get_input_from_dict({"subject_id": 99})
 # some filepaths
-fp = "C:\PycharmProjects\psychopy-experiments\SPACEPRIME\logs"
+fp = os.path.join(os.getcwd(), "logs")
 fp_clean = os.path.join(fp, "clean")
-results_path = "C:\PycharmProjects\psychopy-experiments\SPACEPRIME\\results"
+results_path = os.path.join(os.getcwd(), "results")
 # get files in log dir
 fn = [x for x in os.listdir(fp) if f'sub-{info["subject_id"]}' in x]
 # filter for excel files
@@ -39,7 +39,6 @@ df["iscorrect"] = df.response == df.TargetDigit
 
 df.to_excel(os.path.join(fp_clean, f"{file.split('_')[0]}_clean.xlsx"), index=False)
 
-
 # concatenate
 dfs = []
 # load up dataframe
@@ -48,3 +47,5 @@ for file in os.listdir(fp_clean):
 df = pd.concat(dfs, ignore_index=False)
 # df.pop("Unnamed: 0")
 df.to_excel(os.path.join(results_path, f"results_{date}.xlsx"))
+
+print("Done! :)")
