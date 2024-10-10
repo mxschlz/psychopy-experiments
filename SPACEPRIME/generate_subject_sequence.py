@@ -11,19 +11,20 @@ import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 import logging
+import time
 
 
-info = get_input_from_dict({"subject_id": 99})
+info = get_input_from_dict({"subject_id": 99, "block": 0})
 
 # load settings
-settings_path = "../SPACEPRIME/config.yaml"
+settings_path = "SPACEPRIME/config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
 
-def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=True):
-    import time
+def precompute_sequence(subject_id, block, settings, logging_level="INFO", compute_snr=False):
     # get relevant params from settings
+    samplerate = settings["session"]["samplerate"]
     freefield = settings["mode"]['freefield']
     # log print statements
     logging.basicConfig(filename=settings["filepaths"]["sequences"]+"/logs"+f"/sub-{subject_id}_trial_sequence_log.txt",
@@ -43,21 +44,21 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
     # determine how many trials
     n_trials = settings["session"]["n_trials"]
     # load conditions file
-    df = pd.read_excel(f"../SPACEPRIME/all_combinations_{settings['session']['n_locations']}"
+    df = pd.read_excel(f"SPACEPRIME/all_combinations_{settings['session']['n_locations']}"
                        f"_loudspeakers_{settings['session']['n_digits']}_digits.xlsx")
     # retrieve sound level to adjust sounds to
     soundlvl = settings["session"]["level"]
     n_blocks = settings["session"]["n_blocks"]
     switch_pitch_after = n_blocks // 2  # pitch everything but singletons after 50 % of blocks
     # load sounds
-    singletons = [slab.Sound.read(f"../stimuli/distractors_{settings['session']['distractor_type']}/{x}")
-                  for x in os.listdir(f"../stimuli/distractors_{settings['session']['distractor_type']}")]
-    targets_high = [slab.Sound.read(f"../stimuli/targets_high_30_Hz/{x}") for x in
-                    os.listdir(f"../stimuli/targets_high_30_hz")]
-    targets_low = [slab.Sound.read(f"../stimuli/targets_low_30_Hz/{x}") for x in
-                   os.listdir(f"../stimuli/targets_low_30_hz")]
-    others = [slab.Sound.read(f"../stimuli/digits_all_250ms/{x}") for x in
-              os.listdir(f"../stimuli/digits_all_250ms")]
+    singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
+                  for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
+    targets_high = [slab.Sound.read(f"stimuli/targets_high_30_Hz/{x}") for x in
+                    os.listdir(f"stimuli/targets_high_30_hz")]
+    targets_low = [slab.Sound.read(f"stimuli/targets_low_30_Hz/{x}") for x in
+                   os.listdir(f"stimuli/targets_low_30_hz")]
+    others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in
+              os.listdir(f"stimuli/digits_all_250ms")]
 
     # set equal level --> this sets the RMS value of all sounds to an equal level :)
     for s, th, tl, o in zip(singletons, targets_high, targets_low, others):
@@ -88,7 +89,7 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         others = singletons_copy
         singletons = others_copy
     # iterate over block
-    for block in range(n_blocks):
+    for block in range(block, n_blocks):
         print(f"Running block {block}")
         if block >= switch_pitch_after:
             # really confusing but this should do the trick
@@ -96,12 +97,12 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                 targets = targets_high
                 others = singletons_copy
                 singletons = others_copy
-            elif not subject_id_is_even:
+            if not subject_id_is_even:
                 targets = targets_low
                 singletons = singletons_copy
                 others = others_copy
         logging.info(f"Processing block {block}")
-        dirname = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}"
+        dirname = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}"
         try:
             os.mkdir(dirname)
         except FileExistsError:
@@ -209,7 +210,7 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
         print_final_traits(trial_sequence)
         trial_sequence["ITI-Jitter"] = generate_balanced_jitter(trial_sequence, iti=settings["session"]["iti"])
         trial_sequence["ITI-Jitter"] = round(trial_sequence["ITI-Jitter"], 3)
-        file_name = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}.xlsx"
+        file_name = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}.xlsx"
         trial_sequence.to_excel(file_name, index=False)  # Save as CSV, excluding the row index
         logging.info(f"Precomputing trial sounds for subject {subject_id}, block {block} ... ")
 
@@ -219,30 +220,33 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
             # make trial sound container
             if not freefield:
                 trialsound = slab.Binaural.silence(duration=settings["session"]["stimulus_duration"],
-                                                   samplerate=settings["session"]["samplerate"])
-            else:
-                trialsound = []
+                                                   samplerate=samplerate)
+            elif freefield:
+                trialsound = np.array([np.zeros(int(samplerate*settings["session"]["stimulus_duration"])),
+                                       np.zeros(int(samplerate*settings["session"]["stimulus_duration"])),
+                                       np.zeros(int(samplerate*settings["session"]["stimulus_duration"]))])
+            # get targets
+            targetval = int(row["TargetDigit"])
+            targetsound = targets[targetval - 1]
+            targetsound.level = soundlvl  # adjust level
+            targetloc = row["TargetLoc"]  # get target location
             if not freefield:
-                # get targets
-                targetval = int(row["TargetDigit"])
-                targetsound = targets[targetval - 1]
-                targetsound.level = soundlvl  # adjust level
-                targetloc = row["TargetLoc"]  # get target location
                 azimuth, ele = SPACE_ENCODER[targetloc]  # get coords
-                # targetsound_lateralized = lateralize(sound=targetsound, azimuth=azimuth)  # ITD and ILD
                 targetsound_rendered = spatialize(targetsound, azi=azimuth, ele=ele)  # add HRTF
                 if targetsound_rendered.data.shape != trialsound.data.shape:
                     samplediff = targetsound_rendered.data.shape[0] - trialsound.data.shape[0]
                     targetsound_rendered.data = targetsound_rendered[:-samplediff]
                 trialsound.data += targetsound_rendered.data  # add to trial sound
-
-                if row["SingletonPresent"] == 1:
-                    logging.debug(f"Singleton present in trial {i}. Computing sound mixture ... ")
-                    # singleton
-                    singletonval = int(row["SingletonDigit"])
-                    singletonsound = singletons[singletonval - 1]
-                    singletonsound.level = soundlvl  # adjust level
-                    singletonloc = row["SingletonLoc"]  # get target location
+            if freefield:
+                trialsound[int(targetloc-1)] = targetsound.data[:, 0]
+            if row["SingletonPresent"] == 1:
+                logging.debug(f"Singleton present in trial {i}. Computing sound mixture ... ")
+                # singleton
+                singletonval = int(row["SingletonDigit"])
+                singletonsound = singletons[singletonval - 1]
+                singletonsound.level = soundlvl  # adjust level
+                singletonloc = row["SingletonLoc"]  # get target location
+                if not freefield:
                     azimuth, ele = SPACE_ENCODER[singletonloc]  # get coords
                     # singletonsound_lateralized = lateralize(sound=singletonsound, azimuth=azimuth)  # ITD and ILD
                     singletonsound_rendered = spatialize(singletonsound, azi=azimuth, ele=ele)  # add HRTF
@@ -250,11 +254,15 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                         samplediff = singletonsound_rendered.data.shape[0] - trialsound.data.shape[0]
                         singletonsound_rendered.data = singletonsound_rendered[:-samplediff]
                     trialsound.data += singletonsound_rendered.data  # add to trial sound
-                    # digit 2
-                    digit2val = int(row["Non-Singleton2Digit"])
-                    digit2sound = others[digit2val - 1]
-                    digit2sound.level = soundlvl  # adjust level
-                    digit2loc = row["Non-Singleton2Loc"]  # get target location
+                if freefield:
+                    trialsound[int(singletonloc - 1)] = singletonsound.data[:, 0]
+
+                # digit 2
+                digit2val = int(row["Non-Singleton2Digit"])
+                digit2sound = others[digit2val - 1]
+                digit2sound.level = soundlvl  # adjust level
+                digit2loc = row["Non-Singleton2Loc"]  # get target location
+                if not freefield:
                     azimuth, ele = SPACE_ENCODER[digit2loc]  # get coords
                     # digit2sound_lateralized = lateralize(sound=digit2sound, azimuth=azimuth)  # ITD and ILD
                     digit2sound_rendered = spatialize(digit2sound, azi=azimuth, ele=ele)  # add HRTF
@@ -262,14 +270,17 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                         samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
                         digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
                     trialsound.data += digit2sound_rendered.data  # add to trial sound
+                if freefield:
+                    trialsound[int(digit2loc - 1)] = digit2sound.data[:, 0]
 
-                elif row["SingletonPresent"] == 0:
-                    logging.debug(f"Singleton absent in trial {i}. Computing sound mixture ... ")
-                    # digit 1
-                    digit1val = int(row["Non-Singleton1Digit"])
-                    digit1sound = others[digit1val - 1]
-                    digit1sound.level = soundlvl  # adjust level
-                    digit1loc = row["Non-Singleton1Loc"]  # get target location
+            elif row["SingletonPresent"] == 0:
+                logging.debug(f"Singleton absent in trial {i}. Computing sound mixture ... ")
+                # digit 1
+                digit1val = int(row["Non-Singleton1Digit"])
+                digit1sound = others[digit1val - 1]
+                digit1sound.level = soundlvl  # adjust level
+                digit1loc = row["Non-Singleton1Loc"]  # get target location
+                if not freefield:
                     azimuth, ele = SPACE_ENCODER[digit1loc]  # get coords
                     # digit1sound_lateralized = lateralize(sound=digit1sound, azimuth=azimuth)  # ITD and ILD
                     digit1sound_rendered = spatialize(digit1sound, azi=azimuth, ele=ele)  # add HRTF
@@ -277,11 +288,15 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                         samplediff = digit1sound_rendered.data.shape[0] - trialsound.data.shape[0]
                         digit1sound_rendered.data = digit1sound_rendered[:-samplediff]
                     trialsound.data += digit1sound_rendered.data  # add to trial sound
-                    # digit 2
-                    digit2val = int(row["Non-Singleton2Digit"])
-                    digit2sound = others[digit2val - 1]
-                    digit2sound.level = soundlvl  # adjust level
-                    digit2loc = row["Non-Singleton2Loc"]  # get target location
+                if freefield:
+                    trialsound[int(digit1loc - 1)] = digit1sound.data[:, 0]
+
+                # digit 2
+                digit2val = int(row["Non-Singleton2Digit"])
+                digit2sound = others[digit2val - 1]
+                digit2sound.level = soundlvl  # adjust level
+                digit2loc = row["Non-Singleton2Loc"]  # get target location
+                if not freefield:
                     azimuth, ele = SPACE_ENCODER[digit2loc]  # get coords
                     # digit2sound_lateralized = lateralize(sound=digit2sound, azimuth=azimuth)  # ITD and ILD
                     digit2sound_rendered = spatialize(digit2sound, azi=azimuth, ele=ele)  # add HRTF
@@ -289,30 +304,31 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
                         samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
                         digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
                     trialsound.data += digit2sound_rendered.data  # add to trial sound
-                # subtract level difference from final sound file
-                # trialsound.level = trialsound.level - (trialsound.level - soundlvl)
-                logging.debug(f"Generated trial sound for trial {i}. Appending to sequence ... ")
-                sound_sequence.append(trialsound.ramp())  # ramp the sound file to avoid clipping
-                # compute snr
-                if compute_snr:
-                    signal = targetsound_rendered
-                    if row["SingletonPresent"] == 0:
-                        noise = digit1sound_rendered + digit2sound_rendered
-                    elif row["SingletonPresent"] == 1:
-                        noise = singletonsound_rendered + digit2sound_rendered
-                    snr_left, snr_right = snr_sound_mixture_two_ears(signal, noise)
-                    snr_container["snr_left"].append(snr_left[0])
-                    snr_container["snr_right"].append(snr_right[0])
-                    azimuth, _ = SPACE_ENCODER[targetloc]
-                    snr_container["signal_loc"].append(azimuth)
+                if freefield:
+                    trialsound[int(digit2loc - 1)] = digit2sound.data[:, 0]
+            trialsound_slab = slab.Sound(trialsound, samplerate=samplerate)
+            # subtract level difference from final sound file
+            # trialsound.level = trialsound.level - (trialsound.level - soundlvl)
+            logging.debug(f"Generated trial sound for trial {i}. Appending to sequence ... ")
+            sound_sequence.append(trialsound_slab.ramp())  # ramp the sound file to avoid clipping
+            # compute snr
+            if compute_snr:
+                signal = targetsound_rendered
+                if row["SingletonPresent"] == 0:
+                    noise = digit1sound_rendered + digit2sound_rendered
+                elif row["SingletonPresent"] == 1:
+                    noise = singletonsound_rendered + digit2sound_rendered
+                snr_left, snr_right = snr_sound_mixture_two_ears(signal, noise)
+                snr_container["snr_left"].append(snr_left[0])
+                snr_container["snr_right"].append(snr_right[0])
+                azimuth, _ = SPACE_ENCODER[targetloc]
+                snr_container["signal_loc"].append(azimuth)
 
-                if compute_snr:
-                    df_snr = pd.DataFrame.from_dict(snr_container)
-                    file_name_snr = f"../SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
-                    df_snr.to_excel(file_name_snr, index=False)
-            # TODO: continue here
-            elif freefield:
-                pass
+            if compute_snr:
+                df_snr = pd.DataFrame.from_dict(snr_container)
+                file_name_snr = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
+                df_snr.to_excel(file_name_snr, index=False)
+
         # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
             print(f"Writing sound {idx}")
@@ -323,4 +339,4 @@ def precompute_sequence(subject_id, settings, logging_level="INFO", compute_snr=
     logging.info(f"Total script running time: {stop - start:.2f} minutes")
 
 
-precompute_sequence(subject_id=info["subject_id"], settings=settings)
+precompute_sequence(subject_id=info["subject_id"], block=info["block"], settings=settings)
