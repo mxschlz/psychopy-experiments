@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 /stimuli/
 /data/
-/utils/ils.pickle
+/examples/utils/ils.pickle
 /SPACEPRIME/logs/
 /SPACEPRIME/sequences/
 /obsolete/
