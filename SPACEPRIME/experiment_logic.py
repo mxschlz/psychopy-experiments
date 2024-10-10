@@ -130,10 +130,10 @@ class SpaceprimeSession(Session):
                                timing=self.settings["session"]["timing"])
             self.start_experiment()
             for trial in self.trials:
-                self.send_trigger("trial_onset")
+                #self.send_trigger("trial_onset")
                 trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
                 trial.run()
-                self.send_trigger("trial_offset")
+                #self.send_trigger("trial_offset")
         else:
             self.start_experiment()
             self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space")
@@ -148,10 +148,10 @@ class SpaceprimeSession(Session):
                                    timing=self.settings["session"]["timing"])
                 for trial in self.trials:
                     # make sure the default is black line color
-                    self.send_trigger("trial_onset")
+                    #self.send_trigger("trial_onset")
                     trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
                     trial.run()
-                    self.send_trigger("trial_offset")
+                    #self.send_trigger("trial_offset")
                 self.save_data()
                 self.plot_frame_intervals()
                 self.send_trigger("block_offset")
