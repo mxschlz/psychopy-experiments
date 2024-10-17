@@ -1,13 +1,12 @@
+from SPACEPRIME.utils import set_logging_level
 from exptools2.core import Trial, Session
 import os
 import prompts as prompts
 import pandas as pd
-from SPACEPRIME.utils import set_logging_level
 #from psychopy.sound import Sound
 from sound import Sound
 from psychopy import parallel, core
 from encoding import EEG_TRIGGER_MAP, PRIMING
-import psychopy
 
 
 class SpaceprimeTrial(Trial):
@@ -18,7 +17,8 @@ class SpaceprimeTrial(Trial):
         # add ITI jitter to the trial
         # self.phase_names.append("iti")
         self.phase_durations[-1] = self.session.sequence["ITI-Jitter"].iloc[trial_nr]
-        self.trigger_name = None
+        self.trigger_name = None  # this holds the trial-specific trigger name encoding
+        self.buffer_zone = 0
 
     def draw(self):
         # do stuff independent of phases
@@ -30,30 +30,27 @@ class SpaceprimeTrial(Trial):
         if self.phase == 0:
             if self.session.response_device == "mouse":
                 self.session.virtual_response_box[0].lineColor = "black"
-            # if not self.stim.isPlaying:  # wait until stimulus is presented TODO: use this with psychopy Sound class
+            #if not self.stim.isPlaying:  # wait until stimulus is presented
             self.session.send_trigger(self.trigger_name)
-            self.stim.play()
-            core.wait(self.stim.duration)
+            self.stim.play(blocking=True)
+            #self.stim.wait()
             # core.wait(self.stim.duration)
 
         # get response in phase 1
         if self.phase == 1:
-            # while self.session.timer.getTime() < 0:
-            # if self.current_key is not None:
-            # if self.current_key != self.session.sequence.iloc[self.trial_nr]["TargetDigit"]:
-            # self.session.display_text(text=prompts.error_notification, color=(1.0, 0.0, 0.0),
-            # duration=np.abs(self.session.timer.getTime()))
-            pass
-
+            if any(self.session.mouse.getPressed()):
+                self.stop_phase()
         # print too slow warning if response is collected in phase 2
         if self.phase == 2:
             # while self.session.timer.getTime() < 0:
             if any(self.get_events()) or any(self.session.mouse.getPressed()):
-                #self.session.display_text(text=prompts.too_slow, color=(1.0, 0.0, 0.0),
-                                          #duration=np.abs(self.session.timer.getTime()))  # red warning
-                self.session.virtual_response_box[0].lineColor = "red"
-                # self.session.win.flip()
-
+                # print(f"Timer: {self.session.timer.getTime()}")
+                if self.session.timer.getTime() > self.buffer_zone:
+                    #self.session.display_text(text=prompts.too_slow, color=(1.0, 0.0, 0.0),
+                                              #duration=np.abs(self.session.timer.getTime()))  # red warning
+                    self.session.virtual_response_box[0].lineColor = "red"
+                    # core.wait(np.abs(self.session.time.getTime()))
+                    # self.session.win.flip()
 
 class SpaceprimeSession(Session):
     def __init__(self, output_str, output_dir=None, settings_file=None, starting_block=0, test=False):
@@ -103,7 +100,7 @@ class SpaceprimeSession(Session):
             sound_path = os.path.join(trial.session.blockdir, f"s_{trial_nr}.wav")  # s_0, s_1, ... .wav
             #trial.stim = Sound(sound_path)
             trial.stim = Sound(filename=sound_path, device=self.settings["soundconfig"]["device"],
-                               mul=self.settings["soundconfig"]["mul"]) #TODO: eventually change this to psychopy sound
+                               mul=self.settings["soundconfig"]["mul"])
             # trial.stim = slab.Binaural.read(sound_path)
             self.trials.append(trial)
 
@@ -117,16 +114,16 @@ class SpaceprimeSession(Session):
             self.default_fix.draw()
             self.win.flip()
             self.send_trigger("camera_calibration_onset")
-            core.wait(10)
+            core.wait(1)
             self.send_trigger("camera_calibration_offset")
         if self.test:
             self.display_text(text=prompts.testing, keys="space")
             self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
             self.create_trials(n_trials=15,
-                               durations=[self.settings["session"]["stimulus_duration"],
+                               durations=(self.settings["session"]["stimulus_duration"],
                                           self.settings["session"]["response_duration"],
-                                          None],
+                                          None),
                                timing=self.settings["session"]["timing"])
             self.start_experiment()
             for trial in self.trials:
@@ -135,26 +132,26 @@ class SpaceprimeSession(Session):
                 trial.run()
                 #self.send_trigger("trial_offset")
         else:
-            self.start_experiment()
             self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space")
             for block in self.blocks:
                 self.send_trigger("block_onset")
                 self.set_block(block=block)
                 self.load_sequence()
                 self.create_trials(n_trials=self.n_trials,
-                                   durations=[self.settings["session"]["stimulus_duration"],
+                                   durations=(self.settings["session"]["stimulus_duration"],
                                               self.settings["session"]["response_duration"],
-                                              None],  # this is hacky and usually not recommended (for ITI Jitter)
+                                              None),  # this is hacky and usually not recommended (for ITI Jitter)
                                    timing=self.settings["session"]["timing"])
+                if block == 0:
+                    self.start_experiment()
                 for trial in self.trials:
                     # make sure the default is black line color
                     #self.send_trigger("trial_onset")
                     trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
                     trial.run()
                     #self.send_trigger("trial_offset")
-                self.save_data()
-                self.plot_frame_intervals()
                 self.send_trigger("block_offset")
+                self.save_data()
                 if not block == max(self.blocks):
                     self.display_text(text=prompts.pause, keys="space")
         self.display_text(text=prompts.end, keys="q")
@@ -167,7 +164,7 @@ class SpaceprimeSession(Session):
             trigger_value = EEG_TRIGGER_MAP[event_name]
             # send trigger to EEG:
             self.port.setData(trigger_value)
-            core.wait(0.003)  # TODO: is 3 ms enough?
+            core.wait(0.003)
             # turn off EEG trigger
             self.port.setData(0)
         else:
@@ -175,37 +172,63 @@ class SpaceprimeSession(Session):
 
 
 if __name__ == '__main__':
+    from utils.utils import get_input_from_dict
+    info = get_input_from_dict({"subject_id": 101,  # enter subject id
+                                "test": False,  # enter if test run (1) or not (0)
+                                "block": 0})
     # DEBUGGING
-    sess = SpaceprimeSession(output_str='sub-99', output_dir="logs", settings_file="config.yaml")
-    # sess.display_text(text=prompts.testing, keys="space")
-    sess.set_block(block=1)  # intentionally choose block within
-    sess.load_sequence()
-    sess.create_trials(n_trials=15,
-                       durations=[sess.settings["session"]["stimulus_duration"],
-                                  sess.settings["session"]["response_duration"],
-                                  None],
-                       timing=sess.settings["session"]["timing"])
-    sess.start_experiment()
-    sess.display_response_box()
-    sess.win.flip()
-
-    while True:
-        # Handle mouse clicks
-        for i, stimulus in enumerate(sess.virtual_response_box):  # skip the rectangle (i==0)
-            if i == 0:
-                continue
-            if stimulus.contains(sess.mouse):
-                print("Mouse position recognized")
-                stimulus.color = "red"
-
-                # sess.win.callOnFlip(change_color)  # Schedule color change for next flip
-                # show feedback by digit color change
-
-            # sess.mouse.clickReset()  # Update mouse position
-            # sess.win.flip()  # Flip the window to display any changes
-        event = psychopy.event.getKeys()
-        if len(event) > 0:
-            sess.win.close()
-            break
-    #time.sleep(5)
-    # sess.win.close()
+    sess = SpaceprimeSession(output_str=f'sub-{info["subject_id"]}', output_dir="logs",
+                             settings_file="config.yaml",
+                             starting_block=info["block"], test=True if info["test"] == 1 else False)
+    sess.send_trigger("experiment_onset")
+    # welcome the participant
+    sess.display_text(text=prompts.welcome1, keys="space")
+    sess.display_text(text=prompts.welcome2, keys="space")
+    if sess.settings["mode"]["camera"]:
+        sess.display_text(text=prompts.camera_calibration, keys="space")
+        sess.default_fix.draw()
+        sess.win.flip()
+        sess.send_trigger("camera_calibration_onset")
+        core.wait(1)
+        sess.send_trigger("camera_calibration_offset")
+    if sess.test:
+        sess.display_text(text=prompts.testing, keys="space")
+        sess.set_block(block=1)  # intentionally choose block within
+        sess.load_sequence()
+        sess.create_trials(n_trials=15,
+                           durations=(sess.settings["session"]["stimulus_duration"],
+                                      sess.settings["session"]["response_duration"],
+                                      None),
+                           timing=sess.settings["session"]["timing"])
+        sess.start_experiment()
+        for trial in sess.trials:
+            # self.send_trigger("trial_onset")
+            trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
+            trial.run()
+            # self.send_trigger("trial_offset")
+    else:
+        sess.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space")
+        for block in sess.blocks:
+            sess.send_trigger("block_onset")
+            sess.set_block(block=block)
+            sess.load_sequence()
+            sess.create_trials(n_trials=5,
+                               durations=(sess.settings["session"]["stimulus_duration"],
+                                          sess.settings["session"]["response_duration"],
+                                          None),  # this is hacky and usually not recommended (for ITI Jitter)
+                               timing=sess.settings["session"]["timing"])
+            if block == 0:
+                sess.start_experiment()
+            for trial in sess.trials:
+                # make sure the default is black line color
+                # self.send_trigger("trial_onset")
+                trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
+                trial.run()
+                # self.send_trigger("trial_offset")
+            sess.send_trigger("block_offset")
+            sess.save_data()
+            if not block == max(sess.blocks):
+                sess.display_text(text=prompts.pause, keys="space")
+    sess.display_text(text=prompts.end, keys="q")
+    sess.send_trigger("experiment_offset")
+    sess.quit()
