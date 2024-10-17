@@ -42,12 +42,35 @@ class Sound(object):
 		self.data = self.data * (10 ** (mul / 20))
 
 		self.duration = self.data.shape[0] / self.sr
+		self._isPlaying = False
+		self._isFinished = False
+
+	@property
+	def isPlaying(self):
+		"""`True` if the audio playback is ongoing."""
+		return self._isPlaying
+
+	@property
+	def isFinished(self):
+		"""`True` if the audio playback has completed."""
+		return self._isFinished
 
 	def getDuration(self):
 		return self.duration
 
-	def play(self):
-		self.sd.play(self.data, self.sr, device=self.device)
+	def play(self, **kwargs):
+		self._isPlaying = True
+		self._isFinished = False
+		self.sd.play(data=self.data, samplerate=self.sr, device=self.device, **kwargs)
+
+	def stop(self):
+		self._isPlaying = False
+		self._isFinished = True
+		self.sd.stop()
+
+	def wait(self):
+		self._isPlaying = False
+		self.sd.wait()
 
 	def change_volume(self, mul=1):
 		if mul > 120:
