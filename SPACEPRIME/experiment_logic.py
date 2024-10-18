@@ -21,7 +21,7 @@ class SpaceprimeTrial(Trial):
     def send_trig_and_sound(self):
         self.session.send_trigger(trigger_name=self.trigger_name)
         self.stim.play()
-        core.wait(self.stim.duration)
+        # core.wait(self.stim.duration)
 
     def draw(self):
         # do stuff independent of phases
