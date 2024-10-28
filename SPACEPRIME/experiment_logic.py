@@ -3,7 +3,7 @@ from exptools2.core import Trial, Session
 import os
 import prompts as prompts
 import pandas as pd
-from sound import Sound
+from sound import SoundDeviceSound as Sound
 from psychopy import parallel, core
 from encoding import EEG_TRIGGER_MAP, PRIMING
 
@@ -20,7 +20,7 @@ class SpaceprimeTrial(Trial):
 
     def send_trig_and_sound(self):
         self.session.send_trigger(trigger_name=self.trigger_name)
-        self.stim.play()
+        self.stim.play(blocking=True)
         # core.wait(self.stim.duration)
 
     def draw(self):
@@ -149,6 +149,8 @@ class SpaceprimeSession(Session):
 
     # Function to send trigger value by specifying event name
     def send_trigger(self, trigger_name):
+        print(trigger_name)
+        print(EEG_TRIGGER_MAP[trigger_name])
         if self.settings["mode"]["record_eeg"]:
             # get corresponding trigger value:
             trigger_value = EEG_TRIGGER_MAP[trigger_name]
