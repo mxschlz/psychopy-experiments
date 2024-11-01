@@ -45,17 +45,15 @@ class SoundDeviceSound(object):
 		self._isPlaying = False
 		self._isFinished = False
 
-	@property
-	def isPlaying(self):
+	def is_playing(self):
 		"""`True` if the audio playback is ongoing."""
 		return self._isPlaying
 
-	@property
-	def isFinished(self):
+	def is_finished(self):
 		"""`True` if the audio playback has completed."""
 		return self._isFinished
 
-	def getDuration(self):
+	def get_duration(self):
 		return self.duration
 
 	def play(self, **kwargs):
@@ -104,3 +102,10 @@ class WinSound(object):
     def beep(self, frequency, duration):
         """ plays a beep with low latency"""
         self._winsound.Beep(frequency, duration / float(1000))
+
+
+if __name__ == "__main__":
+	sound = SoundDeviceSound(filename='C:\\PycharmProjects\\psychopy-experiments\\stimuli\\digits_all_250ms\\1.wav')
+	while True:
+		if not sound.isPlaying():
+			sound.play()
