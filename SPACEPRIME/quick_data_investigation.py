@@ -2,7 +2,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
-from utils.stats import permutation_test
 #import matplotlib
 #matplotlib.use("Qt5Agg")
 plt.ion()
@@ -11,10 +10,10 @@ plt.ion()
 # path for figure saving
 figpath = "C:\PycharmProjects\psychopy-experiments\WP1\\figures"
 # load up dataframe
-fp = "C:\\PycharmProjects\\psychopy-experiments\\SPACEPRIME\\logs\\clean"
-file_excel = os.listdir(fp)[0]
+fp = "C:\\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACEPRIME\logs"
+file_excel = "sub-102_November_01_2024_17_04_56_events.csv"
 # read dataframe
-df = pd.read_excel(os.path.join(fp, file_excel))
+df = pd.read_csv(os.path.join(fp, file_excel))
 # get results only
 results = df[(df['event_type'] == 'mouse_click') & (df['rt'] != 0) & (df["phase"] == 1)]
 # Create a boolean mask to identify consecutive duplicates in `ITI-Jitter`
