@@ -3,7 +3,7 @@ from itertools import permutations
 import yaml
 
 # load settings
-settings_path = "SPACEPRIME/config.yaml"
+settings_path = "config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
@@ -41,9 +41,9 @@ def generate_combinations(settings, save=True):
         print(f"Duplicates found: {duplicate}")
         # clean up
         df = df.fillna(0).astype(int)
-        writer = f"SPACEPRIME/all_combinations_{len(locations)}_loudspeakers_{len(digits)}_digits.xlsx"
+        writer = f"all_combinations_{len(locations)}_loudspeakers_{len(digits)}_digits.csv"
         try:
-            df.to_excel(writer, index=False)
+            df.to_csv(writer, index=False)
         except ValueError:
             print("Excel sheet too large. Aborting ... ")
 
