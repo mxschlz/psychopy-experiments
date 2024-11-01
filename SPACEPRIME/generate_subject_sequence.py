@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 import yaml
 import slab
-from SPACEPRIME.encoding import SPACE_ENCODER
+from encoding import SPACE_ENCODER
 from utils.signal_processing import spatialize, snr_sound_mixture_two_ears
 from utils.utils import get_input_from_dict, generate_balanced_jitter
-from SPACEPRIME.trial_sequence_pygad import (make_pygad_trial_sequence, insert_singleton_present_trials,
+from trial_sequence_pygad import (make_pygad_trial_sequence, insert_singleton_present_trials,
                                              get_element_indices, print_final_traits)
 import os
 import seaborn as sns
@@ -17,7 +17,7 @@ import time
 info = get_input_from_dict({"subject_id": 99, "block": 0})
 
 # load settings
-settings_path = "SPACEPRIME/config.yaml"
+settings_path = "config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
@@ -44,12 +44,12 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # determine how many trials
     n_trials = settings["session"]["n_trials"]
     # load conditions file
-    df = pd.read_excel(f"SPACEPRIME/all_combinations_{settings['session']['n_locations']}"
-                       f"_loudspeakers_{settings['session']['n_digits']}_digits.xlsx")
+    df = pd.read_csv(f"all_combinations_{settings['session']['n_locations']}"
+                       f"_loudspeakers_{settings['session']['n_digits']}_digits.csv")
     # retrieve sound level to adjust sounds to
     soundlvl = settings["session"]["level"]
     n_blocks = settings["session"]["n_blocks"]
-    switch_pitch_after = n_blocks // 2  # pitch everything but singletons after 50 % of blocks
+    midpoint = n_blocks // 2  # pitch everything but singletons after 50 % of blocks
     # load sounds
     singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
                   for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
@@ -91,7 +91,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # iterate over block
     for block in range(block, n_blocks):
         print(f"Running block {block}")
-        if block >= switch_pitch_after:
+        if block >= midpoint:
             # really confusing but this should do the trick
             if subject_id_is_even:
                 targets = targets_high
@@ -102,7 +102,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 singletons = singletons_copy
                 others = others_copy
         logging.info(f"Processing block {block}")
-        dirname = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}"
+        dirname = f"sequences/sub-{subject_id}_block_{block}"
         try:
             os.mkdir(dirname)
         except FileExistsError:
@@ -210,8 +210,16 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         print_final_traits(trial_sequence)
         trial_sequence["ITI-Jitter"] = generate_balanced_jitter(trial_sequence, iti=settings["session"]["iti"])
         trial_sequence["ITI-Jitter"] = round(trial_sequence["ITI-Jitter"], 3)
-        file_name = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}.xlsx"
-        trial_sequence.to_excel(file_name, index=False)  # Save as CSV, excluding the row index
+        if subject_id_is_even:
+            trial_sequence['target_modulation'] = 0  # Initialize with 0
+            if block >= midpoint:
+                trial_sequence['target_modulation'] = 1
+        elif not subject_id_is_even:
+            trial_sequence['target_modulation'] = 1  # Initialize with 1
+            if block >= midpoint:
+                trial_sequence['target_modulation'] = 0
+        file_name = f"sequences/sub-{subject_id}_block_{block}.csv"
+        trial_sequence.to_csv(file_name, index=False)  # Save as CSV, excluding the row index
         logging.info(f"Precomputing trial sounds for subject {subject_id}, block {block} ... ")
 
         sound_sequence = []  # sound sequence placeholder
@@ -326,9 +334,9 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
             if compute_snr:
                 df_snr = pd.DataFrame.from_dict(snr_container)
-                file_name_snr = f"SPACEPRIME/sequences/sub-{subject_id}_block_{block}_snr.xlsx"
-                df_snr.to_excel(file_name_snr, index=False)
-
+                file_name_snr = f"sequences/sub-{subject_id}_block_{block}_snr.csv"
+                df_snr.to_csv(file_name_snr, index=False)
+        
         # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
             print(f"Writing sound {idx}")
