@@ -33,10 +33,11 @@ class SpaceprimeTrial(Trial):
         if self.phase == 0:
             if self.session.response_device == "mouse":
                 self.session.virtual_response_box[0].lineColor = "black"
-            self.session.win.callOnFlip(self.send_trig_and_sound)
+            if not self.stim.is_playing():
+                self.session.win.callOnFlip(self.send_trig_and_sound)
         # get response in phase 1
         if self.phase == 1:
-            pass
+            self.stim.stop()  # set isPlaying attribute to False for next trial onset
         # print too slow warning if response is collected in phase 2
         if self.phase == 2:
             if any(self.get_events()) or any(self.session.mouse.getPressed()):
@@ -72,7 +73,7 @@ class SpaceprimeSession(Session):
         self.this_block = block
 
     def load_sequence(self):
-        self.sequence = pd.read_excel(self.blockdir + ".xlsx")
+        self.sequence = pd.read_csv(self.blockdir + ".csv")
 
     def create_trials(self, n_trials, durations, timing='seconds'):
         self.trials = []
