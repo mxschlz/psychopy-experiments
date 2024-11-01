@@ -11,7 +11,7 @@ from encoding import EEG_TRIGGER_MAP, PRIMING
 class SpaceprimeTrial(Trial):
     def __init__(self, session, trial_nr, phase_durations, **kwargs):
         super().__init__(session, trial_nr, phase_durations, **kwargs)
-        self.stim = Sound
+        self.stim = None
         # HACKY AND NOT RECOMMENDED --> special case to implement ITI jitter
         # add ITI jitter to the trial
         # self.phase_names.append("iti")
@@ -20,8 +20,7 @@ class SpaceprimeTrial(Trial):
 
     def send_trig_and_sound(self):
         self.session.send_trigger(trigger_name=self.trigger_name)
-        self.stim.play(blocking=True)
-        # core.wait(self.stim.duration)
+        self.stim.play()
 
     def draw(self):
         # do stuff independent of phases
@@ -37,9 +36,10 @@ class SpaceprimeTrial(Trial):
                 self.session.win.callOnFlip(self.send_trig_and_sound)
         # get response in phase 1
         if self.phase == 1:
-            self.stim.stop()  # set isPlaying attribute to False for next trial onset
+            pass  # set isPlaying attribute to False for next trial onset
         # print too slow warning if response is collected in phase 2
         if self.phase == 2:
+            self.stim.stop()  #  reset the sound
             if any(self.get_events()) or any(self.session.mouse.getPressed()):
                 if self.session.virtual_response_box:
                     self.session.virtual_response_box[0].lineColor = "red"
@@ -165,14 +165,10 @@ class SpaceprimeSession(Session):
 
 
 if __name__ == '__main__':
-    from utils.utils import get_input_from_dict
-    info = get_input_from_dict({"subject_id": 99,  # enter subject id
-                                "test": False,  # enter if test run (1) or not (0)
-                                "block": 0})
     # DEBUGGING
-    sess = SpaceprimeSession(output_str=f'sub-{info["subject_id"]}', output_dir="logs",
-                             settings_file="config.yaml",
-                             starting_block=info["block"], test=True if info["test"] == 1 else False)
+    sess = SpaceprimeSession(output_str=f'sub-102', output_dir="logs",
+                             settings_file="SPACEPRIME\config.yaml",
+                             starting_block=0, test=False)
     sess.send_trigger("experiment_onset")
     # welcome the participant
     sess.display_text(text=prompts.welcome1, keys="space")
