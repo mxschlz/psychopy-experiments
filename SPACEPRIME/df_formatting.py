@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import datetime
-from utils.utils import get_input_from_dict
+from SPACEPRIME.utils.utils import get_input_from_dict
 
 print(os.getcwd())
 # get current date with seconds to make it unique
@@ -9,21 +9,21 @@ date = datetime.datetime.now().strftime('%B_%d_%Y_%H_%M_%S')
 # get subject info
 info = get_input_from_dict({"subject_id": 99})
 # some filepaths
-fp = os.path.join(os.getcwd(), "logs")
+fp = os.path.join(os.getcwd(), "SPACEPRIME\logs")
 fp_clean = os.path.join(fp, "clean")
-results_path = os.path.join(os.getcwd(), "results")
+results_path = os.path.join("SPACEPRIME", "results")
 # get files in log dir
 fn = [x for x in os.listdir(fp) if f'sub-{info["subject_id"]}' in x]
 # filter for excel files
-fn = [x for x in fn if ".xlsx" in x]
+fn = [x for x in fn if ".csv" in x]
 if len(fn) > 1:
     files = []
     for file in fn:
-        files.append(pd.read_excel(os.path.join(fp, file)))
+        files.append(pd.read_csv(os.path.join(fp, file)))
     df = pd.concat(files, ignore_index=True)
 elif len(fn) == 1:
     file = fn[0]
-    df = pd.read_excel(os.path.join(fp, file))
+    df = pd.read_csv(os.path.join(fp, file))
 else:
     print("Could not find any excel files!")
 # some cleaning
@@ -37,15 +37,16 @@ df.response = df.response.astype(int)
 df["iscorrect"] = df.response == df.TargetDigit
 # save dataframe
 
-df.to_excel(os.path.join(fp_clean, f"{file.split('_')[0]}_clean.xlsx"), index=False)
+df.to_csv(os.path.join(fp_clean, f"{file.split('_')[0]}_clean.csv"), index=False)
 
 # concatenate
 dfs = []
 # load up dataframe
 for file in os.listdir(fp_clean):
-    dfs.append(pd.read_excel(os.path.join(fp_clean, file)))
+    if ".csv" in file:
+        dfs.append(pd.read_csv(os.path.join(fp_clean, file)))
 df = pd.concat(dfs, ignore_index=False)
 # df.pop("Unnamed: 0")
-df.to_excel(os.path.join(results_path, f"results_{date}.xlsx"))
+df.to_csv(os.path.join(results_path, f"results_{date}.csv"))
 
 print("Done! :)")
