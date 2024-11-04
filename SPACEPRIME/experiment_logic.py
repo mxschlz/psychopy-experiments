@@ -1,4 +1,4 @@
-from SPACEPRIME.utils.set_logging_level import set_level
+from utils.set_logging_level import set_level
 from exptools2.core import Trial, Session
 import os
 import prompts as prompts
@@ -19,8 +19,8 @@ class SpaceprimeTrial(Trial):
         self.trigger_name = None  # this holds the trial-specific trigger name encoding
 
     def send_trig_and_sound(self):
-        self.session.send_trigger(trigger_name=self.trigger_name)
         self.stim.play()
+        self.session.send_trigger(trigger_name=self.trigger_name)
 
     def draw(self):
         # do stuff independent of phases
