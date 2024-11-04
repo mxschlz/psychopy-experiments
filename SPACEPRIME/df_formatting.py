@@ -1,17 +1,17 @@
 import pandas as pd
 import os
 import datetime
-from SPACEPRIME.utils.utils import get_input_from_dict
+from utils.utils import get_input_from_dict
 
-print(os.getcwd())
+# print(os.getcwd())
 # get current date with seconds to make it unique
 date = datetime.datetime.now().strftime('%B_%d_%Y_%H_%M_%S')
 # get subject info
 info = get_input_from_dict({"subject_id": 99})
 # some filepaths
-fp = os.path.join(os.getcwd(), "SPACEPRIME\logs")
+fp = os.path.join(os.getcwd(), "logs")
 fp_clean = os.path.join(fp, "clean")
-results_path = os.path.join("SPACEPRIME", "results")
+results_path = os.path.join("results")
 # get files in log dir
 fn = [x for x in os.listdir(fp) if f'sub-{info["subject_id"]}' in x]
 # filter for excel files
