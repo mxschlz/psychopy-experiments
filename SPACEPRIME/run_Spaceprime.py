@@ -1,4 +1,4 @@
-from SPACEPRIME.experiment_logic import SpaceprimeSession
+from experiment_logic import SpaceprimeSession
 from utils.utils import get_input_from_dict
 
 
