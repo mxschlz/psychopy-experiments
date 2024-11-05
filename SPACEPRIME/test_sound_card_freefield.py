@@ -15,7 +15,7 @@ from psychopy import core
 
 filename = "C:\\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACEPRIME\sequences\sub-101_block_0\\s_2.wav"
 ptbs = sound.Sound(value=filename, stereo=False)
-sds = SoundDeviceSound(filename, mul=1, device=3)
+sds = SoundDeviceSound(filename, mul=1, device=44)
 for i in range(20):
 	core.wait(3)
 	sds = SoundDeviceSound(filename, mul=1, device=3)
