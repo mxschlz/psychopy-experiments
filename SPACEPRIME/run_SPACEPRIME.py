@@ -12,7 +12,7 @@ sess = SpaceprimeSession(output_str=f'sub-{info["subject_id"]}', output_dir="log
                          settings_file="config.yaml",
                          starting_block=info["block"], test=True if info["test"] == 1 else False)
 sess.run()
-sess.plot_frame_intervals()
-sess.plot_frame_intervals2()
+# sess.plot_frame_intervals()
+# sess.plot_frame_intervals2()
 sess.close()
 sess.quit()
