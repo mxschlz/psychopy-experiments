@@ -20,7 +20,9 @@ class SpaceprimeTrial(Trial):
 
     def send_trig_and_sound(self):
         self.stim.play()
+        self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
         self.session.send_trigger(trigger_name=self.trigger_name)
+
 
     def draw(self):
         # do stuff independent of phases
@@ -34,6 +36,10 @@ class SpaceprimeTrial(Trial):
                 self.session.virtual_response_box[0].lineColor = "black"
             if not self.stim.is_playing():
                 self.session.win.callOnFlip(self.send_trig_and_sound)
+                #self.send_trig_and_sound()
+                #self.stim.play()
+                #core.wait(0.08)
+                #self.session.send_trigger(trigger_name=self.trigger_name)
         # get response in phase 1
         if self.phase == 1:
             pass  # set isPlaying attribute to False for next trial onset
@@ -75,7 +81,7 @@ class SpaceprimeSession(Session):
     def load_sequence(self):
         self.sequence = pd.read_csv(self.blockdir + ".csv")
 
-    def create_trials(self, n_trials, durations, timing='seconds'):
+    def create_trials(self, n_trials, durations, timing="seconds"):
         self.trials = []
         for trial_nr in range(n_trials):
             trial = SpaceprimeTrial(session=self,
@@ -86,7 +92,8 @@ class SpaceprimeSession(Session):
                                                     block=self.this_block,
                                                     subject_id=self.subject_id),
                                     verbose=True,
-                                    timing=timing)
+                                    timing=timing,
+                                    draw_each_frame=True)
             sound_path = os.path.join(trial.session.blockdir, f"s_{trial_nr}.wav")  # s_0, s_1, ... .wav
             trial.stim = Sound(filename=sound_path, device=self.settings["soundconfig"]["device"],
                                mul=self.settings["soundconfig"]["mul"])
