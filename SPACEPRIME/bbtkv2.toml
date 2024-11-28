@@ -1,0 +1,16 @@
+serialport="COM3"
+baudrate=230400
+debug=1
+
+[thresholds]
+Mic1=40
+Mic2=0
+Sounder1=63
+Sounder2=63
+Opto1=110
+Opto2=0
+Opto3=0
+Opto4=0
+
+[smoothing]
+smoothing='11000011'
