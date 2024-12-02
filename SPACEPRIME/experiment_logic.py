@@ -1,6 +1,7 @@
 from utils.set_logging_level import set_level
 from exptools2.core import Trial, Session
 import os
+os.environ["SD_ENABLE_ASIO"] = "1"
 import prompts as prompts
 import pandas as pd
 from sound import SoundDeviceSound as Sound
@@ -22,7 +23,6 @@ class SpaceprimeTrial(Trial):
         self.stim.play()
         self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
         self.session.send_trigger(trigger_name=self.trigger_name)
-
 
     def draw(self):
         # do stuff independent of phases
@@ -94,9 +94,6 @@ class SpaceprimeSession(Session):
                                     verbose=True,
                                     timing=timing,
                                     draw_each_frame=True)
-            sound_path = os.path.join(trial.session.blockdir, f"s_{trial_nr}.wav")  # s_0, s_1, ... .wav
-            trial.stim = Sound(filename=sound_path, device=self.settings["soundconfig"]["device"],
-                               mul=self.settings["soundconfig"]["mul"])
             trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
             self.trials.append(trial)
 
@@ -164,11 +161,36 @@ class SpaceprimeSession(Session):
             trigger_value = EEG_TRIGGER_MAP[trigger_name]
             # send trigger to EEG:
             self.port.setData(trigger_value)
-            core.wait(0.003)
+            core.wait(0.002)
             # turn off EEG trigger
             self.port.setData(0)
         else:
             pass
+
+    def bbtkv2_test_run(self, n_trials):
+        # set block
+        self.set_block(block=1)
+        # load up trial sequence
+        self.load_sequence()
+        # create trials from sequence
+        self.create_trials(n_trials=n_trials,
+                           durations=(self.settings["session"]["stimulus_duration"],
+                                      self.settings["session"]["response_duration"],
+                                      None),  # this is hacky and usually not recommended (for ITI Jitter)
+                           timing=self.settings["session"]["timing"])
+        # set up timer etc. for the experiment
+        self.start_experiment()
+        # run through trials
+        for trial in self.trials:
+            sound_path = os.path.join(trial.session.blockdir, f"s_{trial.trial_nr}.wav")  # s_0, s_1, ... .wav
+            trial.stim = Sound(filename=sound_path, device=self.settings["soundconfig"]["device"],
+                               mul=self.settings["soundconfig"]["mul"])
+            trial.trigger_name = "test_trigger"
+            # play sound
+            trial.run()
+        # clean up
+        self.close()
+        self.quit()
 
 
 if __name__ == '__main__':
