@@ -20,7 +20,7 @@ class SpaceprimeTrial(Trial):
         self.trigger_name = None  # this holds the trial-specific trigger name encoding
 
     def send_trig_and_sound(self):
-        self.stim.play(latency=0.0, blocksize=0)  # not sure whether this does anything ...
+        self.stim.play(latency="low", blocksize=0)  # not sure whether this does anything ...
         self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
         self.session.send_trigger(trigger_name=self.trigger_name)
 
@@ -34,21 +34,25 @@ class SpaceprimeTrial(Trial):
         if self.phase == 0:
             if self.session.response_device == "mouse":
                 self.session.virtual_response_box[0].lineColor = "black"
+                self.session.mouse.setVisible(True)
+                self.session.mouse.setPos((0, 0))
             if not self.stim.is_playing():
-                self.session.win.callOnFlip(self.send_trig_and_sound)
-                #self.send_trig_and_sound()
+                #self.session.win.callOnFlip(self.send_trig_and_sound)
+                self.send_trig_and_sound()
                 #self.stim.play()
                 #core.wait(0.08)
                 #self.session.send_trigger(trigger_name=self.trigger_name)
         # get response in phase 1
         if self.phase == 1:
-            pass  # set isPlaying attribute to False for next trial onset
+            if any(self.session.mouse.getPressed()):
+                self.session.mouse.setVisible(False)
         # print too slow warning if response is collected in phase 2
         if self.phase == 2:
             self.stim.stop()  #  reset the sound
             if any(self.get_events()) or any(self.session.mouse.getPressed()):
                 if self.session.virtual_response_box:
                     self.session.virtual_response_box[0].lineColor = "red"
+                    self.session.mouse.setVisible(False)
 
 
 class SpaceprimeSession(Session):
@@ -65,6 +69,7 @@ class SpaceprimeSession(Session):
         self.test = test
         self.this_block = None
         self.subject_id = int(self.output_str.split("-")[1])
+        self.digits = []
         if self.settings["mode"]["record_eeg"]:
             self.port = parallel.ParallelPort(0xCFF8)  # set address of port
 
@@ -103,8 +108,24 @@ class SpaceprimeSession(Session):
     def run(self):
         self.send_trigger("experiment_onset")
         # welcome the participant
-        self.display_text(text=prompts.welcome1, keys="space")
-        self.display_text(text=prompts.welcome2, keys="space")
+        self.display_text(text=prompts.prompt1, keys="space")
+        self.display_text(text=prompts.prompt2, keys="space")
+        self.display_text(text=prompts.prompt3, keys="space")
+        self.display_text(text=prompts.prompt4, keys="space")
+        if self.settings["mode"]["demo"]:
+            self.display_text(text=prompts.demo, keys="space")
+            if self.subject_id % 2 == 0:
+                targets = "low"
+            elif self.subject_id % 2 != 0:
+                targets = "high"
+            # TODO: are the digits too loud also in CBBM?
+            self.digits = [Sound(filename=os.path.join(f"stimuli\\targets_{targets}_30_Hz", x), device=self.settings["soundconfig"]["device"],
+                                 mul=5) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
+            for digit in self.digits:
+                digit.play(latency="low", blocksize=0)
+                core.wait(1.5)
+        self.display_text(text=prompts.prompt4, keys="space")
+        self.display_text(text=prompts.prompt5, keys="space")
         # do camera calibration if enabled
         if self.settings["mode"]["camera"]:
             # participant instructions
