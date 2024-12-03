@@ -1,28 +1,65 @@
-# Define the instructions
-welcome1 = '''
-Willkommen zum Experiment!
-Im kommenden Verlauf des Experiments wirst Du gleichzeitig einzelne Nummern von 1 bis 9 aus drei verschiedenen Richtungen hören. 
-In allen Durchgängen erscheinen jeweils drei verschiedene Töne. Alle drei Töne bestehen aus jeweils unterschiedlichen Nummern, 
-und ein Ton ist der Zielton.
+prompt1 = '''
+Willkommen und vielen Dank für die Teilnahme am Experiment zur räumlichen Aufmerksamkeit.
+Im Verlauf des Experiments sollst du eine Zielziffer aus jeweils drei verschiedenen Ziffern identifizieren.
+Versuche dabei stets, so schnell wie möglich zu antworten! Das Experiment ist in 10 Blöcke aufgeteilt, zwischen denen
+du kurze Pausen einlegen kannst.
 
 Drücke LEERTASTE, um weiterzublättern.
 '''
 
-welcome2 = """
-Der Zielton ist immer amplituden-moduliert, d.h. er hört sich an, als würde die Stimme während der Artikulation leiser 
-und lauter werden. Diesen Ton sollst Du identifizieren und den Inhalt durch Drücken einer Taste zwischen 1 und 9 auf 
-dem Bildschirm wiedergeben. In manchen Durchgängen ist einer der zwei weiteren Töne ein Ton, welcher eine abweichende 
-Tonlage besitzt. Deine Aufgabe ist es im gesamten Experiment, den Zielton durch Drücken der Tasten 1 - 9 zu identifizieren.
+prompt2 = """
+In jedem Durchgang des Experiments erscheint gleichzeitig jeweils eine Ziffer aus einem der drei Lautsprecher, die dich
+umgeben. Bei den Ziffern handelt es sich immer um ein und die selbe Person, welche Zahlen zwischen 1 und 9 ausspricht.
+In einem Durchgang sind alle Ziffern einzigartig, z.B. kann die Ziffer 9 nicht sowohl aus dem linken, als auch dem
+rechten Lautsprecher gleichzeitig ertönen.
 
-Drücke LEERTASTE, um zu starten. 
+Drücke LEERTASTE, um weiterzublättern.
+"""
+
+prompt3 = """
+Eine Ziffer unterscheidet sich von den anderen beiden in einer Eigenschaft: Sie wird im Zuge der Artikulation lauter und
+leiser und klingt deshalb etwas eigenartig. Diese Ziffer ist wie ein Licht, das in schneller Abfolge heller und dunkler
+wird. Auf genau diese Ziffer sollst du dich stets konzentrieren und ihre Identität so schnell wie möglich angeben!
+
+Drücke LEERTASTE, um weiterzublättern.
+"""
+
+prompt4 = """
+In manchen Durchgängen ist eine der zwei weiteren Ziffern ebenfalls abweichend. Diese besitzt dann eine andere
+Tonhöhe. Lass dich davon nicht irritieren: deine Aufgabe bleibt es, stets die Zielziffer zu benennen!
+
+Drücke LEERTASTE, weiterzublättern.
+"""
+
+demo = """
+Im Kommenden wirst du einen Eindruck davon erhalten, wie sich die Zielziffern anhören. Es werden langsam nacheinander
+alle Ziffern von 1 bis 9 ein Mal abgespielt.
+
+Drücke LEERTASTE, um die Zielziffern zwischen 1 und 9 anzuhören.
+"""
+
+prompt5 = """
+Während des Experiments erscheint eine Antwort-Box in der Mitte des Bildschirms. Diese enthält die Ziffern von 1 bis 9
+und ist durch einen schwarzen Rahmen begrenzt. Mit der Maus kannst du auf eine Ziffer pro Durchgang klicken, um die
+Zielziffer zu identifizieren. Solltest du zu langsam antworten, färbt sich der Rahmen der Box für eine kurze Zeit rot.
+Das ist dann der Hinweis, dass du in den kommenden Durchgängen etwas schneller antworten solltest.
+
+Drücke LEERTASTE, um weiterzublättern.
+"""
+
+prompt6 = """
+Bitte halte deinen Blick während der Aufgabe stets auf die Antwort-Box gerichtet. Die Ziffern färben sich dunkel, wenn
+du den Mauszeiger über sie bewegst. Das ist dann das Zeichen, dass du die jeweilige Ziffer bestätigen kannst.
+Der Mauszeiger erscheint in der Mitte der Box am Anfang jedes Durchgangs und verschwindet am Ende.
+
+Drücke LEERTASTE, um weiterzublättern.
 """
 
 testing = """
-Der kommende Block ist ein Testblock und dient dazu, Dich mit der Aufgabe vertraut zu machen. Du hörst nun ein Paar
-Test-Durchgänge und kannst Antworten geben, diese werden natürlich nicht gespeichert. Bitte nutze diese Phase, um so
-gut wie möglich mit dem Experiment-Setup vertraut zu werden. Nach diesem Testblock kannst Fragen an die Versuchsleitung 
-stellen oder Probleme benennen, falls etwas nicht stimmen sollte. Nach diesem Testblock geht es mit der Hauptaufgabe
-los.
+Im kommenden werden dir einige Probe-Durchläufe präsentiert. Sie sollen dich mit der Aufgabe vertraut machen.
+Du kannst üben und Antworten geben, diese werden natürlich nicht gespeichert. Bitte nutze diese Phase, um so gut wie
+möglich mit dem Experiment vertraut zu werden. Nach diesem Testblock kannst Fragen an die Versuchsleitung stellen oder
+Probleme benennen, falls etwas nicht stimmen sollte. Nach diesem Testblock geht es mit der Hauptaufgabe los.
 
 Drücke LEERTASTE, um zu beginnen.
 """
@@ -32,14 +69,6 @@ Bitte schaue für die nächsten 10 Sekunden auf den Fixationspunkt. Achte darauf
 auf den Punkt gerichtet sind. Danach geht es mit dem Experiment weiter.
 
 Drücke LEERTASTE, um zu beginnen.
-"""
-
-too_slow = """
-ZU LANGSAM!
-"""
-
-error_notification = """
-FALSCH!
 """
 
 pause = """
