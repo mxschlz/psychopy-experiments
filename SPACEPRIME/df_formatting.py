@@ -3,6 +3,7 @@ import os
 import datetime
 from utils.utils import get_input_from_dict
 
+
 # print(os.getcwd())
 # get current date with seconds to make it unique
 date = datetime.datetime.now().strftime('%B_%d_%Y_%H_%M_%S')
@@ -39,7 +40,9 @@ df["iscorrect"] = df.response == df.TargetDigit
 
 df.to_csv(os.path.join(fp_clean, f"{file.split('_')[0]}_clean.csv"), index=False)
 
-# concatenate
+
+"""
+concatenate
 dfs = []
 # load up dataframe
 for file in os.listdir(fp_clean):
@@ -48,5 +51,5 @@ for file in os.listdir(fp_clean):
 df = pd.concat(dfs, ignore_index=False)
 # df.pop("Unnamed: 0")
 df.to_csv(os.path.join(results_path, f"results_{date}.csv"))
-
+"""
 print("Done! :)")
