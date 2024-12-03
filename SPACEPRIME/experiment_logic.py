@@ -125,8 +125,8 @@ class SpaceprimeSession(Session):
             for digit in self.digits:
                 digit.play(latency="low", blocksize=0)
                 core.wait(1.5)
-        self.display_text(text=prompts.prompt4, keys="space")
         self.display_text(text=prompts.prompt5, keys="space")
+        self.display_text(text=prompts.prompt6, keys="space")
         # do camera calibration if enabled
         if self.settings["mode"]["camera"]:
             # participant instructions
