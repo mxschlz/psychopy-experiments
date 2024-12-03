@@ -45,7 +45,8 @@ class SpaceprimeTrial(Trial):
         # get response in phase 1
         if self.phase == 1:
             if any(self.session.mouse.getPressed()):
-                self.session.mouse.setVisible(False)
+                pass
+                #self.session.mouse.setVisible(False)
         # print too slow warning if response is collected in phase 2
         if self.phase == 2:
             self.stim.stop()  #  reset the sound
