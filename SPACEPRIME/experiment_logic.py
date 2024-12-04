@@ -21,7 +21,7 @@ class SpaceprimeTrial(Trial):
 
     def send_trig_and_sound(self):
         self.stim.play(latency="low", blocksize=0)  # not sure whether this does anything ...
-        self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
+        #self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
         self.session.send_trigger(trigger_name=self.trigger_name)
 
     def draw(self):
@@ -37,11 +37,7 @@ class SpaceprimeTrial(Trial):
                 self.session.mouse.setVisible(True)
                 self.session.mouse.setPos((0, 0))
             if not self.stim.is_playing():
-                #self.session.win.callOnFlip(self.send_trig_and_sound)
                 self.send_trig_and_sound()
-                #self.stim.play()
-                #core.wait(0.08)
-                #self.session.send_trigger(trigger_name=self.trigger_name)
         # get response in phase 1
         if self.phase == 1:
             if any(self.session.mouse.getPressed()):
