@@ -1,14 +1,13 @@
 import pandas as pd
 import os
-import datetime
 from utils.utils import get_input_from_dict
 
 
-# print(os.getcwd())
-# get current date with seconds to make it unique
-date = datetime.datetime.now().strftime('%B_%d_%Y_%H_%M_%S')
 # get subject info
-info = get_input_from_dict({"subject_id": 99})
+info = get_input_from_dict({"subject_id": 99,
+                            "gender": "m",
+                            "handedness": "r",
+                            "age": 0})
 # some filepaths
 fp = os.path.join(os.getcwd(), "logs")
 fp_clean = os.path.join(fp, "clean")
@@ -36,20 +35,10 @@ df.loc[df["response"] == "space", "response"] = 999
 df.response = df.response.astype(int)
 # get correct in singleton absent vs present trials
 df["iscorrect"] = df.response == df.TargetDigit
+# add meta data
+df["gender"] = 1 if info["gender"] == "f" else 0
+df["handedness"] = 1 if info["handedness"] == "r" else 0
+df["age"] = info["age"]
 # save dataframe
-
 df.to_csv(os.path.join(fp_clean, f"{file.split('_')[0]}_clean.csv"), index=False)
-
-
-"""
-concatenate
-dfs = []
-# load up dataframe
-for file in os.listdir(fp_clean):
-    if ".csv" in file:
-        dfs.append(pd.read_csv(os.path.join(fp_clean, file)))
-df = pd.concat(dfs, ignore_index=False)
-# df.pop("Unnamed: 0")
-df.to_csv(os.path.join(results_path, f"results_{date}.csv"))
-"""
 print("Done! :)")
