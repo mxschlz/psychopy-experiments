@@ -115,7 +115,6 @@ class SpaceprimeSession(Session):
                 targets = "low"
             elif self.subject_id % 2 != 0:
                 targets = "high"
-            # TODO: are the digits too loud also in CBBM?
             self.digits = [Sound(filename=os.path.join(f"stimuli\\targets_{targets}_30_Hz", x), device=self.settings["soundconfig"]["device"],
                                  mul=0.5) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
             for digit in self.digits:
