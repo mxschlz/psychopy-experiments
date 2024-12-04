@@ -49,7 +49,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # retrieve sound level to adjust sounds to
     soundlvl = settings["session"]["level"]
     n_blocks = settings["session"]["n_blocks"]
-    midpoint = n_blocks // 2  # pitch everything but singletons after 50 % of blocks
+    # midpoint = n_blocks // 2  # pitch everything but singletons after 50 % of blocks
     # load sounds
     singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
                   for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
@@ -91,7 +91,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # iterate over block
     for block in range(block, n_blocks):
         print(f"Running block {block}")
-        if block >= midpoint:
+        """if block >= midpoint:
             # really confusing but this should do the trick
             if subject_id_is_even:
                 targets = targets_high
@@ -100,7 +100,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
             if not subject_id_is_even:
                 targets = targets_low
                 singletons = singletons_copy
-                others = others_copy
+                others = others_copy"""
         logging.info(f"Processing block {block}")
         dirname = f"sequences/sub-{subject_id}_block_{block}"
         try:
@@ -212,12 +212,12 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         trial_sequence["ITI-Jitter"] = round(trial_sequence["ITI-Jitter"], 3)
         if subject_id_is_even:
             trial_sequence['target_modulation'] = 0  # Initialize with 0
-            if block >= midpoint:
-                trial_sequence['target_modulation'] = 1
+            # if block >= midpoint:
+                # trial_sequence['target_modulation'] = 1
         elif not subject_id_is_even:
             trial_sequence['target_modulation'] = 1  # Initialize with 1
-            if block >= midpoint:
-                trial_sequence['target_modulation'] = 0
+            # if block >= midpoint:
+                # trial_sequence['target_modulation'] = 0
         file_name = f"sequences/sub-{subject_id}_block_{block}.csv"
         trial_sequence.to_csv(file_name, index=False)  # Save as CSV, excluding the row index
         logging.info(f"Precomputing trial sounds for subject {subject_id}, block {block} ... ")
