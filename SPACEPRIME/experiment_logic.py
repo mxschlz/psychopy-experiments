@@ -117,9 +117,9 @@ class SpaceprimeSession(Session):
                 targets = "high"
             # TODO: are the digits too loud also in CBBM?
             self.digits = [Sound(filename=os.path.join(f"stimuli\\targets_{targets}_30_Hz", x), device=self.settings["soundconfig"]["device"],
-                                 mul=5) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
+                                 mul=0.5) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
             for digit in self.digits:
-                digit.play(latency="low", blocksize=0)
+                digit.play(latency="low", blocksize=0, mapping=[2])
                 core.wait(1.5)
         self.display_text(text=prompts.prompt5, keys="space")
         self.display_text(text=prompts.prompt6, keys="space")
