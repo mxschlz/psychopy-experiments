@@ -21,7 +21,7 @@ class SpaceprimeTrial(Trial):
 
     def send_trig_and_sound(self):
         self.stim.play(latency="low", blocksize=0)  # not sure whether this does anything ...
-        #self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
+        self.wait(delay_ms=76)  # wait for 80 ms because of constant internal delay
         self.session.send_trigger(trigger_name=self.trigger_name)
 
     def draw(self):
@@ -102,7 +102,7 @@ class SpaceprimeSession(Session):
             trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
             self.trials.append(trial)
 
-    def run(self):
+    def run(self, starting_block):
         self.send_trigger("experiment_onset")
         # welcome the participant
         self.display_text(text=prompts.prompt1, keys="space")
@@ -152,12 +152,12 @@ class SpaceprimeSession(Session):
                 self.send_trigger("block_onset")
                 self.set_block(block=block)
                 self.load_sequence()
-                self.create_trials(n_trials=self.n_trials,
+                self.create_trials(n_trials=10,
                                    durations=(self.settings["session"]["stimulus_duration"],
                                               self.settings["session"]["response_duration"],
                                               None),  # this is hacky and usually not recommended (for ITI Jitter)
                                    timing=self.settings["session"]["timing"])
-                if block == 0:
+                if block == starting_block:
                     self.start_experiment()
                 else:
                     self.first_trial = True
