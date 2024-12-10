@@ -28,7 +28,10 @@ os.makedirs(destination_dir_raw, exist_ok=True)  # create directory no matter if
 source_dir_raw = "logs"
 # move all files from that directory to destination
 for file in os.listdir(source_dir_raw):
-	source_path_raw = os.path.join(source_dir_raw, file)
+	if f'sub-{info["subject_id"]}' in file:
+		source_path_raw = os.path.join(source_dir_raw, file)
+	else:
+		continue
 	destination_path_raw = os.path.join(destination_dir_raw, file)
 	if os.path.isfile(source_path_raw):
 		print(f"Transferring {source_path_raw} to {destination_path_raw}")
