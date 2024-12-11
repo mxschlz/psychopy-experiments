@@ -162,8 +162,8 @@ class SpaceprimeSession(Session):
                 else:
                     self.first_trial = True
                     self.timer.reset()
+                    self.clock.reset()
                 for trial in self.trials:
-                    trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
                     trial.run()
                 self.send_trigger("block_offset")
                 self.save_data()
