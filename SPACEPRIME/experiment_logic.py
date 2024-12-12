@@ -152,7 +152,7 @@ class SpaceprimeSession(Session):
                 self.send_trigger("block_onset")
                 self.set_block(block=block)
                 self.load_sequence()
-                self.create_trials(n_trials=10,
+                self.create_trials(n_trials=self.n_trials,
                                    durations=(self.settings["session"]["stimulus_duration"],
                                               self.settings["session"]["response_duration"],
                                               None),  # this is hacky and usually not recommended (for ITI Jitter)
