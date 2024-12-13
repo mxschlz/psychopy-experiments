@@ -21,7 +21,7 @@ class SpaceprimeTrial(Trial):
 
     def send_trig_and_sound(self):
         self.stim.play(latency="low", blocksize=0)  # not sure whether this does anything ...
-        self.wait(delay_ms=76)  # wait for 80 ms because of constant internal delay
+        self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
         self.session.send_trigger(trigger_name=self.trigger_name)
 
     def draw(self):
@@ -105,27 +105,27 @@ class SpaceprimeSession(Session):
     def run(self, starting_block):
         self.send_trigger("experiment_onset")
         # welcome the participant
-        self.display_text(text=prompts.prompt1, keys="space")
-        self.display_text(text=prompts.prompt2, keys="space")
-        self.display_text(text=prompts.prompt3, keys="space")
-        self.display_text(text=prompts.prompt4, keys="space")
+        self.display_text(text=prompts.prompt1, keys="space", wrapWidth=self.win.size[0], height=0.75)
+        self.display_text(text=prompts.prompt2, keys="space", wrapWidth=self.win.size[0], height=0.75)
+        self.display_text(text=prompts.prompt3, keys="space", wrapWidth=self.win.size[0], height=0.75)
+        self.display_text(text=prompts.prompt4, keys="space", wrapWidth=self.win.size[0], height=0.75)
         if self.settings["mode"]["demo"]:
-            self.display_text(text=prompts.demo, keys="space")
+            self.display_text(text=prompts.demo, keys="space", wrapWidth=self.win.size[0], height=0.75)
             if self.subject_id % 2 == 0:
                 targets = "low"
             elif self.subject_id % 2 != 0:
                 targets = "high"
             self.digits = [Sound(filename=os.path.join(f"stimuli\\targets_{targets}_30_Hz", x), device=self.settings["soundconfig"]["device"],
-                                 mul=0.5) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
+                                 mul=0.3) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
             for digit in self.digits:
                 digit.play(latency="low", blocksize=0, mapping=[2])
                 core.wait(1.5)
-        self.display_text(text=prompts.prompt5, keys="space")
-        self.display_text(text=prompts.prompt6, keys="space")
+        self.display_text(text=prompts.prompt5, keys="space", wrapWidth=self.win.size[0], height=0.75)
+        self.display_text(text=prompts.prompt6, keys="space", wrapWidth=self.win.size[0], height=0.75)
         # do camera calibration if enabled
         if self.settings["mode"]["camera"]:
             # participant instructions
-            self.display_text(text=prompts.camera_calibration, keys="space")
+            self.display_text(text=prompts.camera_calibration, keys="space", wrapWidth=self.win.size[0], height=0.75)
             # display fixation dot
             self.default_fix.draw()
             # show fixation dot
@@ -135,7 +135,7 @@ class SpaceprimeSession(Session):
             core.wait(10)
             self.send_trigger("camera_calibration_offset")
         if self.test:
-            self.display_text(text=prompts.testing, keys="space")
+            self.display_text(text=prompts.testing, keys="space", wrapWidth=self.win.size[0], height=0.75)
             self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
             self.create_trials(n_trials=15,
@@ -147,7 +147,8 @@ class SpaceprimeSession(Session):
             for trial in self.trials:
                 trial.run()
         else:
-            self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space")
+            self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space", wrapWidth=self.win.size[0],
+                              height=0.75)
             for block in self.blocks:
                 self.send_trigger("block_onset")
                 self.set_block(block=block)
@@ -162,14 +163,14 @@ class SpaceprimeSession(Session):
                 else:
                     self.first_trial = True
                     self.timer.reset()
-                    self.clock.reset()
+                    # self.clock.reset()
                 for trial in self.trials:
                     trial.run()
                 self.send_trigger("block_offset")
                 self.save_data()
                 if not block == max(self.blocks):
-                    self.display_text(text=prompts.pause, keys="space")
-        self.display_text(text=prompts.end, keys="q")
+                    self.display_text(text=prompts.pause, keys="space", wrapWidth=self.win.size[0], height=0.75)
+        self.display_text(text=prompts.end, keys="q", wrapWidth=self.win.size[0], height=0.75)
         self.send_trigger("experiment_offset")
 
     # Function to send trigger value by specifying event name
