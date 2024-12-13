@@ -60,3 +60,13 @@ PRIMING = {
     1: "PP",
     -1: "NP"
 }
+
+FLANKER_MAP = {
+    "congruent_left": 240,
+    "congruent_right": 241,
+    "incongruent_left": 243,
+    "incongruent_right": 244,
+    "neutral_left": 245,
+    "neutral_right": 246,
+    "none": 250
+}
