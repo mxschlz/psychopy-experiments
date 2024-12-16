@@ -77,33 +77,6 @@ class SoundDeviceSound(object):
 			self.data = self.data * (10 ** (mul / 20))
 
 
-class WinSound(object):
-    """
-    A windows-only low-latency replacement for psychopy.sound.
-    It can only play wav files. Timing is unreliable if sound.play() is called
-    before previous sound ends. Usage::
-
-        beep = ppc.Sound('beep.wav')
-        beep.play()
-
-        # or generated beep:
-        beep = ppc.Sound()
-        beep.beep(1000, 0.2)  # 1000 Hz for 0.2 seconds
-    """
-    def __init__(self, filename=''):
-        """ :filename: a .wav file"""
-        self.sound = filename
-        self._winsound = __import__('winsound')
-
-    def play(self):
-        """ plays the sound file with low latency"""
-        self._winsound.PlaySound(self.sound,  self._winsound.SND_FILENAME | self._winsound.SND_ASYNC)
-
-    def beep(self, frequency, duration):
-        """ plays a beep with low latency"""
-        self._winsound.Beep(frequency, duration / float(1000))
-
-
 if __name__ == "__main__":
 	sound = SoundDeviceSound(filename='C:\\PycharmProjects\\psychopy-experiments\\stimuli\\digits_all_250ms\\1.wav')
 	while True:
