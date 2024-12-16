@@ -122,18 +122,6 @@ class SpaceprimeSession(Session):
                 core.wait(1.5)
         self.display_text(text=prompts.prompt5, keys="space", wrapWidth=self.win.size[0], height=0.75)
         self.display_text(text=prompts.prompt6, keys="space", wrapWidth=self.win.size[0], height=0.75)
-        # do camera calibration if enabled
-        if self.settings["mode"]["camera"]:
-            # participant instructions
-            self.display_text(text=prompts.camera_calibration, keys="space", wrapWidth=self.win.size[0], height=0.75)
-            # display fixation dot
-            self.default_fix.draw()
-            # show fixation dot
-            self.win.flip()
-            # send trigger
-            self.send_trigger("camera_calibration_onset")
-            core.wait(10)
-            self.send_trigger("camera_calibration_offset")
         if self.test:
             self.display_text(text=prompts.testing, keys="space", wrapWidth=self.win.size[0], height=0.75)
             self.set_block(block=1)  # intentionally choose block within
@@ -147,6 +135,19 @@ class SpaceprimeSession(Session):
             for trial in self.trials:
                 trial.run()
         else:
+            # do camera calibration if enabled
+            if self.settings["mode"]["camera"]:
+                # participant instructions
+                self.display_text(text=prompts.camera_calibration, keys="space", wrapWidth=self.win.size[0],
+                                  height=0.75)
+                # display fixation dot
+                self.default_fix.draw()
+                # show fixation dot
+                self.win.flip()
+                # send trigger
+                self.send_trigger("camera_calibration_onset")
+                core.wait(10)
+                self.send_trigger("camera_calibration_offset")
             self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space", wrapWidth=self.win.size[0],
                               height=0.75)
             for block in self.blocks:
