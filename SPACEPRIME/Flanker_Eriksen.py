@@ -87,12 +87,12 @@ if not subj_info["test"]:
     data_file.write("subject_id,trial_number,target,congruency,response,rt,correct\n")
 # write instructions
 instruction_text = """
-In dieser Aufgabe werden dir Pfeile angezeigt, die nach links oder rechts zeigen. 
-Deine Aufgabe ist es, so schnell und genau wie möglich die Richtung des mittleren Pfeils zu bestimmen.
-Drücke dafür die entsprechende Taste (z.B. linke Taste für links, rechte Taste für rechts).
-Es ist wichtig, dass du dich nur auf den mittleren Pfeil konzentrierst und die Pfeile, die ihn umgeben, ignorierst.
+In dieser Aufgabe werden Ihnen Pfeile angezeigt, die nach links oder rechts zeigen. 
+Ihre Aufgabe ist es, so schnell und genau wie möglich die Richtung des mittleren Pfeils zu bestimmen.
+Drücken Sie dafür die entsprechende Taste (z.B. linke Taste für links, rechte Taste für rechts).
+Es ist wichtig, dass Sie sich nur auf den mittleren Pfeil konzentriersen und die Pfeile, die ihn umgeben, ignorieren.
 
-Drücke LEERTASTE, um zu beginnen.
+Drücken Sie LEERTASTE, um zu beginnen.
 """
 # display instructions
 instructions = visual.TextStim(win, text=instruction_text, wrapWidth=win.size[0], height=0.75)
