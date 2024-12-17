@@ -70,7 +70,7 @@ if subj_info["test"]:
     # Create trial handler
     trials = data.TrialHandler(
         trial_types,
-        nReps=4,  # Number of repetitions for each trial type
+        nReps=2,  # Number of repetitions for each trial type
         method="random",
     )
 elif not subj_info["test"]:
@@ -90,7 +90,7 @@ instruction_text = """
 In dieser Aufgabe werden Ihnen Pfeile angezeigt, die nach links oder rechts zeigen. 
 Ihre Aufgabe ist es, so schnell und genau wie möglich die Richtung des mittleren Pfeils zu bestimmen.
 Drücken Sie dafür die entsprechende Taste (z.B. linke Taste für links, rechte Taste für rechts).
-Es ist wichtig, dass Sie sich nur auf den mittleren Pfeil konzentriersen und die Pfeile, die ihn umgeben, ignorieren.
+Es ist wichtig, dass Sie sich nur auf den mittleren Pfeil konzentrieren und die Pfeile, die ihn umgeben, ignorieren.
 
 Drücken Sie LEERTASTE, um zu beginnen.
 """
