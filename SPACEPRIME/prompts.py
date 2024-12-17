@@ -17,9 +17,10 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 """
 
 prompt3 = """
-Das Zahlwort, welches Sie identifizieren sollen, unterscheidet sich von den anderen beiden in einer Eigenschaft: Dieses 
-Zahlwort schwankt schnell in seiner Lautstärke und wird im Zuge der Artikulation abwechselnd lauter und leiser. Auf 
-genau dieses Zahlwort sollen Sie sich konzentrieren und die Zahl so schnell wie möglich angeben!
+Das Zahlwort, welches Sie identifizieren sollen, unterscheidet sich von den anderen beiden in einer Eigenschaft: 
+Dieses Zahlwort klingt im Vergleich zu den restlichen Zahlwörtern sehr rau und kratzig. Die Stimme dieses Wortes klingt 
+wie in einer schlechten Telefonverbindung. Auf genau dieses Zahlwort sollen Sie sich konzentrieren und die Zahl so 
+schnell wie möglich angeben!
 
 Drücken Sie LEERTASTE, um weiterzublättern.
 """
