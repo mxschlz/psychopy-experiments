@@ -170,7 +170,8 @@ class SpaceprimeSession(Session):
                 self.send_trigger("block_offset")
                 self.save_data()
                 if not block == max(self.blocks):
-                    self.display_text(text=prompts.pause, keys="space", wrapWidth=self.win.size[0], height=0.75)
+                    self.display_text(text=prompts.pause, duration=60, wrapWidth=self.win.size[0], height=0.75)
+                    self.display_text(text=prompts.pause_finished, keys="space", wrapWidth=self.win.size[0], height=0.75)
         self.display_text(text=prompts.end, keys="q", wrapWidth=self.win.size[0], height=0.75)
         self.send_trigger("experiment_offset")
 
