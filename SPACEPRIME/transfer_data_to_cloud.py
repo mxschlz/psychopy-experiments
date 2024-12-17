@@ -9,7 +9,7 @@ info = get_input_from_dict({"subject_id": 99})
 print("Copying clean data ...")
 # Create the destination directory if it doesn't exist
 destination_dir_clean = f'G:\\Meine Ablage\\PhD\\data\\SPACEPRIME\\derivatives\\preprocessing\\sub-{info["subject_id"]}\\beh'
-print(f"Creating diriectory {destination_dir_clean}")
+print(f"Creating directory {destination_dir_clean}")
 os.makedirs(destination_dir_clean, exist_ok=True)  # create directory no matter if it already exists
 # get source dir
 source_dir_clean = "logs\\clean"
@@ -36,3 +36,16 @@ for file in os.listdir(source_dir_raw):
 	if os.path.isfile(source_path_raw):
 		print(f"Transferring {source_path_raw} to {destination_path_raw}")
 		shutil.copy(source_path_raw, destination_path_raw)
+# TRANSFER FLANKER DATA
+print("Copying flanker data ...")
+# Create the destination directory if it doesn't exist
+destination_dir_flanker = f'G:\\Meine Ablage\\PhD\\data\\SPACEPRIME\\sourcedata\\raw\\sub-{info["subject_id"]}\\beh'
+print(f"Creating directory {destination_dir_flanker}")
+os.makedirs(destination_dir_flanker, exist_ok=True)  # create directory no matter if it already exists
+# get source dir
+source_dir_flanker = "logs"
+# get source path
+source_path_flanker = os.path.join(source_dir_flanker, f'flanker_data_{info["subject_id"]}.csv')
+destination_path_flanker = os.path.join(destination_dir_flanker, f'flanker_data_{info["subject_id"]}.csv')
+print(f"Transferring file {source_path_flanker} to {destination_path_flanker}")
+shutil.copy(source_path_flanker, destination_path_flanker)
