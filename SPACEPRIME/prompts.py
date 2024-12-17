@@ -57,7 +57,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 """
 
 testing = """
-Im kommenden werden Ihnen einige Probe-Durchläufe präsentiert. Diese sollen Sie mit der Aufgabe vertraut machen. Sie 
+Im Kommenden werden Ihnen einige Probe-Durchläufe präsentiert. Diese sollen Sie mit der Aufgabe vertraut machen. Sie 
 können üben und Antworten geben, diese werden natürlich nicht gespeichert. Bitte nutzen Sie diese Phase, um so gut wie 
 möglich mit dem Experiment vertraut zu werden. Nach diesem Testblock können Sie Fragen an die Versuchsleitung stellen. 
 Nach diesem Testblock startet das Hauptexperiment.
@@ -73,7 +73,11 @@ Drücken Sie LEERTASTE, um zu beginnen.
 """
 
 pause = """
-Dieser Block ist zu Ende. Bitte machen Sie eine kurze Pause. Sobald Sie weitermachen möchten, drücken Sie LEERTASTE.
+Dieser Block ist zu Ende. Bitte machen Sie eine kurze Pause.
+"""
+
+pause_finished = """
+Die Pause ist zu Ende. Drücken Sie LEERTASTE, um den nächsten Block zu beginnen.
 """
 
 end = """
