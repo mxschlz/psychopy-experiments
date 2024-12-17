@@ -103,10 +103,11 @@ waitKeys(keyList="space")
 # Start the clock
 trial_clock = core.Clock()
 # wait for 1 second before displaying stimuli
-waiting = visual.TextStim(win, "Starting experiment in 3 seconds ... ", wrapWidth=win.size[0], height=0.75)
-waiting.draw()
-win.flip()
-core.wait(3)
+for wait_time in reversed(range(1, 4)):
+    waiting = visual.TextStim(win, f"Starting experiment in {wait_time} seconds ... ", wrapWidth=win.size[0], height=0.75)
+    waiting.draw()
+    win.flip()
+    core.wait(1)
 # Run the experiment
 trial_count = 0
 for trial in trials:
