@@ -4,7 +4,7 @@ from psychopy import core
 
 # create subject sequence
 # generate_subject_sequence(subject_id=info["subject_id"])
-sess = SpaceprimeSession(output_str=f'sub-999', output_dir="logs", settings_file="SPACEPRIME/config.yaml",
+sess = SpaceprimeSession(output_str=f'sub-999', output_dir="../SPACEPRIME/logs", settings_file="SPACEPRIME/config.yaml",
                          starting_block=0, test=True)
 sess.set_block(block=4)  # intentionally choose block within
 sess.load_sequence()

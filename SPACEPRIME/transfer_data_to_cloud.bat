@@ -4,7 +4,7 @@
 SET CONDA_ENV=psypy
 
 :: Replace with the actual path to your project directory
-SET PROJECT_DIR=C:\PycharmProjects\psychopy-experiments\SPACEPRIME
+SET PROJECT_DIR=C:\Users\Max\PycharmProjects\psychopy-experiments\SPACEPRIME
 
 :: Replace with the actual name of your Python script
 SET PYTHON_SCRIPT=transfer_data_to_cloud.py
