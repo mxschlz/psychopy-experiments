@@ -116,7 +116,7 @@ class SpaceprimeSession(Session):
             elif self.subject_id % 2 != 0:
                 targets = "high"
             self.digits = [Sound(filename=os.path.join(f"stimuli\\targets_{targets}_30_Hz", x), device=self.settings["soundconfig"]["device"],
-                                 mul=0.3) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
+                                 mul=0.2) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
             for digit in self.digits:
                 digit.play(latency="low", blocksize=0, mapping=[2])
                 core.wait(1.5)
