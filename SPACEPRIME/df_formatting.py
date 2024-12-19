@@ -39,6 +39,21 @@ df["iscorrect"] = df.response == df.TargetDigit
 df["gender"] = 1 if info["gender"] == "f" else 0
 df["handedness"] = 1 if info["handedness"] == "r" else 0
 df["age"] = info["age"]
+# sort for mouse clicks
+df = df[(df["event_type"]=="mouse_click") & (df["phase"]==1)]
+# get absolute trial_nr count
+df['absolute_trial_nr'] = (df['block']) * (df["trial_nr"].max() + 1) + df['trial_nr']
+# Find duplicate trial numbers
+duplicates = df[df.duplicated(subset='absolute_trial_nr', keep=False)]
+print("Duplicate trial numbers:\n", duplicates)
+# drop duplicates
+df = df.drop_duplicates(subset='absolute_trial_nr', keep='first')  # or 'last'
+# Create a new DataFrame to store aligned behavioral data
+df = df.set_index('absolute_trial_nr')
+# Create a complete range of trial numbers
+all_trials = pd.RangeIndex(start=0, stop=1800, step=1, name='absolute_trial_nr')  # TODO: hacky hardcoded
+# Reindex the DataFrame with the complete range
+df = df.reindex(all_trials)
 # save dataframe
 df.to_csv(os.path.join(fp_clean, f"{file.split('_')[0]}_clean.csv"), index=False)
 print("Done! :)")
