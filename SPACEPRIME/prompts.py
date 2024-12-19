@@ -33,8 +33,9 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 """
 
 demo = """
-Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören. Jedes Zahlwort wird zunächst 
-normal abgespielt, gefolgt von einer Darbietung mit schnellen Schwankungen der Lautstärke.
+Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören. Es werden nur die relevanten
+Zahlwörter abgespielt, auf die Sie achten sollen. Dabei ertönen sie zufällig aus einem der drei Lautsprecher, so wie 
+es auch im Hauptexperiment sein wird. ACHTUNG: erschrecken Sie bitte nicht.
 
 Drücken Sie LEERTASTE, um die Zielziffern zwischen 1 und 9 anzuhören.
 """
@@ -42,7 +43,8 @@ Drücken Sie LEERTASTE, um die Zielziffern zwischen 1 und 9 anzuhören.
 prompt5 = """
 Während des Experiments erscheint eine Antwort-Box in der Mitte des Bildschirms. Diese enthält die Ziffern von 1 bis 9 
 und ist durch einen schwarzen Rahmen begrenzt. Mit der Maus können Sie auf eine Zahl pro Durchgang klicken, um das 
-Zahlwort anzugeben, welches in seiner Lautstärke geschwankt hat. 
+Zahlwort anzugeben, welches in seiner Lautstärke geschwankt hat. ACHTUNG: die Antwort ist nur gültig, wenn der 
+Mauszeiger nach dem Klicken verschwindet! 
 
 Drücken Sie LEERTASTE, um weiterzublättern.
 """
