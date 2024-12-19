@@ -30,7 +30,9 @@ high_pitch_factor = 10
 for stimname, stim in zip(os.listdir(stimdir), orig_stims):
     digit = stimname.split(".")[0]
     high_pitched_distractor = shift_pitch(stim, pitch_factor=high_pitch_factor)  # high pitched
-    high_pitched_distractor.write(os.path.join(distractor_high_dir, digit + f"_high_pitched_factor_{high_pitch_factor}.wav"))
+    high_pitched_distractor.level = 50
+    high_pitched_distractor.write(os.path.join(distractor_high_dir, digit + f"_high_pitched_factor_{high_pitch_factor}.wav"),
+                                  normalise=False)
 
 # make targets
 modulation_freq = 30  # amplitude modulation
@@ -47,7 +49,11 @@ except FileExistsError:
 for stimname, stim in zip(os.listdir(stimdir), orig_stims):
     digit = stimname.split(".")[0]
     target_low = modulate_amplitude(stim, modulation_freq=modulation_freq)  # low pitched
-    target_low.write(os.path.join(targetdir_low, digit + f"_amplitude_modulated_{modulation_freq}.wav"))
+    target_low.level = 50
+    target_low.write(os.path.join(targetdir_low, digit + f"_amplitude_modulated_{modulation_freq}.wav"),
+                     normalise=False)
     target_high = shift_pitch(stim, pitch_factor=high_pitch_factor)
+    target_high.level = 50
     target_high = modulate_amplitude(target_high, modulation_freq=modulation_freq)
-    target_high.write(os.path.join(targetdir_high, digit + f"_amplitude_modulated_{modulation_freq}.wav"))
+    target_high.write(os.path.join(targetdir_high, digit + f"_amplitude_modulated_{modulation_freq}.wav"),
+                      normalise=False)
