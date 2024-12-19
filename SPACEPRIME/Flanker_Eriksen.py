@@ -111,6 +111,8 @@ for wait_time in reversed(range(1, 4)):
 # Run the experiment
 trial_count = 0
 for trial in trials:
+    # make mouse invisible
+    win.setMouseVisible(False)
     if trial["correct_response"] == "left" and trial["congruency"] == "congruent":
         trigger_name = "congruent_left"
     elif trial["correct_response"] == "left" and trial["congruency"] == "incongruent":
