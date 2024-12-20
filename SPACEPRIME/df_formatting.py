@@ -55,5 +55,6 @@ all_trials = pd.RangeIndex(start=0, stop=1800, step=1, name='absolute_trial_nr')
 # Reindex the DataFrame with the complete range
 df = df.reindex(all_trials)
 # save dataframe
+# TODO: replace this file param for something meaningful and robust
 df.to_csv(os.path.join(fp_clean, f"{file.split('_')[0]}_clean.csv"), index=False)
 print("Done! :)")
