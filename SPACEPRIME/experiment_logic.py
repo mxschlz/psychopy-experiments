@@ -29,6 +29,7 @@ class SpaceprimeTrial(Trial):
         # do stuff independent of phases
         if self.session.response_device == "mouse":
             self.session.display_response_box()
+            self.track_mouse_pos()
         elif self.session.response_device == "keypad":
             self.session.default_fix.draw()
         # play stimulus in phase 0
@@ -106,13 +107,13 @@ class SpaceprimeSession(Session):
     def run(self, starting_block):
         self.send_trigger("experiment_onset")
         # welcome the participant
-        self.display_text(text=prompts.prompt1, keys="space", wrapWidth=self.win.size[0], height=0.75)
-        self.display_text(text=prompts.prompt2, keys="space", wrapWidth=self.win.size[0], height=0.75)
-        self.display_text(text=prompts.prompt3, keys="space", wrapWidth=self.win.size[0], height=0.75)
-        self.display_text(text=prompts.prompt4, keys="space", wrapWidth=self.win.size[0], height=0.75)
+        self.display_text(text=prompts.prompt1, keys="space", height=0.75)
+        self.display_text(text=prompts.prompt2, keys="space", height=0.75)
+        self.display_text(text=prompts.prompt3, keys="space", height=0.75)
+        self.display_text(text=prompts.prompt4, keys="space", height=0.75)
         if self.test:
             if self.settings["mode"]["demo"]:
-                self.display_text(text=prompts.demo, keys="space", wrapWidth=self.win.size[0], height=0.75)
+                self.display_text(text=prompts.demo, keys="space", height=0.75)
                 if self.subject_id % 2 == 0:
                     targets = "low"
                 elif self.subject_id % 2 != 0:
@@ -123,9 +124,9 @@ class SpaceprimeSession(Session):
                 for digit in self.digits:
                     digit.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
                     core.wait(1.5)
-            self.display_text(text=prompts.prompt5, keys="space", wrapWidth=self.win.size[0], height=0.75)
-            self.display_text(text=prompts.prompt6, keys="space", wrapWidth=self.win.size[0], height=0.75)
-            self.display_text(text=prompts.testing, keys="space", wrapWidth=self.win.size[0], height=0.75)
+            self.display_text(text=prompts.prompt5, keys="space", height=0.75)
+            self.display_text(text=prompts.prompt6, keys="space", height=0.75)
+            self.display_text(text=prompts.testing, keys="space", height=0.75)
             self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
             self.create_trials(n_trials=15,
@@ -140,7 +141,7 @@ class SpaceprimeSession(Session):
             # do camera calibration if enabled
             if self.settings["mode"]["camera"]:
                 # participant instructions
-                self.display_text(text=prompts.camera_calibration, keys="space", wrapWidth=self.win.size[0],
+                self.display_text(text=prompts.camera_calibration, keys="space",
                                   height=0.75)
                 # display fixation dot
                 self.default_fix.draw()
@@ -150,7 +151,7 @@ class SpaceprimeSession(Session):
                 self.send_trigger("camera_calibration_onset")
                 core.wait(10)
                 self.send_trigger("camera_calibration_offset")
-            self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space", wrapWidth=self.win.size[0],
+            self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space",
                               height=0.75)
             for block in self.blocks:
                 self.send_trigger("block_onset")
@@ -172,9 +173,9 @@ class SpaceprimeSession(Session):
                 self.send_trigger("block_offset")
                 self.save_data()
                 if not block == max(self.blocks):
-                    self.display_text(text=prompts.pause, duration=60, wrapWidth=self.win.size[0], height=0.75)
-                    self.display_text(text=prompts.pause_finished, keys="space", wrapWidth=self.win.size[0], height=0.75)
-        self.display_text(text=prompts.end, keys="q", wrapWidth=self.win.size[0], height=0.75)
+                    self.display_text(text=prompts.pause, duration=60, height=0.75)
+                    self.display_text(text=prompts.pause_finished, keys="space", height=0.75)
+        self.display_text(text=prompts.end, keys="q", height=0.75)
         self.send_trigger("experiment_offset")
 
     # Function to send trigger value by specifying event name
