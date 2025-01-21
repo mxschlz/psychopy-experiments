@@ -21,9 +21,6 @@ for i in os.listdir(stimdir):
     orig_stim.level = 50
     orig_stim.write(sound_path, normalise=False)
 
-
-save_stims = [slab.Sound.write(os.path.join(stimdir, f"{i}")) for i in level_adjusted_stims]
-
 # make distractors of low and high saliency
 distractor_high_dir = os.path.join(root, "distractors_high")
 
