@@ -1,20 +1,28 @@
-from utils.signal_processing import *
+from SPACEPRIME.utils.signal_processing import *
 import os
 import slab
 import yaml
 
 # stimulus root
-root = "C:\\PycharmProjects\\psychopy-experiments\\stimuli\\"
+root = "C:\\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACEPRIME\stimuli"
 stimdir = os.path.join(root, "digits_all_250ms")
 
 # load settings
-settings_path = "SPACEPRIME/config.yaml"
+settings_path = "config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
+# load up stimuli and further save them level ajdusted
+orig_stims = []
+for i in os.listdir(stimdir):
+    sound_path = os.path.join(stimdir, i)
+    orig_stim = slab.Sound.read(sound_path)
+    orig_stims.append(orig_stim)
+    orig_stim.level = 50
+    orig_stim.write(sound_path, normalise=False)
 
-# load up stimuli
-orig_stims = [slab.Sound.read(os.path.join(stimdir, f"{i}")) for i in os.listdir(stimdir)]
+
+save_stims = [slab.Sound.write(os.path.join(stimdir, f"{i}")) for i in level_adjusted_stims]
 
 # make distractors of low and high saliency
 distractor_high_dir = os.path.join(root, "distractors_high")
