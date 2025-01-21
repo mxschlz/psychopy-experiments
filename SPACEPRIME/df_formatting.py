@@ -15,11 +15,18 @@ results_path = os.path.join("results")
 # get files in log dir
 fn = [x for x in os.listdir(fp) if f'sub-{info["subject_id"]}' in x]
 # filter for excel files
-fn = [x for x in fn if ".csv" in x]
+if info["subject_id"] == 101:
+    file_format = ".xlsx"
+else:
+    file_format = ".csv"
+fn = [x for x in fn if file_format in x]
 if len(fn) > 1:
     files = []
     for file in fn:
-        files.append(pd.read_csv(os.path.join(fp, file)))
+        if info["subject_id"] != 101:
+            files.append(pd.read_csv(os.path.join(fp, file)))
+        else:
+            files.append(pd.read_excel(os.path.join(fp, file)))
     df = pd.concat(files, ignore_index=True)
 elif len(fn) == 1:
     file = fn[0]
