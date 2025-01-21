@@ -70,3 +70,7 @@ FLANKER_MAP = {
     "neutral_right": 246,
     "none": 250
 }
+
+PASSIVE_MAP = {
+
+}
