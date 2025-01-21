@@ -58,7 +58,8 @@ for stimname, stim in zip(os.listdir(stimdir), orig_stims):
     target_low.write(os.path.join(targetdir_low, digit + f"_amplitude_modulated_{modulation_freq}.wav"),
                      normalise=False)
     target_high = shift_pitch(stim, pitch_factor=high_pitch_factor)
-    target_high.level = 50
     target_high = modulate_amplitude(target_high, modulation_freq=modulation_freq)
+    target_high.level = 50
     target_high.write(os.path.join(targetdir_high, digit + f"_amplitude_modulated_{modulation_freq}.wav"),
                       normalise=False)
+
