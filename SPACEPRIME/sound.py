@@ -6,7 +6,7 @@ class SoundDeviceSound(object):
 	class for playing low-latency sound on all platforms
 	'''
 
-	def __init__(self, filename='', device=None, mul=1):
+	def __init__(self, filename='', device=None, mul=1, data=None, sr=None):
 		'''
 		filename: a sound file supported by libsndfile
 		device: portaudio device used for playback
@@ -15,7 +15,7 @@ class SoundDeviceSound(object):
 		mul: volume multiplier
 		'''
 		self.filename = filename
-		if filename == '':
+		if filename == '' and data is None:
 			print
 			'no filename specified'
 			sys.exit()
@@ -38,7 +38,12 @@ class SoundDeviceSound(object):
 		except ImportError:
 			print('sounddevice module missing, but it is necessary for sound playback')
 			sys.exit()
-		self.data, self.sr = sf.read(filename, dtype='float32')
+		if isinstance(filename, str) and data is None:
+			self.data, self.sr = sf.read(filename, dtype='float32')
+		elif data is not None:
+			self.data = data
+		if sr is not None:
+			self.sr = sr
 		self.data = self.data * (10 ** (mul / 20))
 
 		self.duration = self.data.shape[0] / self.sr
