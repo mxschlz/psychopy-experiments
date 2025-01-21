@@ -215,6 +215,9 @@ class SpaceprimeSession(Session):
         self.close()
         self.quit()
 
+        def run_accuracy_test():
+            pass
+
 
 if __name__ == '__main__':
     # DEBUGGING
