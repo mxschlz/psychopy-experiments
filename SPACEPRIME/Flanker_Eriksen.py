@@ -87,15 +87,15 @@ if not subj_info["test"]:
     data_file.write("subject_id,trial_number,target,congruency,response,rt,correct\n")
 # write instructions
 instruction_text = """
-In dieser Aufgabe werden Ihnen Pfeile angezeigt, die nach links oder rechts zeigen. 
-Ihre Aufgabe ist es, so schnell und genau wie möglich die Richtung des mittleren Pfeils zu bestimmen.
-Drücken Sie dafür die entsprechende Taste (z.B. linke Taste für links, rechte Taste für rechts).
-Es ist wichtig, dass Sie sich nur auf den mittleren Pfeil konzentrieren und die Pfeile, die ihn umgeben, ignorieren.
+In dieser Aufgabe werden Ihnen Pfeile angezeigt, die nach links oder rechts zeigen.\n
+Ihre Aufgabe ist es, so schnell und genau wie möglich die Richtung des mittleren Pfeils zu bestimmen.\n
+Drücken Sie dafür die entsprechende Taste (z.B. linke Taste für links, rechte Taste für rechts).\n
+Es ist wichtig, dass Sie sich nur auf den mittleren Pfeil konzentrieren und die Pfeile, die ihn umgeben, ignorieren.\n
 
 Drücken Sie LEERTASTE, um zu beginnen.
 """
 # display instructions
-instructions = visual.TextStim(win, text=instruction_text, wrapWidth=win.size[0], height=0.75)
+instructions = visual.TextStim(win, text=instruction_text, height=0.75)
 instructions.draw()
 win.flip()
 # wait for space press to continue
@@ -104,7 +104,7 @@ waitKeys(keyList="space")
 trial_clock = core.Clock()
 # wait for 1 second before displaying stimuli
 for wait_time in reversed(range(1, 4)):
-    waiting = visual.TextStim(win, f"Starting experiment in {wait_time} seconds ... ", wrapWidth=win.size[0], height=0.75)
+    waiting = visual.TextStim(win, f"Starting experiment in {wait_time} seconds ... ", height=0.75)
     waiting.draw()
     win.flip()
     core.wait(1)
