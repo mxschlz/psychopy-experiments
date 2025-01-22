@@ -5,9 +5,11 @@ os.environ["SD_ENABLE_ASIO"] = "1"
 import prompts as prompts
 import pandas as pd
 from sound import SoundDeviceSound as Sound
-from psychopy import parallel, core
+from psychopy import parallel, core, event
 from encoding import EEG_TRIGGER_MAP, PRIMING
+import random
 import numpy as np
+import csv
 
 
 class SpaceprimeTrial(Trial):
@@ -68,7 +70,25 @@ class SpaceprimeSession(Session):
         self.test = test
         self.this_block = None
         self.subject_id = int(self.output_str.split("-")[1])
-        self.digits = []
+        self.subj_id_is_even = True if self.subject_id % 2 == 0 else False
+        if self.subj_id_is_even:
+            self.targets = [Sound(filename=os.path.join("stimuli\\targets_low_30_Hz", x),
+                                 device=self.settings["soundconfig"]["device"],
+                                 mul=self.settings["soundconfig"]["mul"]) for x in
+                           os.listdir(f"stimuli\\targets_low_30_Hz")]
+            self.controls = [Sound(filename=os.path.join("stimuli\\digits_all_250ms", x),
+                                 device=self.settings["soundconfig"]["device"],
+                                 mul=self.settings["soundconfig"]["mul"]) for x in
+                           os.listdir(f"stimuli\\digits_all_250ms")]
+        elif not self.subj_id_is_even:
+            self.targets = [Sound(filename=os.path.join("stimuli\\targets_high_30_Hz", x),
+                                 device=self.settings["soundconfig"]["device"],
+                                 mul=self.settings["soundconfig"]["mul"]) for x in
+                           os.listdir(f"stimuli\\targets_high_30_Hz")]
+            self.controls = [Sound(filename=os.path.join("stimuli\\distractors_high", x),
+                                 device=self.settings["soundconfig"]["device"],
+                                 mul=self.settings["soundconfig"]["mul"]) for x in
+                           os.listdir(f"stimuli\\distractors_high")]
         if self.settings["mode"]["record_eeg"]:
             self.port = parallel.ParallelPort(0xCFF8)  # set address of port
 
@@ -113,17 +133,9 @@ class SpaceprimeSession(Session):
         self.display_text(text=prompts.prompt4, keys="space", height=0.75)
         if self.test:
             if self.settings["mode"]["demo"]:
-                self.display_text(text=prompts.demo, keys="space", height=0.75)
-                if self.subject_id % 2 == 0:
-                    targets = "low"
-                elif self.subject_id % 2 != 0:
-                    targets = "high"
-                self.digits = [Sound(filename=os.path.join(f"stimuli\\targets_{targets}_30_Hz", x),
-                                     device=self.settings["soundconfig"]["device"],
-                                     mul=self.settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\targets_{targets}_30_Hz")]
-                for digit in self.digits:
-                    digit.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
-                    core.wait(1.5)
+                self.run_demo()
+            if self.settings["mode"]["acc_test"]:
+                self.run_accuracy_test()
             self.display_text(text=prompts.prompt5, keys="space", height=0.75)
             self.display_text(text=prompts.prompt6, keys="space", height=0.75)
             self.display_text(text=prompts.testing, keys="space", height=0.75)
@@ -215,50 +227,54 @@ class SpaceprimeSession(Session):
         self.close()
         self.quit()
 
-        def run_accuracy_test():
-            pass
+    def run_accuracy_test(self):
+        self.display_text(text=prompts.accuracy_instruction, keys="space", height=0.75)
+        round_num = 0
+        while True:
+            stimuli_sequence = []
+            available_digits = list(range(1, 10))  # Digits 1 to 9
+            while len(stimuli_sequence) < 10:
+                # add one additional random digit
+                if len(stimuli_sequence) == 9:
+                    stimuli_sequence.append(random.choice(self.targets))
+                    break
+                # Choose a random digit
+                digit = random.choice(available_digits)
+                available_digits.remove(digit)  # Remove the chosen digit
+                # Randomly select either target or control
+                if random.choice([True, False]):
+                    stimuli_sequence.append(self.targets[digit - 1])  # -1 for 0-based indexing
+                else:
+                    stimuli_sequence.append(self.controls[digit - 1])
+            random.shuffle(stimuli_sequence)
+            correct_count = 0
+            for stimulus in stimuli_sequence:
+                stimulus.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 2)])
+                self.display_text(text="T oder U?")
+                keys = event.waitKeys(keyList=['t', 'u'])
+                if (keys[0] == 't' and stimulus in self.targets) or (keys[0] == 'u' and stimulus in self.controls):
+                    correct_count += 1
+                    self.display_text(text="Korrekt!")
+                else:
+                    self.display_text(text="Falsch!")
+                core.wait(0.5)
+            accuracy = correct_count / len(stimuli_sequence)
+            self.display_text(text=f"Sie haben {accuracy * 100:.2f}% der Zahlwörter korrekt identifiziert.\n\n"
+                                   f"Drücken Sie LEERTASTE, um {'weiterzublättern' if accuracy==1.0 else 'den Test zu wiederholen'}.", keys="space", height=0.75)
+            if accuracy == 1.0:
+                break
+            round_num += 1
+        # Save accuracy and rounds to a CSV file
+        with open(os.path.join(self.output_dir, f"accuracy_test_{self.subject_id}_{self.name}.csv"), 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["Accuracy", "Rounds"])  # Write header row
+            writer.writerow([accuracy, round_num])  # Write data row
 
+    def run_demo(self):
+        self.display_text(text=prompts.demo, keys="space", height=0.75)
+        for digit in self.targets:
+            digit.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 2)])
+            core.wait(1.5)
 
 if __name__ == '__main__':
-    # DEBUGGING
-    sess = SpaceprimeSession(output_str=f'sub-102', output_dir="logs",
-                             settings_file="SPACEPRIME\config.yaml",
-                             starting_block=0, test=False)
-    sess.send_trigger("experiment_onset")
-    # welcome the participant
-    sess.display_text(text=prompts.welcome1, keys="space")
-    sess.display_text(text=prompts.welcome2, keys="space")
-    if sess.settings["mode"]["camera"]:
-        sess.display_text(text=prompts.camera_calibration, keys="space")
-        sess.default_fix.draw()
-        sess.win.flip()
-        sess.send_trigger("camera_calibration_onset")
-        core.wait(1)
-        sess.send_trigger("camera_calibration_offset")
-        sess.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space")
-    for block in sess.blocks:
-        sess.send_trigger("block_onset")
-        sess.set_block(block=block)
-        sess.load_sequence()
-        sess.create_trials(n_trials=5,
-                           durations=(sess.settings["session"]["stimulus_duration"],
-                                      sess.settings["session"]["response_duration"],
-                                      None),  # this is hacky and usually not recommended (for ITI Jitter)
-                           timing=sess.settings["session"]["timing"])
-        if block == 0:
-            sess.start_experiment()
-        else:
-            sess.timer.reset()
-        for trial in sess.trials:
-            # make sure the default is black line color
-            # self.send_trigger("trial_onset")
-            trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
-            trial.run()
-            # self.send_trigger("trial_offset")
-        sess.send_trigger("block_offset")
-        sess.save_data()
-        if not block == max(sess.blocks):
-            sess.display_text(text=prompts.pause, keys="space")
-    sess.display_text(text=prompts.end, keys="q")
-    sess.send_trigger("experiment_offset")
-    sess.close()
+    pass
