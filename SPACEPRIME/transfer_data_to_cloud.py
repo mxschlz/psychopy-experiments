@@ -1,6 +1,7 @@
 import os
 from utils.utils import get_input_from_dict
 import shutil
+import glob
 
 
 # define subject id
@@ -14,10 +15,12 @@ os.makedirs(destination_dir_clean, exist_ok=True)  # create directory no matter 
 # get source dir
 source_dir_clean = "logs\\clean"
 # get source path
-source_path_clean = os.path.join(source_dir_clean, f'sub-{info["subject_id"]}_clean.csv')
-destination_path_clean = os.path.join(destination_dir_clean, f'sub-{info["subject_id"]}_clean.csv')
-print(f"Transferring file {source_path_clean} to {destination_path_clean}")
-shutil.copy(source_path_clean, destination_path_clean)
+glob_file = os.path.join(source_dir_clean, f'sub-{info["subject_id"]}_clean*.csv')
+glob_file_clean = glob.glob(glob_file)[0].split("\\")[2]
+destination_path_clean = os.path.join(destination_dir_clean, glob_file_clean)
+filename_clean = os.path.join(source_dir_clean, glob_file_clean)
+print(f"Transferring file {filename_clean} to {destination_path_clean}")
+shutil.copy(filename_clean, destination_path_clean)
 # TRANSFER RAW BEHAVIOR
 print("Copying raw data ...")
 # Create the destination directory if it doesn't exist
@@ -45,7 +48,9 @@ os.makedirs(destination_dir_flanker, exist_ok=True)  # create directory no matte
 # get source dir
 source_dir_flanker = "logs"
 # get source path
-source_path_flanker = os.path.join(source_dir_flanker, f'flanker_data_{info["subject_id"]}.csv')
-destination_path_flanker = os.path.join(destination_dir_flanker, f'flanker_data_{info["subject_id"]}.csv')
-print(f"Transferring file {source_path_flanker} to {destination_path_flanker}")
-shutil.copy(source_path_flanker, destination_path_flanker)
+glob_file_flanker = os.path.join(source_dir_flanker, f'flanker_data_{info["subject_id"]}_*.csv')
+glob_file_clean_flanker = glob.glob(glob_file_flanker)[0].split("\\")[1]
+destination_path_clean_flanker = os.path.join(destination_dir_flanker, glob_file_clean_flanker)
+filename_clean_flanker = os.path.join(source_dir_flanker, glob_file_clean_flanker)
+print(f"Transferring file {filename_clean_flanker} to {destination_path_clean_flanker}")
+shutil.copy(filename_clean_flanker, destination_path_clean_flanker)
