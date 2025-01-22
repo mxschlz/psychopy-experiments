@@ -150,23 +150,23 @@ class SpaceprimeSession(Session):
             for trial in self.trials:
                 trial.run()
         else:
-            # do camera calibration if enabled
-            if self.settings["mode"]["camera"]:
-                # participant instructions
-                self.display_text(text=prompts.camera_calibration, keys="space",
-                                  height=0.75)
-                # display fixation dot
-                self.default_fix.draw()
-                # show fixation dot
-                self.win.flip()
-                # send trigger
-                self.send_trigger("camera_calibration_onset")
-                core.wait(10)
-                self.send_trigger("camera_calibration_offset")
-            self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space",
-                              height=0.75)
             for block in self.blocks:
                 self.send_trigger("block_onset")
+                # do camera calibration if enabled
+                if self.settings["mode"]["camera"]:
+                    # participant instructions
+                    self.display_text(text=prompts.camera_calibration, keys="space",
+                                      height=0.75)
+                    # display fixation dot
+                    self.default_fix.draw()
+                    # show fixation dot
+                    self.win.flip()
+                    # send trigger
+                    self.send_trigger("camera_calibration_onset")
+                    core.wait(10)
+                    self.send_trigger("camera_calibration_offset")
+                self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space",
+                                  height=0.75)
                 self.set_block(block=block)
                 self.load_sequence()
                 self.create_trials(n_trials=self.n_trials,
@@ -249,7 +249,7 @@ class SpaceprimeSession(Session):
             random.shuffle(stimuli_sequence)
             correct_count = 0
             for stimulus in stimuli_sequence:
-                stimulus.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 2)])
+                stimulus.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
                 self.display_text(text="T oder U?")
                 keys = event.waitKeys(keyList=['t', 'u'])
                 if (keys[0] == 't' and stimulus in self.targets) or (keys[0] == 'u' and stimulus in self.controls):
@@ -265,7 +265,7 @@ class SpaceprimeSession(Session):
                 break
             round_num += 1
         # Save accuracy and rounds to a CSV file
-        with open(os.path.join(self.output_dir, f"accuracy_test_{self.subject_id}_{self.name}.csv"), 'w', newline='') as csvfile:
+        with open(os.path.join(self.output_dir, f"accuracy_test_{self.name}.csv"), 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(["Accuracy", "Rounds"])  # Write header row
             writer.writerow([accuracy, round_num])  # Write data row
@@ -273,7 +273,7 @@ class SpaceprimeSession(Session):
     def run_demo(self):
         self.display_text(text=prompts.demo, keys="space", height=0.75)
         for digit in self.targets:
-            digit.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 2)])
+            digit.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
             core.wait(1.5)
 
 if __name__ == '__main__':
