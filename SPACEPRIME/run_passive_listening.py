@@ -91,9 +91,9 @@ params = {
 }
 # Create a window
 win = visual.Window(
-    size=[400, 400],
+    size=[1920, 1080],
     units="deg",
-    fullscr=False,
+    fullscr=True,
     monitor="SPACEPRIME",
     color=[0, 0, 0]  # grey background
 )
