@@ -2,6 +2,7 @@ from psychopy import visual, core, event, gui, data, parallel
 import numpy as np
 from encoding import FLANKER_MAP
 from psychopy.event import waitKeys
+from datetime import datetime
 
 
 # define trigger function
@@ -81,7 +82,7 @@ elif not subj_info["test"]:
         method="random",
     )
 # Create a file to save data
-filename = f"logs/flanker_data_{subj_info['ID']}.csv"
+filename = f"logs/flanker_data_{subj_info['ID']}_{datetime.now().strftime('%B_%d_%Y_%H_%M_%S')}.csv"
 if not subj_info["test"]:
     data_file = open(filename, "w")
     data_file.write("subject_id,trial_number,target,congruency,response,rt,correct\n")
