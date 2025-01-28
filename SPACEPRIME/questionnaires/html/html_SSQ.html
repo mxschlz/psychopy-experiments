@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SSQ Questionnaire</title>
+  <style>
+    body {
+        font-family: "sans-serif";
+    }
+
+    .question {
+        margin-bottom: 40px; /* Increased spacing */
+    }
+
+    .question p {  /* Make question text bold */
+      font-weight: bold;}
+
+
+    .likert {
+        list-style: none;
+        margin: 40px 0;
+        padding: 0;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .likert li {
+        text-align: center;
+        margin: 0 40px; /* Top and bottom 0, left and right 10px */
+    }
+
+    .likert input[type="radio"] {
+        display: none;
+    }
+
+    .likert label {
+        position: relative;
+        display: inline-block;
+        padding-left: 25px;
+        cursor: pointer;
+    }
+
+    .likert label::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: #ccc;
+        border: 1px solid #999;
+    }
+
+    .likert input[type="radio"]:checked+label::before {
+        background-color: #333;
+    }
+
+    .likert.number {
+        display: block; /* Ensures the number appears below the dot /
+        font-size: 12px; / Adjust font size as needed /
+        margin-top: 5px; / Add some space between the dot and number */
+        }
+  </style>
+</head>
+
+<body>
+
+  <h1>Sprache, räumliches Hören und Hörqualität (SSQ)</h1>
+
+  <form id="ssq-form">
+    <div id="page1">
+      <h2>Teil 1: Sprachverstehen</h2>
+      <div class="question">
+        <p>Sie sprechen mit einer anderen Person in einem ruhigen, mit Teppich ausgelegten Raum. Können Sie die andere Person verstehen?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_speechcompr_1" value="0" id="SSQ_speechcompr_1-0" required><label for="SSQ_speechcompr_1-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="1" id="SSQ_speechcompr_1-1"><label for="SSQ_speechcompr_1-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="2" id="SSQ_speechcompr_1-2"><label for="SSQ_speechcompr_1-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="3" id="SSQ_speechcompr_1-3"><label for="SSQ_speechcompr_1-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="4" id="SSQ_speechcompr_1-4"><label for="SSQ_speechcompr_1-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="5" id="SSQ_speechcompr_1-5"><label for="SSQ_speechcompr_1-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="6" id="SSQ_speechcompr_1-6"><label for="SSQ_speechcompr_1-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="7" id="SSQ_speechcompr_1-7"><label for="SSQ_speechcompr_1-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="8" id="SSQ_speechcompr_1-8"><label for="SSQ_speechcompr_1-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="9" id="SSQ_speechcompr_1-9"><label for="SSQ_speechcompr_1-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="10" id="SSQ_speechcompr_1-10"><label for="SSQ_speechcompr_1-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_speechcompr_1" value="11" id="SSQ_speechcompr_1-11"><label for="SSQ_speechcompr_1-11">trifft nicht zu</label></li>
+          </ul>
+        </div>
+        <div class="question">
+          <p>Sie sprechen mit jemandem an einem Ort mit viel Nachhall/Echos, z.B. in einer Kirche oder Bahnhofshalle. Können Sie verstehen, was die andere Person sagt?</p>
+          <ul class="likert">
+            <li><input type="radio" name="SSQ_speechcompr_2" value="0" id="SSQ_speechcompr_2-0" required><label for="SSQ_speechcompr_2-0">überhaupt nicht</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="1" id="SSQ_speechcompr_2-1"><label for="SSQ_speechcompr_2-1">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="2" id="SSQ_speechcompr_2-2"><label for="SSQ_speechcompr_2-2">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="3" id="SSQ_speechcompr_2-3"><label for="SSQ_speechcompr_2-3">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="4" id="SSQ_speechcompr_2-4"><label for="SSQ_speechcompr_2-4">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="5" id="SSQ_speechcompr_2-5"><label for="SSQ_speechcompr_2-5">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="6" id="SSQ_speechcompr_2-6"><label for="SSQ_speechcompr_2-6">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="7" id="SSQ_speechcompr_2-7"><label for="SSQ_speechcompr_2-7">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="8" id="SSQ_speechcompr_2-8"><label for="SSQ_speechcompr_2-8">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="9" id="SSQ_speechcompr_2-9"><label for="SSQ_speechcompr_2-9">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="10" id="SSQ_speechcompr_2-10"><label for="SSQ_speechcompr_2-10">perfekt</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_2" value="11" id="SSQ_speechcompr_2-11"><label for="SSQ_speechcompr_2-11">trifft nicht zu</label></li>
+          </ul>
+        </div>
+        <div class="question">
+          <p>Sie sprechen mit einer anderen Person während der Fernseher im selben Raum läuft. Können Sie die andere Person, mit der Sie sprechen, verstehen, ohne den Fernseher leise zu stellen?</p>
+          <ul class="likert">
+            <li><input type="radio" name="SSQ_speechcompr_3" value="0" id="SSQ_speechcompr_3-0" required><label for="SSQ_speechcompr_3-0">überhaupt nicht</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="1" id="SSQ_speechcompr_3-1"><label for="SSQ_speechcompr_3-1">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="2" id="SSQ_speechcompr_3-2"><label for="SSQ_speechcompr_3-2">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="3" id="SSQ_speechcompr_3-3"><label for="SSQ_speechcompr_3-3">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="4" id="SSQ_speechcompr_3-4"><label for="SSQ_speechcompr_3-4">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="5" id="SSQ_speechcompr_3-5"><label for="SSQ_speechcompr_3-5">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="6" id="SSQ_speechcompr_3-6"><label for="SSQ_speechcompr_3-6">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="7" id="SSQ_speechcompr_3-7"><label for="SSQ_speechcompr_3-7">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="8" id="SSQ_speechcompr_3-8"><label for="SSQ_speechcompr_3-8">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="9" id="SSQ_speechcompr_3-9"><label for="SSQ_speechcompr_3-9">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="10" id="SSQ_speechcompr_3-10"><label for="SSQ_speechcompr_3-10">perfekt</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_3" value="11" id="SSQ_speechcompr_3-11"><label for="SSQ_speechcompr_3-11">trifft nicht zu</label></li>
+          </ul>
+        </div>
+        <div class="question">
+          <p>Sie hören jemandem zu, der mit Ihnen spricht, während Sie gleichzeitig versuchen, der Nachrichtensendung im Fernsehen zu folgen. Können Sie beiden Personen folgen, was sie sagen?</p>
+          <ul class="likert">
+            <li><input type="radio" name="SSQ_speechcompr_4" value="0" id="SSQ_speechcompr_4-0" required><label for="SSQ_speechcompr_4-0">überhaupt nicht</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="1" id="SSQ_speechcompr_4-1"><label for="SSQ_speechcompr_4-1">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="2" id="SSQ_speechcompr_4-2"><label for="SSQ_speechcompr_4-2">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="3" id="SSQ_speechcompr_4-3"><label for="SSQ_speechcompr_4-3">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="4" id="SSQ_speechcompr_4-4"><label for="SSQ_speechcompr_4-4">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="5" id="SSQ_speechcompr_4-5"><label for="SSQ_speechcompr_4-5">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="6" id="SSQ_speechcompr_4-6"><label for="SSQ_speechcompr_4-6">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="7" id="SSQ_speechcompr_4-7"><label for="SSQ_speechcompr_4-7">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="8" id="SSQ_speechcompr_4-8"><label for="SSQ_speechcompr_4-8">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="9" id="SSQ_speechcompr_4-9"><label for="SSQ_speechcompr_4-9">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="10" id="SSQ_speechcompr_4-10"><label for="SSQ_speechcompr_4-10">perfekt</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_4" value="11" id="SSQ_speechcompr_4-11"><label for="SSQ_speechcompr_4-11">trifft nicht zu</label></li>
+          </ul>
+        </div>
+        <div class="question">
+          <p>Sie sind mit einer Gruppe von etwa fünf Personen in einem belebten Restaurant und Sie können jeden in der Gruppe sehen. Können Sie der Unterhaltung folgen?</p>
+          <ul class="likert">
+            <li><input type="radio" name="SSQ_speechcompr_5" value="0" id="SSQ_speechcompr_5-0" required><label for="SSQ_speechcompr_5-0">überhaupt nicht</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="1" id="SSQ_speechcompr_5-1"><label for="SSQ_speechcompr_5-1">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="2" id="SSQ_speechcompr_5-2"><label for="SSQ_speechcompr_5-2">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="3" id="SSQ_speechcompr_5-3"><label for="SSQ_speechcompr_5-3">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="4" id="SSQ_speechcompr_5-4"><label for="SSQ_speechcompr_5-4">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="5" id="SSQ_speechcompr_5-5"><label for="SSQ_speechcompr_5-5">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="6" id="SSQ_speechcompr_5-6"><label for="SSQ_speechcompr_5-6">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="7" id="SSQ_speechcompr_5-7"><label for="SSQ_speechcompr_5-7">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="8" id="SSQ_speechcompr_5-8"><label for="SSQ_speechcompr_5-8">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="9" id="SSQ_speechcompr_5-9"><label for="SSQ_speechcompr_5-9">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="10" id="SSQ_speechcompr_5-10"><label for="SSQ_speechcompr_5-10">perfekt</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_5" value="11" id="SSQ_speechcompr_5-11"><label for="SSQ_speechcompr_5-11">trifft nicht zu</label></li>
+          </ul>
+        </div>
+        <div class="question">
+          <p>Sie sind mit einer Gruppe von etwa fünf Personen in einem belebten Restaurant und Sie KÖNNEN NICHT jeden in der Gruppe sehen. Können Sie der Unterhaltung folgen?</p>
+          <ul class="likert">
+            <li><input type="radio" name="SSQ_speechcompr_6" value="0" id="SSQ_speechcompr_6-0" required><label for="SSQ_speechcompr_6-0">überhaupt nicht</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="1" id="SSQ_speechcompr_6-1"><label for="SSQ_speechcompr_6-1">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="2" id="SSQ_speechcompr_6-2"><label for="SSQ_speechcompr_6-2">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="3" id="SSQ_speechcompr_6-3"><label for="SSQ_speechcompr_6-3">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="4" id="SSQ_speechcompr_6-4"><label for="SSQ_speechcompr_6-4">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="5" id="SSQ_speechcompr_6-5"><label for="SSQ_speechcompr_6-5">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="6" id="SSQ_speechcompr_6-6"><label for="SSQ_speechcompr_6-6">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="7" id="SSQ_speechcompr_6-7"><label for="SSQ_speechcompr_6-7">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="8" id="SSQ_speechcompr_6-8"><label for="SSQ_speechcompr_6-8">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="9" id="SSQ_speechcompr_6-9"><label for="SSQ_speechcompr_6-9">&nbsp;</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="10" id="SSQ_speechcompr_6-10"><label for="SSQ_speechcompr_6-10">perfekt</label></li>
+            <li><input type="radio" name="SSQ_speechcompr_6" value="11" id="SSQ_speechcompr_6-11"><label for="SSQ_speechcompr_6-11">trifft nicht zu</label></li>
+          </ul>
+        </div>
+    </div>
+    <div id="page2" style="display: none;">
+      <h2>Teil 2: Räumliches Hören</h2>
+      <div class="question">
+        <p>Sie sind im Freien an einem Ihnen unbekannten Ort. Sie hören, dass jemand einen Rasenmäher benutzt, aber Sie sehen nicht, wo das ist. Können Sie sofort sagen, woher das Geräusch kommt?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="0" id="SSQ_spatialhearing_1-0" required><label for="SSQ_spatialhearing_1-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="1" id="SSQ_spatialhearing_1-1"><label for="SSQ_spatialhearing_1-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="2" id="SSQ_spatialhearing_1-2"><label for="SSQ_spatialhearing_1-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="3" id="SSQ_spatialhearing_1-3"><label for="SSQ_spatialhearing_1-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="4" id="SSQ_spatialhearing_1-4"><label for="SSQ_spatialhearing_1-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="5" id="SSQ_spatialhearing_1-5"><label for="SSQ_spatialhearing_1-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="6" id="SSQ_spatialhearing_1-6"><label for="SSQ_spatialhearing_1-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="7" id="SSQ_spatialhearing_1-7"><label for="SSQ_spatialhearing_1-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="8" id="SSQ_spatialhearing_1-8"><label for="SSQ_spatialhearing_1-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="9" id="SSQ_spatialhearing_1-9"><label for="SSQ_spatialhearing_1-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="10" id="SSQ_spatialhearing_1-10"><label for="SSQ_spatialhearing_1-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_1" value="11" id="SSQ_spatialhearing_1-11"><label for="SSQ_spatialhearing_1-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Sie sind in einem Ihnen unbekannten Haus. Es ist ruhig. Sie hören eine Tür schlagen. Können Sie sofort sagen, woher das Geräusch kam?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="0" id="SSQ_spatialhearing_2-0" required><label for="SSQ_spatialhearing_2-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="1" id="SSQ_spatialhearing_2-1"><label for="SSQ_spatialhearing_2-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="2" id="SSQ_spatialhearing_2-2"><label for="SSQ_spatialhearing_2-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="3" id="SSQ_spatialhearing_2-3"><label for="SSQ_spatialhearing_2-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="4" id="SSQ_spatialhearing_2-4"><label for="SSQ_spatialhearing_2-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="5" id="SSQ_spatialhearing_2-5"><label for="SSQ_spatialhearing_2-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="6" id="SSQ_spatialhearing_2-6"><label for="SSQ_spatialhearing_2-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="7" id="SSQ_spatialhearing_2-7"><label for="SSQ_spatialhearing_2-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="8" id="SSQ_spatialhearing_2-8"><label for="SSQ_spatialhearing_2-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="9" id="SSQ_spatialhearing_2-9"><label for="SSQ_spatialhearing_2-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="10" id="SSQ_spatialhearing_2-10"><label for="SSQ_spatialhearing_2-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_2" value="11" id="SSQ_spatialhearing_2-11"><label for="SSQ_spatialhearing_2-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Sie sitzen am Tisch oder in einer Besprechung mit mehreren Personen. Sie können nicht jeden sehen. Können Sie sagen, wo jemand sitzt, sobald er/sie zu sprechen beginnt?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="0" id="SSQ_spatialhearing_3-0" required><label for="SSQ_spatialhearing_3-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="1" id="SSQ_spatialhearing_3-1"><label for="SSQ_spatialhearing_3-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="2" id="SSQ_spatialhearing_3-2"><label for="SSQ_spatialhearing_3-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="3" id="SSQ_spatialhearing_3-3"><label for="SSQ_spatialhearing_3-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="4" id="SSQ_spatialhearing_3-4"><label for="SSQ_spatialhearing_3-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="5" id="SSQ_spatialhearing_3-5"><label for="SSQ_spatialhearing_3-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="6" id="SSQ_spatialhearing_3-6"><label for="SSQ_spatialhearing_3-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="7" id="SSQ_spatialhearing_3-7"><label for="SSQ_spatialhearing_3-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="8" id="SSQ_spatialhearing_3-8"><label for="SSQ_spatialhearing_3-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="9" id="SSQ_spatialhearing_3-9"><label for="SSQ_spatialhearing_3-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="10" id="SSQ_spatialhearing_3-10"><label for="SSQ_spatialhearing_3-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_3" value="11" id="SSQ_spatialhearing_3-11"><label for="SSQ_spatialhearing_3-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Sie sitzen zwischen zwei Personen. Eine Person beginnt zu sprechen. Können Sie sofort sagen, ob es die Person zu Ihrer Linken oder Rechten ist, ohne hinzuschauen?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="0" id="SSQ_spatialhearing_4-0" required><label for="SSQ_spatialhearing_4-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="1" id="SSQ_spatialhearing_4-1"><label for="SSQ_spatialhearing_4-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="2" id="SSQ_spatialhearing_4-2"><label for="SSQ_spatialhearing_4-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="3" id="SSQ_spatialhearing_4-3"><label for="SSQ_spatialhearing_4-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="4" id="SSQ_spatialhearing_4-4"><label for="SSQ_spatialhearing_4-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="5" id="SSQ_spatialhearing_4-5"><label for="SSQ_spatialhearing_4-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="6" id="SSQ_spatialhearing_4-6"><label for="SSQ_spatialhearing_4-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="7" id="SSQ_spatialhearing_4-7"><label for="SSQ_spatialhearing_4-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="8" id="SSQ_spatialhearing_4-8"><label for="SSQ_spatialhearing_4-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="9" id="SSQ_spatialhearing_4-9"><label for="SSQ_spatialhearing_4-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="10" id="SSQ_spatialhearing_4-10"><label for="SSQ_spatialhearing_4-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_4" value="11" id="SSQ_spatialhearing_4-11"><label for="SSQ_spatialhearing_4-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Können Sie anhand des Geräusches sagen, wie weit ein Bus oder Lastwagen entfernt ist?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="0" id="SSQ_spatialhearing_5-0" required><label for="SSQ_spatialhearing_5-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="1" id="SSQ_spatialhearing_5-1"><label for="SSQ_spatialhearing_5-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="2" id="SSQ_spatialhearing_5-2"><label for="SSQ_spatialhearing_5-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="3" id="SSQ_spatialhearing_5-3"><label for="SSQ_spatialhearing_5-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="4" id="SSQ_spatialhearing_5-4"><label for="SSQ_spatialhearing_5-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="5" id="SSQ_spatialhearing_5-5"><label for="SSQ_spatialhearing_5-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="6" id="SSQ_spatialhearing_5-6"><label for="SSQ_spatialhearing_5-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="7" id="SSQ_spatialhearing_5-7"><label for="SSQ_spatialhearing_5-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="8" id="SSQ_spatialhearing_5-8"><label for="SSQ_spatialhearing_5-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="9" id="SSQ_spatialhearing_5-9"><label for="SSQ_spatialhearing_5-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="10" id="SSQ_spatialhearing_5-10"><label for="SSQ_spatialhearing_5-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_5" value="11" id="SSQ_spatialhearing_5-11"><label for="SSQ_spatialhearing_5-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Können Sie anhand des Geräusches sagen, ob ein Bus oder Lastwagen Ihnen entgegen kommt oder sich entfernt?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="0" id="SSQ_spatialhearing_6-0" required><label for="SSQ_spatialhearing_6-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="1" id="SSQ_spatialhearing_6-1"><label for="SSQ_spatialhearing_6-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="2" id="SSQ_spatialhearing_6-2"><label for="SSQ_spatialhearing_6-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="3" id="SSQ_spatialhearing_6-3"><label for="SSQ_spatialhearing_6-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="4" id="SSQ_spatialhearing_6-4"><label for="SSQ_spatialhearing_6-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="5" id="SSQ_spatialhearing_6-5"><label for="SSQ_spatialhearing_6-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="6" id="SSQ_spatialhearing_6-6"><label for="SSQ_spatialhearing_6-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="7" id="SSQ_spatialhearing_6-7"><label for="SSQ_spatialhearing_6-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="8" id="SSQ_spatialhearing_6-8"><label for="SSQ_spatialhearing_6-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="9" id="SSQ_spatialhearing_6-9"><label for="SSQ_spatialhearing_6-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="10" id="SSQ_spatialhearing_6-10"><label for="SSQ_spatialhearing_6-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_spatialhearing_6" value="11" id="SSQ_spatialhearing_6-11"><label for="SSQ_spatialhearing_6-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+    </div>
+    <div id="page3" style="display: none;">
+      <h2>Teil 3: Hörqualität</h2>
+      <div class="question">
+        <p>Stellen Sie sich vor, Sie hören zwei verschiedene Geräusche gleichzeitig, z.B. Wasser, das in ein Becken einläuft und gleichzeitig spielt ein Radio. Können Sie beide Geräusche eindeutig voneinander unterscheiden?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_hearingqual_1" value="0" id="SSQ_hearingqual_1-0" required><label for="SSQ_hearingqual_1-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="1" id="SSQ_hearingqual_1-1"><label for="SSQ_hearingqual_1-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="2" id="SSQ_hearingqual_1-2"><label for="SSQ_hearingqual_1-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="3" id="SSQ_hearingqual_1-3"><label for="SSQ_hearingqual_1-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="4" id="SSQ_hearingqual_1-4"><label for="SSQ_hearingqual_1-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="5" id="SSQ_hearingqual_1-5"><label for="SSQ_hearingqual_1-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="6" id="SSQ_hearingqual_1-6"><label for="SSQ_hearingqual_1-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="7" id="SSQ_hearingqual_1-7"><label for="SSQ_hearingqual_1-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="8" id="SSQ_hearingqual_1-8"><label for="SSQ_hearingqual_1-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="9" id="SSQ_hearingqual_1-9"><label for="SSQ_hearingqual_1-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="10" id="SSQ_hearingqual_1-10"><label for="SSQ_hearingqual_1-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_1" value="11" id="SSQ_hearingqual_1-11"><label for="SSQ_hearingqual_1-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Können Sie ähnliche Geräuschquellen eindeutig zuordnen? (Können sie z. B. hören, ob es sich um ein Auto oder einen Bus handelt, bzw. um kochendes Wasser in einem Topf oder Bratgeräuschen in einer Pfanne?)</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_hearingqual_2" value="0" id="SSQ_hearingqual_2-0" required><label for="SSQ_hearingqual_2-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="1" id="SSQ_hearingqual_2-1"><label for="SSQ_hearingqual_2-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="2" id="SSQ_hearingqual_2-2"><label for="SSQ_hearingqual_2-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="3" id="SSQ_hearingqual_2-3"><label for="SSQ_hearingqual_2-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="4" id="SSQ_hearingqual_2-4"><label for="SSQ_hearingqual_2-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="5" id="SSQ_hearingqual_2-5"><label for="SSQ_hearingqual_2-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="6" id="SSQ_hearingqual_2-6"><label for="SSQ_hearingqual_2-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="7" id="SSQ_hearingqual_2-7"><label for="SSQ_hearingqual_2-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="8" id="SSQ_hearingqual_2-8"><label for="SSQ_hearingqual_2-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="9" id="SSQ_hearingqual_2-9"><label for="SSQ_hearingqual_2-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="10" id="SSQ_hearingqual_2-10"><label for="SSQ_hearingqual_2-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_2" value="11" id="SSQ_hearingqual_2-11"><label for="SSQ_hearingqual_2-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Empfinden Sie es als einfach verschiedene Leute, die Sie kennen, anhand ihrer Stimme zu erkennen?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_hearingqual_3" value="0" id="SSQ_hearingqual_3-0" required><label for="SSQ_hearingqual_3-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="1" id="SSQ_hearingqual_3-1"><label for="SSQ_hearingqual_3-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="2" id="SSQ_hearingqual_3-2"><label for="SSQ_hearingqual_3-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="3" id="SSQ_hearingqual_3-3"><label for="SSQ_hearingqual_3-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="4" id="SSQ_hearingqual_3-4"><label for="SSQ_hearingqual_3-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="5" id="SSQ_hearingqual_3-5"><label for="SSQ_hearingqual_3-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="6" id="SSQ_hearingqual_3-6"><label for="SSQ_hearingqual_3-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="7" id="SSQ_hearingqual_3-7"><label for="SSQ_hearingqual_3-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="8" id="SSQ_hearingqual_3-8"><label for="SSQ_hearingqual_3-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="9" id="SSQ_hearingqual_3-9"><label for="SSQ_hearingqual_3-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="10" id="SSQ_hearingqual_3-10"><label for="SSQ_hearingqual_3-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_3" value="11" id="SSQ_hearingqual_3-11"><label for="SSQ_hearingqual_3-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Können Sie problemlos die Stimmung einer anderen Person durch den Klang ihrer Stimme beurteilen?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_hearingqual_4" value="0" id="SSQ_hearingqual_4-0" required><label for="SSQ_hearingqual_4-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="1" id="SSQ_hearingqual_4-1"><label for="SSQ_hearingqual_4-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="2" id="SSQ_hearingqual_4-2"><label for="SSQ_hearingqual_4-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="3" id="SSQ_hearingqual_4-3"><label for="SSQ_hearingqual_4-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="4" id="SSQ_hearingqual_4-4"><label for="SSQ_hearingqual_4-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="5" id="SSQ_hearingqual_4-5"><label for="SSQ_hearingqual_4-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="6" id="SSQ_hearingqual_4-6"><label for="SSQ_hearingqual_4-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="7" id="SSQ_hearingqual_4-7"><label for="SSQ_hearingqual_4-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="8" id="SSQ_hearingqual_4-8"><label for="SSQ_hearingqual_4-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="9" id="SSQ_hearingqual_4-9"><label for="SSQ_hearingqual_4-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="10" id="SSQ_hearingqual_4-10"><label for="SSQ_hearingqual_4-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_4" value="11" id="SSQ_hearingqual_4-11"><label for="SSQ_hearingqual_4-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Wenn Sie als Fahrer im Auto fahren, können Sie problemlos verstehen, was eine andere Person sagt, die neben Ihnen sitzt?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_hearingqual_5" value="0" id="SSQ_hearingqual_5-0" required><label for="SSQ_hearingqual_5-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="1" id="SSQ_hearingqual_5-1"><label for="SSQ_hearingqual_5-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="2" id="SSQ_hearingqual_5-2"><label for="SSQ_hearingqual_5-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="3" id="SSQ_hearingqual_5-3"><label for="SSQ_hearingqual_5-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="4" id="SSQ_hearingqual_5-4"><label for="SSQ_hearingqual_5-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="5" id="SSQ_hearingqual_5-5"><label for="SSQ_hearingqual_5-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="6" id="SSQ_hearingqual_5-6"><label for="SSQ_hearingqual_5-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="7" id="SSQ_hearingqual_5-7"><label for="SSQ_hearingqual_5-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="8" id="SSQ_hearingqual_5-8"><label for="SSQ_hearingqual_5-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="9" id="SSQ_hearingqual_5-9"><label for="SSQ_hearingqual_5-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="10" id="SSQ_hearingqual_5-10"><label for="SSQ_hearingqual_5-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_5" value="11" id="SSQ_hearingqual_5-11"><label for="SSQ_hearingqual_5-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+      <div class="question">
+        <p>Können Sie andere Geräusche mühelos ignorieren, wenn Sie versuchen auf etwas Bestimmtes zu hören?</p>
+        <ul class="likert">
+          <li><input type="radio" name="SSQ_hearingqual_6" value="0" id="SSQ_hearingqual_6-0" required><label for="SSQ_hearingqual_6-0">überhaupt nicht</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="1" id="SSQ_hearingqual_6-1"><label for="SSQ_hearingqual_6-1">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="2" id="SSQ_hearingqual_6-2"><label for="SSQ_hearingqual_6-2">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="3" id="SSQ_hearingqual_6-3"><label for="SSQ_hearingqual_6-3">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="4" id="SSQ_hearingqual_6-4"><label for="SSQ_hearingqual_6-4">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="5" id="SSQ_hearingqual_6-5"><label for="SSQ_hearingqual_6-5">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="6" id="SSQ_hearingqual_6-6"><label for="SSQ_hearingqual_6-6">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="7" id="SSQ_hearingqual_6-7"><label for="SSQ_hearingqual_6-7">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="8" id="SSQ_hearingqual_6-8"><label for="SSQ_hearingqual_6-8">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="9" id="SSQ_hearingqual_6-9"><label for="SSQ_hearingqual_6-9">&nbsp;</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="10" id="SSQ_hearingqual_6-10"><label for="SSQ_hearingqual_6-10">perfekt</label></li>
+          <li><input type="radio" name="SSQ_hearingqual_6" value="11" id="SSQ_hearingqual_6-11"><label for="SSQ_hearingqual_6-11">trifft nicht zu</label></li>
+        </ul>
+      </div>
+    </div>
+    <button type="button" onclick="prevPage()" id="prevButton" style="display: none;">Vorherige Seite</button>
+    <button type="button" onclick="nextPage()" id="nextButton">Nächste Seite</button>
+
+    <button type="submit">Absenden</button> </form>
+  </form>
+
+  <script>
+    const form = document.getElementById('ssq-form');
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault(); // Prevent default form submission
+
+      // Prompt the user for their subject ID
+      const subjectId = prompt("Please enter your Subject ID:");
+      if (subjectId === null || subjectId.trim() === "") {
+          alert("Subject ID cannot be empty. Please try again.");
+          return;
+      }
+
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((value, key) => (data[key] = value));
+
+      const csvData = convertToCSV(data);
+
+      // Download the data as a CSV file
+      const a = document.createElement('a');
+      const file = new Blob([csvData], { type: 'text/csv' });
+
+      // Include the subject ID in the filename
+      a.download = 'ssq_results_sub-' + subjectId + '.csv';
+      a.href = URL.createObjectURL(file);
+      a.click();
+    });
+
+    function convertToCSV(data) {
+      const headers = Object.keys(data);
+      const values = Object.values(data);
+      return headers.join(',') + '\n' + values.join(',');
+    }
+
+    let currentPage = 1;
+
+    function nextPage() {
+      document.getElementById(`page${currentPage}`).style.display = 'none';
+      currentPage++;
+      if (currentPage > 3) {
+        currentPage = 3; // Prevent going beyond the last page
+        document.getElementById('nextButton').style.display = 'none'; // Hide next button on last page
+      }
+      document.getElementById(`page${currentPage}`).style.display = 'block';
+      document.getElementById('prevButton').style.display = 'inline-block'; // Show prev button after first page
+    }
+    function prevPage() {
+      document.getElementById(`page${currentPage}`).style.display = 'none';
+      currentPage--;
+      if (currentPage < 1) {
+        currentPage = 1; // Prevent going before the first page
+      }
+      document.getElementById(`page${currentPage}`).style.display = 'block';
+      if (currentPage === 1) {
+        document.getElementById('prevButton').style.display = 'none'; // Hide prev button on first page
+      }
+      document.getElementById('nextButton').style.display = 'inline-block'; // Show next button if not on last page
+    }
+  </script>
+
+</body>
+</html>

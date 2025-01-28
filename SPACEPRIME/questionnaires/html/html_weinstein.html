@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Lärmempfindlichkeitsskala</title>
+    <style>
+        body {
+            font-family: "sans-serif";
+        }
+
+        .question {
+            margin-bottom: 40px; /* Increased spacing */
+        }
+
+        .question p {  /* Make question text bold */
+          font-weight: bold;}
+
+
+        .likert {
+            list-style: none;
+            margin: 40px 0;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .likert li {
+            text-align: center;
+            margin: 0 40px; /* Top and bottom 0, left and right 10px */
+        }
+
+        .likert input[type="radio"] {
+            display: none;
+        }
+
+        .likert label {
+            position: relative;
+            display: inline-block;
+            padding-left: 25px;
+            cursor: pointer;
+        }
+
+        .likert label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #ccc;
+            border: 1px solid #999;
+        }
+
+        .likert input[type="radio"]:checked+label::before {
+            background-color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Lärmempfindlichkeitsskala</h1>
+
+    <p>Bitte kreuzen Sie an, wie sehr sie mit den folgenden Aussagen übereinstimmen.</p>
+
+    <form id="wnss-form">
+
+        <div class="question">
+            <p>1. Es würde mir nichts ausmachen, an einer lauten Straße zu wohnen, wenn meine Wohnung schön wäre.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q1" value="1" id="q1-1" required><label
+                        for="q1-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q1" value="2" id="q1-2"><label for="q1-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q1" value="3" id="q1-3"><label
+                        for="q1-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q1" value="4" id="q1-4"><label
+                        for="q1-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q1" value="5" id="q1-5"><label for="q1-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q1" value="6" id="q1-6"><label
+                        for="q1-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>2. Mir fällt Lärm heutzutage mehr auf als früher.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q2" value="1" id="q2-1" required><label
+                        for="q2-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q2" value="2" id="q2-2"><label for="q2-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q2" value="3" id="q2-3"><label
+                        for="q2-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q2" value="4" id="q2-4"><label
+                        for="q2-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q2" value="5" id="q2-5"><label for="q2-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q2" value="6" id="q2-6"><label
+                        for="q2-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>3. Es sollte niemanden groß stören, wenn ein anderer ab und zu seine Stereoanlage voll aufdreht.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q3" value="1" id="q3-1" required><label
+                        for="q3-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q3" value="2" id="q3-2"><label for="q3-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q3" value="3" id="q3-3"><label
+                        for="q3-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q3" value="4" id="q3-4"><label
+                        for="q3-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q3" value="5" id="q3-5"><label for="q3-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q3" value="6" id="q3-6"><label
+                        for="q3-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>4. Im Kino stört mich Flüstern und Rascheln von Bonbonpapier.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q4" value="1" id="q4-1" required><label
+                        for="q4-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q4" value="2" id="q4-2"><label for="q4-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q4" value="3" id="q4-3"><label
+                        for="q4-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q4" value="4" id="q4-4"><label
+                        for="q4-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q4" value="5" id="q4-5"><label for="q4-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q4" value="6" id="q4-6"><label
+                        for="q4-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>5. Ich werde leicht durch Lärm geweckt.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q5" value="1" id="q5-1" required><label
+                        for="q5-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q5" value="2" id="q5-2"><label for="q5-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q5" value="3" id="q5-3"><label
+                        for="q5-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q5" value="4" id="q5-4"><label
+                        for="q5-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q5" value="5" id="q5-5"><label for="q5-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q5" value="6" id="q5-6"><label
+                        for="q5-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>6. Wenn es an meinem Arbeitsplatz laut ist, dann versuche ich, Tür oder Fenster zu schließen oder anderswo weiterzuarbeiten.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q6" value="1" id="q6-1" required><label
+                        for="q6-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q6" value="2" id="q6-2"><label for="q6-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q6" value="3" id="q6-3"><label
+                        for="q6-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q6" value="4" id="q6-4"><label
+                        for="q6-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q6" value="5" id="q6-5"><label for="q6-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q6" value="6" id="q6-6"><label
+                        for="q6-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>7. Es ärgert mich, wenn meine Nachbarn laut werden.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q7" value="1" id="q7-1" required><label
+                        for="q7-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q7" value="2" id="q7-2"><label for="q7-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q7" value="3" id="q7-3"><label
+                        for="q7-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q7" value="4" id="q7-4"><label
+                        for="q7-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q7" value="5" id="q7-5"><label for="q7-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q7" value="6" id="q7-6"><label
+                        for="q7-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>8. An die meisten Geräusche gewöhne ich mich ohne große Schwierigkeiten.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q8" value="1" id="q8-1" required><label
+                        for="q8-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q8" value="2" id="q8-2"><label for="q8-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q8" value="3" id="q8-3"><label
+                        for="q8-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q8" value="4" id="q8-4"><label
+                        for="q8-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q8" value="5" id="q8-5"><label for="q8-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q8" value="6" id="q8-6"><label
+                        for="q8-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>9. Es würde mir etwas ausmachen, wenn eine Wohnung, die ich gerne mieten würde, gegenüber der Feuerwache läge.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q9" value="1" id="q9-1" required><label
+                        for="q9-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q9" value="2" id="q9-2"><label for="q9-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q9" value="3" id="q9-3"><label
+                        for="q9-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q9" value="4" id="q9-4"><label
+                        for="q9-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q9" value="5" id="q9-5"><label for="q9-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q9" value="6" id="q9-6"><label
+                        for="q9-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>10. Manchmal gehen Geräusche mir auf die Nerven und ärgern mich.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q10" value="1" id="q10-1" required><label
+                        for="q10-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q10" value="2" id="q10-2"><label for="q10-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q10" value="3" id="q10-3"><label
+                        for="q10-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q10" value="4" id="q10-4"><label
+                        for="q10-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q10" value="5" id="q10-5"><label for="q10-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q10" value="6" id="q10-6"><label
+                        for="q10-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>11. Sogar Musik, die ich eigentlich mag, stört mich, wenn ich mich konzentrieren möchte.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q11" value="1" id="q11-1" required><label
+                        for="q11-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q11" value="2" id="q11-2"><label for="q11-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q11" value="3" id="q11-3"><label
+                        for="q11-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q11" value="4" id="q11-4"><label
+                        for="q11-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q11" value="5" id="q11-5"><label for="q11-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q11" value="6" id="q11-6"><label
+                        for="q11-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>12. Es würde mich nicht stören, die Alltagsgeräusche meiner Nachbarn (z.B. Schritte, Wasserrauschen) zu hören.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q12" value="1" id="q12-1" required><label
+                        for="q12-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q12" value="2" id="q12-2"><label for="q12-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q12" value="3" id="q12-3"><label
+                        for="q12-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q12" value="4" id="q12-4"><label
+                        for="q12-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q12" value="5" id="q12-5"><label for="q12-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q12" value="6" id="q12-6"><label
+                        for="q12-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>13. Wenn ich allein sein möchte, stören mich Geräusche von außerhalb.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q13" value="1" id="q13-1" required><label
+                        for="q13-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q13" value="2" id="q13-2"><label for="q13-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q13" value="3" id="q13-3"><label
+                        for="q13-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q13" value="4" id="q13-4"><label
+                        for="q13-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q13" value="5" id="q13-5"><label for="q13-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q13" value="6" id="q13-6"><label
+                        for="q13-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>14. Ich kann mich gut konzentrieren, egal was um mich herum geschieht.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q14" value="1" id="q14-1" required><label
+                        for="q14-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q14" value="2" id="q14-2"><label for="q14-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q14" value="3" id="q14-3"><label
+                        for="q14-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q14" value="4" id="q14-4"><label
+                        for="q14-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q14" value="5" id="q14-5"><label for="q14-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q14" value="6" id="q14-6"><label
+                        for="q14-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>15. In der Bibliothek macht es mir nichts aus, wenn sich Leute unterhalten, solange dies leise geschieht.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q15" value="1" id="q15-1" required><label
+                        for="q15-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q15" value="2" id="q15-2"><label for="q15-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q15" value="3" id="q15-3"><label
+                        for="q15-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q15" value="4" id="q15-4"><label
+                        for="q15-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q15" value="5" id="q15-5"><label for="q15-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q15" value="6" id="q15-6"><label
+                        for="q15-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>16. Oft wünsche ich mir völlige Stille.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q16" value="1" id="q16-1" required><label
+                        for="q16-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q16" value="2" id="q16-2"><label for="q16-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q16" value="3" id="q16-3"><label
+                        for="q16-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q16" value="4" id="q16-4"><label
+                        for="q16-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q16" value="5" id="q16-5"><label for="q16-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q16" value="6" id="q16-6"><label
+                        for="q16-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>17. Motorräder sollten besser schallgedämpft sein.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q17" value="1" id="q17-1" required><label
+                        for="q17-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q17" value="2" id="q17-2"><label for="q17-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q17" value="3" id="q17-3"><label
+                        for="q17-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q17" value="4" id="q17-4"><label
+                        for="q17-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q17" value="5" id="q17-5"><label for="q17-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q17" value="6" id="q17-6"><label
+                        for="q17-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>18. Es fällt mir schwer, mich an einem lauten Ort zu entspannen.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q18" value="1" id="q18-1" required><label
+                        for="q18-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q18" value="2" id="q18-2"><label for="q18-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q18" value="3" id="q18-3"><label
+                        for="q18-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q18" value="4" id="q18-4"><label
+                        for="q18-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q18" value="5" id="q18-5"><label for="q18-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q18" value="6" id="q18-6"><label
+                        for="q18-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>19. Ich werde wütend auf Leute, die Lärm machen, der mich vom Einschlafen oder vom Fortkommen in der Arbeit abhält.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q19" value="1" id="q19-1" required><label
+                        for="q19-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q19" value="2" id="q19-2"><label for="q19-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q19" value="3" id="q19-3"><label
+                        for="q19-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q19" value="4" id="q19-4"><label
+                        for="q19-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q19" value="5" id="q19-5"><label for="q19-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q19" value="6" id="q19-6"><label
+                        for="q19-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>20. Es würde mir nichts ausmachen, in einer Wohnung mit dünnen Wänden zu leben.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q20" value="1" id="q20-1" required><label
+                        for="q20-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q20" value="2" id="q20-2"><label for="q20-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q20" value="3" id="q20-3"><label
+                        for="q20-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q20" value="4" id="q20-4"><label
+                        for="q20-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q20" value="5" id="q20-5"><label for="q20-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q20" value="6" id="q20-6"><label
+                        for="q20-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+
+        <div class="question">
+            <p>21. Ich bin geräuschempfindlich.</p>
+            <ul class="likert">
+                <li><input type="radio" name="q21" value="1" id="q21-1" required><label
+                        for="q21-1">Stimme gar nicht zu</label></li>
+                <li><input type="radio" name="q21" value="2" id="q21-2"><label for="q21-2">Stimme kaum zu</label>
+                </li>
+                <li><input type="radio" name="q21" value="3" id="q21-3"><label
+                        for="q21-3">Stimme eher nicht zu</label></li>
+                <li><input type="radio" name="q21" value="4" id="q21-4"><label
+                        for="q21-4">Stimme eher zu</label></li>
+                <li><input type="radio" name="q21" value="5" id="q21-5"><label for="q21-5">Stimme weitgehend zu</label>
+                </li>
+                <li><input type="radio" name="q21" value="6" id="q21-6"><label
+                        for="q21-6">Stimme sehr zu</label></li>
+            </ul>
+        </div>
+        <button type="submit">Absenden</button>
+    </form>
+
+    <script>
+        const form = document.getElementById('wnss-form');
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            // Prompt the user for their subject ID
+            const subjectId = prompt("Please enter your Subject ID:");
+            if (subjectId === null || subjectId.trim() === "") {
+                alert("Subject ID cannot be empty. Please try again.");
+                return;
+            }
+
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => data[key] = value);
+
+            const csvData = convertToCSV(data);
+
+            const a = document.createElement('a');
+            const file = new Blob([csvData], { type: 'text/csv' });
+
+            // Include the subject ID in the filename
+            a.download = 'wnss_results_sub-' + subjectId + '.csv';
+            a.href = URL.createObjectURL(file);
+            a.click();
+        });
+
+        function convertToCSV(data) {
+            const headers = Object.keys(data);
+            const values = Object.values(data);
+            return headers.join(',') + '\n' + values.join(',');
+        }
+    </script>
+
+</body>
+</html>
