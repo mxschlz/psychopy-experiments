@@ -9,8 +9,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 
 prompt2 = """
 In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter von drei Lautsprechern abgespielt. \n
-Alle Zahlwörter werden von derselben Stimme gesprochen. Bei den Zahlwörtern handelt es sich um eine Auswahl der Zahlen 
-zwischen 1 und 9. \n
+Alle Zahlwörter werden von derselben Stimme gesprochen. Bei den Zahlwörtern handelt es sich um eine Auswahl der Zahlen zwischen 1 und 9. \n
 In einem Durchgang sind alle Ziffern einzigartig, z.B. kann die Zahl 9 nicht sowohl aus dem linken als auch dem rechten Lautsprecher gleichzeitig ertönen. \n
 
 Drücken Sie LEERTASTE, um weiterzublättern.
@@ -27,7 +26,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 
 prompt4 = """
 In manchen Durchgängen hat eines der zwei weiteren Zahlwörter eine andere Tonhöhe. \n
-Lassen Sie sich davon nicht irritieren: Ihre Aufgabe bleibt es, stets das Zahlwort zu benennen, welches in seiner Lautstärke schnell schwankt. \n
+Lassen Sie sich davon nicht irritieren: Ihre Aufgabe bleibt es, stets das raue, kratzige Zahlwort zu benennen. \n
 
 Drücken Sie LEERTASTE, um weiterzublättern.
 """
@@ -44,7 +43,7 @@ Drücken Sie LEERTASTE, um die Zielziffern zwischen 1 und 9 anzuhören.
 prompt5 = """
 Während des Experiments erscheint eine Antwort-Box in der Mitte des Bildschirms. \n
 Diese enthält die Ziffern von 1 bis 9 und ist durch einen schwarzen Rahmen begrenzt. \n
-Mit der Maus können Sie auf eine Zahl pro Durchgang klicken, um das Zahlwort anzugeben, welches in seiner Lautstärke geschwankt hat. \n
+Mit der Maus können Sie auf eine Zahl pro Durchgang klicken, um das raue, kratzige Zahlwort anzugeben. \n
 ACHTUNG: die Antwort ist nur gültig, wenn der Mauszeiger nach dem Klicken verschwindet! \n
 
 Drücken Sie LEERTASTE, um weiterzublättern.
@@ -91,8 +90,7 @@ Sie können sich nun an die Versuchsleitung wenden.
 """
 
 accuracy_instruction = """
-Nun werden Ihnen nacheinander 10 Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, \n
-ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.\n
+Nun werden Ihnen nacheinander 10 Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.\n
 Drücken sie die Taste T für das raue, kratzige Zahlwort, und die Taste U für das reguläre Zahlwort.\n
 Sie müssen alle 10 Wörter korrekt identifizieren, um mit dem Experiment beginnen zu können.\n
 Erreichen Sie weniger als 100%, wiederholt sich dieser Test automatisch.\n
