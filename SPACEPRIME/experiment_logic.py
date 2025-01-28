@@ -241,7 +241,7 @@ class SpaceprimeSession(Session):
             random.shuffle(stimuli_sequence)
             correct_count = 0
             for stimulus in stimuli_sequence:
-                stimulus.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 2)])
+                stimulus.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
                 #self.display_text(text="L oder M?")
                 l = psychopy.visual.TextStim(win=self.win, text="L", bold=True, color=[-1, 1, -1], pos=[2, 0]).draw()
                 m = psychopy.visual.TextStim(win=self.win, text="M", bold=True, color=[1, -1, -1], pos=[-2, 0]).draw()
