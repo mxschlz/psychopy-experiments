@@ -91,7 +91,7 @@ Sie können sich nun an die Versuchsleitung wenden.
 
 accuracy_instruction = """
 Nun werden Ihnen nacheinander 10 Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.\n
-Drücken sie die Taste T für das raue, kratzige Zahlwort, und die Taste U für das reguläre Zahlwort.\n
+Drücken sie die Taste L für das raue, kratzige Zahlwort, und die Taste M für das reguläre Zahlwort.\n
 Sie müssen alle 10 Wörter korrekt identifizieren, um mit dem Experiment beginnen zu können.\n
 Erreichen Sie weniger als 100%, wiederholt sich dieser Test automatisch.\n
 
