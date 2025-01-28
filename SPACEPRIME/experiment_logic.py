@@ -1,3 +1,5 @@
+import psychopy.visual
+
 from utils.set_logging_level import set_level
 from exptools2.core import Trial, Session
 import os
@@ -154,18 +156,8 @@ class SpaceprimeSession(Session):
                 self.send_trigger("block_onset")
                 # do camera calibration if enabled
                 if self.settings["mode"]["camera"]:
-                    # participant instructions
-                    self.display_text(text=prompts.camera_calibration, keys="space",
-                                      height=0.75)
-                    # display fixation dot
-                    self.default_fix.draw()
-                    # show fixation dot
-                    self.win.flip()
-                    # send trigger
-                    self.send_trigger("camera_calibration_onset")
-                    core.wait(10)
-                    self.send_trigger("camera_calibration_offset")
-                self.display_text("Drücke LEERTASTE, um zu beginnen.", keys="space",
+                    self.camera_calibration()
+                self.display_text("Drücken Sie LEERTASTE, um zu beginnen.", keys="space",
                                   height=0.75)
                 self.set_block(block=block)
                 self.load_sequence()
@@ -229,7 +221,7 @@ class SpaceprimeSession(Session):
 
     def run_accuracy_test(self):
         self.display_text(text=prompts.accuracy_instruction, keys="space", height=0.75)
-        round_num = 0
+        round_accuracies = []
         while True:
             stimuli_sequence = []
             available_digits = list(range(1, 10))  # Digits 1 to 9
@@ -249,32 +241,51 @@ class SpaceprimeSession(Session):
             random.shuffle(stimuli_sequence)
             correct_count = 0
             for stimulus in stimuli_sequence:
-                stimulus.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
-                self.display_text(text="T oder U?")
-                keys = event.waitKeys(keyList=['t', 'u'])
-                if (keys[0] == 't' and stimulus in self.targets) or (keys[0] == 'u' and stimulus in self.controls):
+                stimulus.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 2)])
+                #self.display_text(text="L oder M?")
+                l = psychopy.visual.TextStim(win=self.win, text="L", bold=True, color=[-1, 1, -1], pos=[2, 0]).draw()
+                m = psychopy.visual.TextStim(win=self.win, text="M", bold=True, color=[1, -1, -1], pos=[-2, 0]).draw()
+                oder = psychopy.visual.TextStim(win=self.win, text="oder", bold=False).draw()
+                self.win.flip()
+                keys = event.waitKeys(keyList=['l', 'm'])
+                if (keys[0] == 'l' and stimulus in self.targets) or (keys[0] == 'm' and stimulus in self.controls):
                     correct_count += 1
                     self.display_text(text="Korrekt!")
                 else:
                     self.display_text(text="Falsch!")
                 core.wait(0.5)
             accuracy = correct_count / len(stimuli_sequence)
+            round_accuracies.append(accuracy)
             self.display_text(text=f"Sie haben {accuracy * 100:.2f}% der Zahlwörter korrekt identifiziert.\n\n"
                                    f"Drücken Sie LEERTASTE, um {'weiterzublättern' if accuracy==1.0 else 'den Test zu wiederholen'}.", keys="space", height=0.75)
             if accuracy == 1.0:
                 break
-            round_num += 1
         # Save accuracy and rounds to a CSV file
         with open(os.path.join(self.output_dir, f"accuracy_test_{self.name}.csv"), 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Accuracy", "Rounds"])  # Write header row
-            writer.writerow([accuracy, round_num])  # Write data row
+            writer.writerow(["Round", "Accuracy"])  # Write header row
+            for round_num, accuracy in enumerate(round_accuracies):
+                writer.writerow([round_num, accuracy])  # Write data row
 
     def run_demo(self):
         self.display_text(text=prompts.demo, keys="space", height=0.75)
         for digit in self.targets:
             digit.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
             core.wait(1.5)
+
+    def camera_calibration(self):
+        # participant instructions
+        self.display_text(text=prompts.camera_calibration, keys="space",
+                          height=0.75)
+        self.mouse.setVisible(False)
+        # display fixation dot
+        self.default_fix.draw()
+        # show fixation dot
+        self.win.flip()
+        # send trigger
+        self.send_trigger("camera_calibration_onset")
+        core.wait(10)
+        self.send_trigger("camera_calibration_offset")
 
 if __name__ == '__main__':
     pass
