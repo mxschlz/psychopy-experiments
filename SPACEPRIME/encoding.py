@@ -153,4 +153,5 @@ PASSIVE_LISTENING_MAP = {
     "control-location-3-number-7": 87,
     "control-location-3-number-8": 88,
     "control-location-3-number-9": 89,
+    "test_trigger": 100
 }
