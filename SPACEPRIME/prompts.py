@@ -71,6 +71,9 @@ Drücken Sie LEERTASTE, um zu beginnen.
 camera_calibration = """
 Bitte schauen Sie für die nächsten 10 Sekunden auf den Fixationspunkt. \n
 Achten Sie darauf, dass Ihr Kopf und Ihre Augen geradeaus auf den Punkt gerichtet sind. \n
+Sie sollten Ihren Kopf so halten, wie sie es auch während des Experiments tun. \n
+Versuchen Sie stets, Ihren Kopf während der Messung so still und entspannt wie möglich zu halten. \n
+Während der Pausen können Sie sich natürlich frei bewegen. \n
 Danach geht es mit dem Experiment weiter. \n
 
 Drücken Sie LEERTASTE, um zu beginnen.
