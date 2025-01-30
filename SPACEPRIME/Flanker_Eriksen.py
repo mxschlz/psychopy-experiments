@@ -163,7 +163,7 @@ for trial in trials:
             f"{subj_info['ID']},{trial_count},{trial['target']},{trial['congruency']},{response},{rt},{correct}\n"
         )
     # Inter-trial interval
-    core.wait(np.random.uniform(params["iti"]-params["iti"]-0.25, params["iti"]+params["iti"]+0.25))
+    core.wait(np.random.uniform(params["iti"]-0.25, params["iti"]+0.25))
 
 if not subj_info["test"]:
     # Close the data file
