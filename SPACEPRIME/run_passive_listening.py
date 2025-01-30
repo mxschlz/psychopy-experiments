@@ -194,55 +194,6 @@ def create_pseudorandom_sequence(locations, sound_types, n_reps, n_digits):
 trialsequence = create_pseudorandom_sequence(
     params["locations"], params["sound_types"], params["n_reps"], params["n_digits"]  # Adjust n_reps
 )
-
-"""d_count = 0
-c_count = 0
-t_count = 0
-one_count = 0
-two_count = 0
-three_count = 0
-four_count = 0
-five_count = 0
-six_count = 0
-seven_count = 0
-eight_count = 0
-nine_count = 0
-loc_one_count = 0
-loc_two_count = 0
-loc_three_count = 0
-
-for trial in trialsequence:
-    if trial[0] == "1":
-        loc_one_count += 1
-    elif trial[0] == "2":
-        loc_two_count += 1
-    elif trial[0] == "3":
-        loc_three_count += 1
-    if trial[1] == "distractor":
-        d_count += 1
-    elif trial[1] == "target":
-        t_count += 1
-    elif trial[1] == "control":
-        c_count += 1
-    if trial[2] == "1":
-        one_count += 1
-    elif trial[2] == "2":
-        two_count += 1
-    elif trial[2] == "3":
-        three_count += 1
-    elif trial[2] == "4":
-        four_count += 1
-    elif trial[2] == "5":
-        five_count += 1
-    elif trial[2] == "6":
-        six_count += 1
-    elif trial[2] == "7":
-        seven_count += 1
-    elif trial[2] == "8":
-        eight_count += 1
-    elif trial[2] == "9":
-        nine_count += 1
-"""
 # Write the numpy array directly to a CSV file
 np.savetxt(f'sequences\sub-{int(subj_info["ID"])}_passive_listening_sequence.csv', trialsequence, delimiter=',',
            fmt='%s',
@@ -282,8 +233,10 @@ for trial in trialsequence:
     elif trial[1] == "control":
         stim = controls[int(trial[2])-1]
     trigger_name = f"{trial[1]}-location-{trial[0]}-number-{trial[2]}"
+    stim.play(latency="low", mapping=int(trial[0]), blocking=False)
+    core.wait(0.08)  # fucking 80 ms wait LOL
     send_trigger(trigger_name=trigger_name, port=port)
-    stim.play(latency="low", mapping=int(trial[0]), blocking=True)
+    core.wait(params["stim_duration"])
     #core.wait(0.08)
     if 'q' in event.getKeys():
         # Stop the experiment
