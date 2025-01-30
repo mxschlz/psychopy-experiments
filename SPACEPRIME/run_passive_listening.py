@@ -233,16 +233,18 @@ for trial in trialsequence:
     elif trial[1] == "control":
         stim = controls[int(trial[2])-1]
     trigger_name = f"{trial[1]}-location-{trial[0]}-number-{trial[2]}"
-    stim.play(latency="low", mapping=int(trial[0]), blocking=False)
+    stim.play(latency="low", mapping=int(trial[0]), blocksize=0)
+    #stim.play(latency="low", mapping=3, blocksize=0)
     core.wait(0.08)  # fucking 80 ms wait LOL
     send_trigger(trigger_name=trigger_name, port=port)
+    #send_trigger(trigger_name="test_trigger", port=port)
     core.wait(params["stim_duration"])
     #core.wait(0.08)
     if 'q' in event.getKeys():
         # Stop the experiment
         core.quit()
     # Inter-trial interval
-    core.wait(np.random.uniform(0.4, 0.8))
+    core.wait(np.random.uniform(params["iti"]-0.2, params["iti"]+0.2))
 
 # Close the window
 win.close()
