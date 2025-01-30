@@ -68,7 +68,8 @@ FLANKER_MAP = {
     "incongruent_right": 244,
     "neutral_left": 245,
     "neutral_right": 246,
-    "none": 250
+    "none": 250,
+    "test_trigger": 1
 }
 
 PASSIVE_LISTENING_MAP = {
