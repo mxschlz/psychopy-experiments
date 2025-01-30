@@ -25,7 +25,7 @@ port = parallel.ParallelPort(0xCFF8)
 # define params
 params = {
     "n_reps": 40,
-    "iti": 0.5,
+    "iti": 0.75,
     "stim_duration": 0.05
 }
 # Create a window
@@ -88,10 +88,10 @@ if not subj_info["test"]:
     data_file.write("subject_id,trial_number,target,congruency,response,rt,correct\n")
 # write instructions
 instruction_text = """
-In dieser Aufgabe werden Ihnen Pfeile angezeigt, die nach links oder rechts zeigen.\n
+In dieser Aufgabe werden Ihnen fünf Pfeile in einer horizontalen Reihe angezeigt, die nach links oder rechts deuten.\n
 Ihre Aufgabe ist es, so schnell und genau wie möglich die Richtung des mittleren Pfeils zu bestimmen.\n
 Drücken Sie dafür die entsprechende Taste (z.B. linke Taste für links, rechte Taste für rechts).\n
-Es ist wichtig, dass Sie sich nur auf den mittleren Pfeil konzentrieren und die Pfeile, die ihn umgeben, ignorieren.\n
+Es ist wichtig, dass Sie sich nur auf den mittleren Pfeil konzentrieren.\n
 
 Drücken Sie LEERTASTE, um zu beginnen.
 """
@@ -137,8 +137,10 @@ for trial in trials:
     target.draw()
     flanker_left.draw()
     flanker_right.draw()
-    win.callOnFlip(send_trigger,trigger_name, port)
+    # win.callOnFlip(send_trigger,"test_trigger", port)
     win.flip()
+    core.wait(0.05)  # wait because timing issues
+    send_trigger(trigger_name, port=port)
     # wait for stim duration
     core.wait(params["stim_duration"])
     # Clear the screen
@@ -161,7 +163,7 @@ for trial in trials:
             f"{subj_info['ID']},{trial_count},{trial['target']},{trial['congruency']},{response},{rt},{correct}\n"
         )
     # Inter-trial interval
-    core.wait(np.random.uniform(params["iti"]-params["iti"]*0.25, params["iti"]+params["iti"]*0.25))
+    core.wait(np.random.uniform(params["iti"]-params["iti"]-0.25, params["iti"]+params["iti"]+0.25))
 
 if not subj_info["test"]:
     # Close the data file
