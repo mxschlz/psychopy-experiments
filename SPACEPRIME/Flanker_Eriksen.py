@@ -145,16 +145,20 @@ for trial in trials:
     core.wait(params["stim_duration"])
     # Clear the screen
     win.flip()
+    # Fixed response window of 1.2 seconds
     trial_clock.reset()
-    # Wait for a response
-    keys = event.waitKeys(keyList=["left", "right"], maxWait=1.2)
+    keys = event.waitKeys(keyList=["left", "right", 'q'], maxWait=1.2)
+    rt = trial_clock.getTime()  # Get reaction time from the clock
+
+    # Wait the full 1.2 seconds, regardless of response
+    while trial_clock.getTime() < 1.2:  # Wait until 1.2 seconds have passed
+        core.wait(0.01)  # Small wait to avoid busy-waiting
     # Record response and reaction time
     response = keys[0] if keys else 0
     # Check if 'q' key is pressed
     if 'q' in event.getKeys():
         # Stop the experiment
         core.quit()
-    rt = trial_clock.getTime()  # Get reaction time from the clock
     # Check if the response is correct
     correct = response == trial["correct_response"]
     # Write data to file
