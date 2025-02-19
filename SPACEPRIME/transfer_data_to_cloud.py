@@ -92,6 +92,8 @@ for file in os.listdir(source_dir_sequences):
 	else:
 		continue
 	destination_path_sequences = os.path.join(destination_dir_sequences, file)
+	print(f"Transferring {source_path_sequences} to {destination_path_sequences}")
 	if os.path.isfile(source_path_sequences):
-		print(f"Transferring {source_path_sequences} to {destination_path_sequences}")
 		shutil.copy(source_path_sequences, destination_path_sequences)
+	elif os.path.isdir(source_path_sequences):
+		shutil.copytree(source_path_sequences, destination_path_sequences)
