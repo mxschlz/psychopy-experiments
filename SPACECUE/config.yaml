@@ -1,0 +1,75 @@
+logging:
+  level: DATA  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
+
+filepaths:  # some relevant filepaths
+  project: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACEPRIME  # project path
+  stimuli: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACEPRIME\stimuli  # stimuli path
+  sequences: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACEPRIME\sequences  # sequences path
+
+session:  # these params are relevant for the generation of the possible combinations excel sheet or trial sequence
+  name: SPACEPRIME  # use study acronym here
+  distractor_type: high  # can be low or high
+  n_locations: 3  # number of locations
+  n_digits: 9  # number of digits
+  n_trials: 180  # number of trials per block
+  stimulus_duration: 0.25  # duration of stimulus
+  response_duration: 1.75  # duration of response
+  iti: 1.0  # inter-trial interval
+  n_blocks: 10  # number of experimental blocks
+  level: 50  # not the final volume but choose this to avoid clipping audio data
+  samplerate: 44100  # stimulus samplerate
+  timing: seconds  # timing of stimuli --> can be seconds or frames (frames is not yet implemented)
+  response_device: mouse  # can be mouse or keypad
+  fixation_type: circle  # can be circle or cross
+
+numpad:
+  digits: [1, 2, 3, 4, 5, 6, 7, 8, 9]  # number of digits on the numpad
+  size: 2  # visual angle of 1 degree to left and right
+
+trial_sequence:
+  conditions: [1, 2, 3]  # C, NP and PP
+  prop_c: 0.6  # 60 % control trials
+  prop_np: 0.2  # 20 % negative priming trials
+  prop_pp: 0.2  #  20 % positive priming trials
+  rule_violation_factor: 1000  # rule violation weight
+  num_generations: 5000  # 3000 iterations for genetic algorithm
+  num_parents_mating: 10  # 10 parents per generation
+  sol_per_pop: 200  # 200 children per generation
+  keep_parents: 2  # Elitism
+  mutation_percent_genes: 5  # 5 % mutation rate
+
+preferences:  # set some preferences (NOT IMPLEMENTED)
+  general:
+    audioLib: sounddevice # define sound device. Possible options can be drawn from PsychoPy homepage
+    units: deg  # visual angle in degree
+    audioLatencyMode: 3  # use aggressive latency mode
+    audioDevice: Lautsprecher (Rubix24)
+
+mode:
+  record_eeg: False  # whether you want to record eeg data or not
+  freefield: False  # whether you want to use a free-field setup. False means headphone usage
+  camera: False  # whether you want to run the eye tracker
+  demo: False  # whether you want to run the demo
+  acc_test: False  # whether you want to run an initial accuracy test
+
+window:
+  size: [600, 600]
+  pos: [0, 0]
+  color: [0, 0, 0]
+  fullscr: True
+  waitBlanking: False
+  screen: 0
+
+monitor:
+  name: SPACEPRIME
+  width: 50  # in cm
+  distance: 70  # in cm
+  gamma: 1
+  verbose: True
+
+mouse:
+  visible: True
+
+soundconfig:
+  device: 3  # 16 for headphones, 44 for loudspeakers
+  mul: 12
