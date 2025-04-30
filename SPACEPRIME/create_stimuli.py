@@ -3,14 +3,14 @@ import os
 import slab
 import yaml
 
-# stimulus root
-root = "C:\\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACEPRIME\stimuli"
-stimdir = os.path.join(root, "digits_all_250ms")
-
 # load settings
 settings_path = "config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
+
+# stimulus root
+root = settings["filepaths"]["stimuli"]
+stimdir = os.path.join(root, "digits_all_250ms")
 
 # load up stimuli and further save them level ajdusted
 orig_stims = []
