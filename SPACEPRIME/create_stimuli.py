@@ -1,4 +1,4 @@
-from SPACEPRIME.utils.signal_processing import *
+from utils.signal_processing import *
 import os
 import slab
 import yaml
