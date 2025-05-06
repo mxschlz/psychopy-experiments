@@ -1,7 +1,7 @@
 from psychopy import prefs
 import sounddevice as sd
 from psychtoolbox.audio import get_devices
-from SPACEPRIME.sound import SoundDeviceSound
+from utils.sound import SoundDeviceSound
 import os
 
 prefs.hardware['audioLib'] = 'ptb'

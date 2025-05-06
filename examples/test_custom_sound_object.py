@@ -1,4 +1,4 @@
-from sound import Sound
+from utils.sound import Sound
 from psychopy import core
 
 
