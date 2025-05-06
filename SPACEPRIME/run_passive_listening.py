@@ -1,4 +1,4 @@
-from psychopy import visual, core, event, gui, data, parallel
+from psychopy import visual, core, event, gui, parallel
 import os
 os.environ["SD_ENABLE_ASIO"] = "1"
 import numpy as np
@@ -7,7 +7,7 @@ import os.path as op
 import yaml
 import collections
 from psychopy import prefs as psychopy_prefs
-from sound import SoundDeviceSound as Sound
+from utils.sound import SoundDeviceSound as Sound
 from itertools import product
 
 
@@ -108,24 +108,24 @@ elif int(subj_info["ID"]) % 2 != 0:
 if sub_id_is_even:
     # now, create to-be-used sound objects from slab data matrices
     targets = [Sound(filename=os.path.join(f"stimuli\\targets_low_30_Hz", x),
-                                     device=settings["soundconfig"]["device"],
-                                     mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\targets_low_30_Hz")]
+                     device=settings["soundconfig"]["device"],
+                     mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\targets_low_30_Hz")]
     distractors = [Sound(filename=os.path.join(f"stimuli\\distractors_high", x),
-                                     device=settings["soundconfig"]["device"],
-                                     mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\distractors_high")]
+                         device=settings["soundconfig"]["device"],
+                         mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\distractors_high")]
     controls = [Sound(filename=os.path.join(f"stimuli\\digits_all_250ms", x),
-                                     device=settings["soundconfig"]["device"],
-                                     mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\digits_all_250ms")]
+                      device=settings["soundconfig"]["device"],
+                      mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\digits_all_250ms")]
 elif not sub_id_is_even:
     targets = [Sound(filename=os.path.join(f"stimuli\\targets_high_30_Hz", x),
-                                     device=settings["soundconfig"]["device"],
-                                     mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\targets_high_30_Hz")]
+                     device=settings["soundconfig"]["device"],
+                     mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\targets_high_30_Hz")]
     distractors = [Sound(filename=os.path.join(f"stimuli\\digits_all_250ms", x),
-                                     device=settings["soundconfig"]["device"],
-                                     mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\digits_all_250ms")]
+                         device=settings["soundconfig"]["device"],
+                         mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\digits_all_250ms")]
     controls = [Sound(filename=os.path.join(f"stimuli\\distractors_high", x),
-                                     device=settings["soundconfig"]["device"],
-                                     mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\distractors_high")]
+                      device=settings["soundconfig"]["device"],
+                      mul=settings["soundconfig"]["mul"]) for x in os.listdir(f"stimuli\\distractors_high")]
 
 fixation_cross = visual.TextStim(
     win=win,
