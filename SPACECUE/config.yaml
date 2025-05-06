@@ -2,16 +2,18 @@ logging:
   level: DATA  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
 
 filepaths:  # some relevant filepaths
-  project: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACEPRIME  # project path
-  stimuli: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACEPRIME\stimuli  # stimuli path
-  sequences: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACEPRIME\sequences  # sequences path
+  project: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE  # project path
+  stimuli: C:\Users\Max\PycharmProjects\psychopy-experiments\stimuli  # stimuli path
+  sequences: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE\sequences  # sequences path
 
 session:  # these params are relevant for the generation of the possible combinations excel sheet or trial sequence
-  name: SPACEPRIME  # use study acronym here
+  name: SPACECUE  # use study acronym here
   distractor_type: high  # can be low or high
   n_locations: 3  # number of locations
   n_digits: 9  # number of digits
   n_trials: 180  # number of trials per block
+  cue_duration: 0.2  # duration of cue
+  wait_after_cue: 0.8  # wait after cue
   stimulus_duration: 0.25  # duration of stimulus
   response_duration: 1.75  # duration of response
   iti: 1.0  # inter-trial interval
