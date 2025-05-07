@@ -56,3 +56,6 @@ dependencies:
       - soundcard==0.4.3
       - sounddevice==0.5.0
       - soundfile==0.12.1
+      - librosa==0.10.2
+      - pygad==3.3.1
+
