@@ -13,7 +13,6 @@ dependencies:
   - bzip2=1.0.8
   - ca-certificates=2024.3.11
   - freetype=2.12.1
-  - intel-openmp=2023.1.0
   - jpeg=9e
   - lcms2=2.12
   - lerc=3.0
@@ -42,8 +41,6 @@ dependencies:
   - tbb=2021.8.0
   - tk=8.6.14
   - unicodedata2=15.1.0
-  - vc=14.2
-  - vs2015_runtime=14.29.30133
   - wheel=0.43.0
   - xz=5.4.6
   - zlib=1.2.13
