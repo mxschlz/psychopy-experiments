@@ -82,11 +82,11 @@ def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=[1, 2, 3
     return solution, sequence_labels, solution_fitness
 
 
-def insert_singleton_present_trials(sequence, fig_path=None):
+def insert_singleton_present_trials(sequence, fig_path=None, prop_distractor_present_trials=0.5):
     while True:
         copy = sequence.copy()
         # Calculate the desired number of "SingletonPresent" == 1 trials
-        target_singleton_present_trials = len(copy) // 2
+        target_singleton_present_trials = int(len(copy) * prop_distractor_present_trials)
         current_singleton_present_trials = 0
         occupied_suffix_indices = list()
         # iterate over sequence
@@ -110,11 +110,13 @@ def insert_singleton_present_trials(sequence, fig_path=None):
         distances_sp = np.diff(sp_indices)
         occurrences = Counter(distances_sp)
         top_three_keys = heapq.nlargest(3, occurrences, key=occurrences.get)
-        if occurrences[top_three_keys[0]] < occurrences[top_three_keys[1]] + occurrences[top_three_keys[2]]:
-            logging.info(f"Found the following occurrences of sp distances: {list(occurrences.items())}.")
-            break
-        else:
-            continue
+        if prop_distractor_present_trials < 1.0:
+            if occurrences[top_three_keys[0]] < occurrences[top_three_keys[1]] + occurrences[top_three_keys[2]]:
+                logging.info(f"Found the following occurrences of sp distances: {list(occurrences.items())}.")
+                break
+            else:
+                continue
+        break
     if fig_path:
         # plot the stuff
         sns.histplot(data=distances_sp)
