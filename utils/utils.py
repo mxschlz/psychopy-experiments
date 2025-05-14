@@ -57,21 +57,29 @@ def load_stimuli(stimdir):
     return stimulus_pool
 
 
-def generate_balanced_jitter(df, iti, tolerance=0.001):
+def generate_balanced_jitter(df, iti, tolerance=0.001, mode="ITI"):
     df_0 = df[df['SingletonPresent'] == 0]
     df_1 = df[df['SingletonPresent'] == 1]
 
-    while True:
-        jitter_0 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_0))
-        jitter_1 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_1))
+    if len(df_0):
+        while True:
+            jitter_0 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_0))
+            jitter_1 = np.random.uniform(iti-iti*0.25, iti+iti*0.25, size=len(df_1))
 
-        mean_jitter_0 = np.mean(jitter_0)
-        mean_jitter_1 = np.mean(jitter_1)
+            mean_jitter_0 = np.mean(jitter_0)
+            mean_jitter_1 = np.mean(jitter_1)
 
-        if abs(mean_jitter_0 - mean_jitter_1) < tolerance:
-            break
+            if abs(mean_jitter_0 - mean_jitter_1) < tolerance:
+                break
 
-    return pd.Series(np.concatenate([jitter_0, jitter_1]), index=df.index)
+        return pd.Series(np.concatenate([jitter_0, jitter_1]), index=df.index)
+    else:
+        if mode == "ITI":
+            jitter_1 = np.random.uniform(iti - iti * 0.25, iti + iti * 0.25, size=len(df_1))
+        elif mode == "cue_stim_delay":
+            jitter_1 = np.random.uniform(iti - iti * 0.2, iti + iti * 0.2, size=len(df_1))
+
+        return pd.Series(jitter_1, index=df.index)
 
 
 if __name__ == '__main__':
