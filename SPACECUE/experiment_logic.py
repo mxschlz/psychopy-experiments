@@ -36,27 +36,39 @@ class SpaceCueTrial(Trial):
             self.track_mouse_pos()
         elif self.session.response_device == "keypad":
             self.session.default_fix.draw()
-        # play stimulus in phase 0
+        # display the cue in phase 0
         if self.phase == 0:
+            # TODO: Here, you need to implement the cueing phase. Three arrows, either all grey (neutral), or one colored (informative).
+            self.display_cue_interval()
+        # wait a certain period of time prior to stimulus presentation in phase 1
+        if self.phase == 1:
+            # TODO: Here, this should be a delay period in which only a fixation dot is displayed. You can use self.session.default_fix.draw() for this.
+            raise NotImplementedError
+        # play stimulus in phase 2
+        if self.phase == 1:
             if self.session.response_device == "mouse":
                 self.session.virtual_response_box[0].lineColor = "black"
                 self.session.mouse.setVisible(True)
                 self.session.mouse.setPos((0, 0))
             if not self.stim.is_playing():
                 self.send_trig_and_sound()
-        # get response in phase 1
-        if self.phase == 1:
+        # get response in phase 3
+        if self.phase == 2:
             if any(self.session.mouse.getPressed()):
                 pass
                 #self.session.mouse.setVisible(False)
-        # print too slow warning if response is collected in phase 2
-        if self.phase == 2:
+        # print too slow warning if response is collected in phase 4
+        if self.phase == 3:
             self.stim.stop()  #  reset the sound
             if any(self.get_events()) or any(self.session.mouse.getPressed()):
                 if self.session.virtual_response_box:
                     self.session.virtual_response_box[0].lineColor = "red"
                     self.session.mouse.setVisible(False)
 
+    def display_cue_interval(self):
+
+        # TODO: here, you must implement the logic of the cue display. Something like
+        raise NotImplementedError("THIS HAS YET TO BE IMPLEMENTED")
 
 class SpaceCueSession(Session):
     def __init__(self, output_str, output_dir=None, settings_file=None, starting_block=0, test=False):
@@ -73,24 +85,14 @@ class SpaceCueSession(Session):
         self.this_block = None
         self.subject_id = int(self.output_str.split("-")[1])
         self.subj_id_is_even = True if self.subject_id % 2 == 0 else False
-        if self.subj_id_is_even:
-            self.targets = [Sound(filename=os.path.join("../SPACEPRIME/stimuli\\targets_low_30_Hz", x),
-                                  device=self.settings["soundconfig"]["device"],
-                                  mul=self.settings["soundconfig"]["mul"]) for x in
-                            os.listdir(f"../SPACEPRIME/stimuli\\targets_low_30_Hz")]
-            self.controls = [Sound(filename=os.path.join("../SPACEPRIME/stimuli\\digits_all_250ms", x),
-                                   device=self.settings["soundconfig"]["device"],
-                                   mul=self.settings["soundconfig"]["mul"]) for x in
-                             os.listdir(f"../SPACEPRIME/stimuli\\digits_all_250ms")]
-        elif not self.subj_id_is_even:
-            self.targets = [Sound(filename=os.path.join("../SPACEPRIME/stimuli\\targets_high_30_Hz", x),
-                                  device=self.settings["soundconfig"]["device"],
-                                  mul=self.settings["soundconfig"]["mul"]) for x in
-                            os.listdir(f"../SPACEPRIME/stimuli\\targets_high_30_Hz")]
-            self.controls = [Sound(filename=os.path.join("../SPACEPRIME/stimuli\\distractors_high", x),
-                                   device=self.settings["soundconfig"]["device"],
-                                   mul=self.settings["soundconfig"]["mul"]) for x in
-                             os.listdir(f"../SPACEPRIME/stimuli\\distractors_high")]
+        self.targets = [Sound(filename=os.path.join("../SPACECUE/stimuli\\targets_low_30_Hz", x),
+                              device=self.settings["soundconfig"]["device"],
+                              mul=self.settings["soundconfig"]["mul"]) for x in
+                        os.listdir(f"../SPACECUE/stimuli\\targets_low_30_Hz")]
+        self.controls = [Sound(filename=os.path.join("../SPACECUE/stimuli\\digits_all_250ms", x),
+                               device=self.settings["soundconfig"]["device"],
+                               mul=self.settings["soundconfig"]["mul"]) for x in
+                         os.listdir(f"../SPACECUE/stimuli\\digits_all_250ms")]
         if self.settings["mode"]["record_eeg"]:
             self.port = parallel.ParallelPort(0xCFF8)  # set address of port
 
@@ -113,7 +115,7 @@ class SpaceCueSession(Session):
             trial = SpaceCueTrial(session=self,
                                     trial_nr=trial_nr,
                                     phase_durations=durations,
-                                    phase_names=["stim", "response", "iti"],
+                                    phase_names=["cue", "cue_stim_delay", "stim", "response", "iti"],
                                     parameters=dict(self.sequence.iloc[trial_nr],
                                                     block=self.this_block,
                                                     subject_id=self.subject_id),
@@ -143,8 +145,10 @@ class SpaceCueSession(Session):
             self.display_text(text=prompts.testing, keys="space", height=0.75)
             self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
+            # TODO: here, in create_trials(), you need to add the duration of the cue phase from whatever you defined in the config file.
             self.create_trials(n_trials=15,
-                               durations=(self.settings["session"]["stimulus_duration"],
+                               durations=(self.settings["session"]["cue_duration"],
+                                          self.settings["session"]["stimulus_duration"],  # INSERT CUE DURATION HERE
                                           self.settings["session"]["response_duration"],
                                           None),
                                timing=self.settings["session"]["timing"])
