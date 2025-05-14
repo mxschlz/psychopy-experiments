@@ -4,7 +4,7 @@ import slab
 import yaml
 
 # load settings
-settings_path = "../SPACEPRIME/config.yaml"
+settings_path = "/SPACEPRIME/config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
