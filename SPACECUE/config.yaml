@@ -11,13 +11,16 @@ session:  # these params are relevant for the generation of the possible combina
   distractor_type: high  # can be low or high
   n_locations: 3  # number of locations
   n_digits: 9  # number of digits
-  n_trials: 180  # number of trials per block
+  n_trials: 120  # number of trials per block
+  cue_prop_informative: 0.5
+  max_consecutive_informative: 5  # max consecutive informative cues in a row
+  prop_distractor_present_trials: 1.0  # proportion of distractor-present trials
   cue_duration: 0.2  # duration of cue
-  wait_after_cue: 0.8  # wait after cue
+  cue_stim_delay: 1.0  # delay between cue and stimulus
   stimulus_duration: 0.25  # duration of stimulus
   response_duration: 1.75  # duration of response
   iti: 1.0  # inter-trial interval
-  n_blocks: 10  # number of experimental blocks
+  n_blocks: 4  # number of experimental blocks
   level: 50  # not the final volume but choose this to avoid clipping audio data
   samplerate: 44100  # stimulus samplerate
   timing: seconds  # timing of stimuli --> can be seconds or frames (frames is not yet implemented)
@@ -63,7 +66,7 @@ window:
   screen: 0
 
 monitor:
-  name: SPACEPRIME
+  name: SPACECUE
   width: 50  # in cm
   distance: 70  # in cm
   gamma: 1
