@@ -4,7 +4,7 @@
 SET CONDA_ENV=psypy
 
 :: Replace with the actual path to your project directory
-SET PROJECT_DIR=C:\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACEPRIME
+SET PROJECT_DIR=C:\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACECUE
 
 :: Replace with the actual name of your Python script
 SET PYTHON_SCRIPT=generate_subject_sequence.py
