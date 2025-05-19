@@ -93,7 +93,6 @@ class SpaceCueTrial(Trial):
                             for stim_in_box in self.session.virtual_response_box:
                                 if stim_in_box.contains(self.session.mouse):
                                     clicked_on_target_area = True
-                                    # TODO: Optionally log which specific stim_in_box was clicked
                                     break
 
                         if clicked_on_target_area:
