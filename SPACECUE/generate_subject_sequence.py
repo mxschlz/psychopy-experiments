@@ -14,8 +14,8 @@ import logging
 import time
 from copy import deepcopy
 
-# TODO: temporary line
-os.chdir("C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE")
+
+#os.chdir("C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE")
 
 info = get_input_from_dict({"subject_id": 99, "block": 0})
 
