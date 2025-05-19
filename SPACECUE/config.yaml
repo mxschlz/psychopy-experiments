@@ -12,7 +12,9 @@ session:  # these params are relevant for the generation of the possible combina
   n_locations: 3  # number of locations
   n_digits: 9  # number of digits
   n_trials: 120  # number of trials per block
-  cue_prop_informative: 0.5
+  arrow_size: 1.5  # size of arrow
+  arrow_offset: 1.0  # offset of arrow
+  cue_prop_informative: 0.5  # proportion of informative cues
   max_consecutive_informative: 5  # max consecutive informative cues in a row
   prop_distractor_present_trials: 1.0  # proportion of distractor-present trials
   cue_duration: 0.2  # duration of cue
@@ -61,12 +63,12 @@ window:
   size: [600, 600]
   pos: [0, 0]
   color: [0, 0, 0]
-  fullscr: True
+  fullscr: False
   waitBlanking: False
   screen: 0
 
 monitor:
-  name: SPACECUE
+  name: SPACEPRIME
   width: 50  # in cm
   distance: 70  # in cm
   gamma: 1
