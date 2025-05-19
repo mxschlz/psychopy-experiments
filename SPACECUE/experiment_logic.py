@@ -2,15 +2,16 @@ import psychopy.visual
 
 from utils.set_logging_level import set_level
 from exptools2.core import Trial, Session
+from exptools2.stimuli import create_shape_stims
 import os
 os.environ["SD_ENABLE_ASIO"] = "1"
-import prompts as prompts
+import SPACECUE.prompts as prompts
 import pandas as pd
 from utils.sound import SoundDeviceSound as Sound
 from psychopy import parallel, core, event
 import random
 import numpy as np
-from encoding import *
+from SPACECUE.encoding import *
 import csv
 
 
@@ -22,7 +23,12 @@ class SpaceCueTrial(Trial):
         # add ITI jitter to the trial
         # self.phase_names.append("iti")
         self.phase_durations[-1] = self.session.sequence["ITI-Jitter"].iloc[trial_nr]
+        self.phase_durations[1] = self.session.sequence["cue_stim_delay_jitter"].iloc[trial_nr]
         self.trigger_name = None  # this holds the trial-specific trigger name encoding
+
+        # Initialize response-related flags
+        self._response_recorded = False
+        self._clicked_on_target_for_response = False # True if the recorded response was on a valid target area
 
     def send_trig_and_sound(self):
         self.stim.play(latency="low", blocksize=0)  # not sure whether this does anything ...
@@ -30,45 +36,205 @@ class SpaceCueTrial(Trial):
         self.session.send_trigger(trigger_name=self.trigger_name)
 
     def draw(self):
-        # do stuff independent of phases
-        if self.session.response_device == "mouse":
-            self.session.display_response_box()
-            self.track_mouse_pos()
-        elif self.session.response_device == "keypad":
-            self.session.default_fix.draw()
-        # display the cue in phase 0
+        # Track the mouse position (e.g., for checking if it's over the box) IN EVERY PHASE
+        self.track_mouse_pos()  # Assuming this method updates mouse-related state
+
+        # --- Phase 0: Display the cue ---
         if self.phase == 0:
-            # TODO: Here, you need to implement the cueing phase. Three arrows, either all grey (neutral), or one colored (informative).
+            self.session.default_fix.draw()
             self.display_cue_interval()
-        # wait a certain period of time prior to stimulus presentation in phase 1
-        if self.phase == 1:
-            # TODO: Here, this should be a delay period in which only a fixation dot is displayed. You can use self.session.default_fix.draw() for this.
-            raise NotImplementedError
-        # play stimulus in phase 2
-        if self.phase == 1:
+
+        # --- Phase 1: Wait period / Display default fixation ---
+        elif self.phase == 1:  # Changed to elif for clarity if phases are mutually exclusive per frame
+            self.session.default_fix.draw()
+
+        # --- Phases 2 and onwards: Stimulus presentation, response, feedback, etc. ---
+        elif self.phase >= 2:  # Changed to elif
             if self.session.response_device == "mouse":
-                self.session.virtual_response_box[0].lineColor = "black"
-                self.session.mouse.setVisible(True)
-                self.session.mouse.setPos((0, 0))
-            if not self.stim.is_playing():
-                self.send_trig_and_sound()
-        # get response in phase 3
-        if self.phase == 2:
-            if any(self.session.mouse.getPressed()):
-                pass
-                #self.session.mouse.setVisible(False)
-        # print too slow warning if response is collected in phase 4
-        if self.phase == 3:
-            self.stim.stop()  #  reset the sound
-            if any(self.get_events()) or any(self.session.mouse.getPressed()):
-                if self.session.virtual_response_box:
-                    self.session.virtual_response_box[0].lineColor = "red"
-                    self.session.mouse.setVisible(False)
+                # Draw the virtual response box if it exists
+                if hasattr(self.session, 'virtual_response_box') and self.session.virtual_response_box:
+                    self.session.display_response_box()
+
+                # Updated mouse visibility logic:
+                # Visible if no response recorded yet, OR if response was recorded but not on a target.
+                # Hidden if response was recorded AND it was on a target.
+                hide_cursor = self._response_recorded and self._clicked_on_target_for_response
+                self.session.mouse.setVisible(not hide_cursor)
+
+            # If using a keypad and fixation is needed during response phases, draw it.
+            elif self.session.response_device == "keypad":  # Changed to elif
+                self.session.default_fix.draw()  # Draw fixation
+
+            # --- Logic specific to the *start* of Phase 2 ---
+            if self.phase == 2 and (not hasattr(self, '_phase2_setup_done') or not self._phase2_setup_done):
+                self._phase2_setup_done = True
+
+                if self.session.response_device == "mouse":
+                    if hasattr(self.session, 'virtual_response_box') and self.session.virtual_response_box:
+                        if self.session.virtual_response_box:  # Ensure list is not empty before indexing
+                            self.session.virtual_response_box[0].lineColor = "black"
+                    self.session.mouse.setPos((0, 0))  # Reset mouse position
+
+                # Stimulus presentation trigger (assuming the stimulus starts at phase 2)
+                if not hasattr(self, '_stim_triggered') or not self._stim_triggered:
+                    self.send_trig_and_sound()
+                    self._stim_triggered = True
+
+            # --- Response handling in Phase 3 (main response window) ---
+            # Check for mouse press response if using mouse and no response yet recorded
+            if self.phase == 3 and not self._response_recorded:
+                if self.session.response_device == "mouse":
+                    # mouse.getPressed() returns ([L,M,R buttons], [L,M,R press times]) if getTime=True
+                    # We check if any button in the first list element (buttons) is pressed.
+                    buttons_pressed, _ = self.session.mouse.getPressed(getTime=True)
+                    if any(buttons_pressed):
+                        clicked_on_target_area = False
+                        if hasattr(self.session, 'virtual_response_box') and self.session.virtual_response_box:
+                            for stim_in_box in self.session.virtual_response_box:
+                                if stim_in_box.contains(self.session.mouse):
+                                    clicked_on_target_area = True
+                                    # TODO: Optionally log which specific stim_in_box was clicked
+                                    break
+
+                        if clicked_on_target_area:
+                            self._response_recorded = True
+                            self._clicked_on_target_for_response = True
+                            # Mouse visibility is handled by the general logic at the start of this phase block
+                        else:
+                            # Clicked, but not on a designated target area ("digit").
+                            # In phase 3, an off-target click is NOT recorded as a response.
+                            # _response_recorded remains False. Cursor remains visible (due to general logic).
+                            pass
+
+                            # --- Phase 4: Post-response or Timeout handling ---
+        if self.phase == 4:  # This should be independent of the previous elif self.phase >= 2
+            # Stop stimulus when entering phase 4
+            if hasattr(self, '_stim_triggered') and self._stim_triggered:
+                if hasattr(self.stim, 'is_playing') and callable(self.stim.is_playing):  # Robust check
+                    if self.stim.is_playing():
+                        self.stim.stop()
+
+            response_detected_in_phase_4 = False  # Flag for any click occurring in phase 4
+            if self.session.response_device == "mouse":
+                buttons_pressed_phase4, _ = self.session.mouse.getPressed(getTime=True)
+                if any(buttons_pressed_phase4):
+                    response_detected_in_phase_4 = True
+
+                    # If no response was recorded in phase 3, this is the first (late) response
+                    if not self._response_recorded:
+                        self._response_recorded = True  # A response (late) is now being recorded
+
+                        clicked_on_target_area_late = False
+                        if hasattr(self.session, 'virtual_response_box') and self.session.virtual_response_box:
+                            for stim_in_box in self.session.virtual_response_box:
+                                if stim_in_box.contains(self.session.mouse):
+                                    clicked_on_target_area_late = True
+                                    break
+
+                        if clicked_on_target_area_late:
+                            self._clicked_on_target_for_response = True
+                            print("Late mouse response (on target area) recorded in phase 4")
+                        else:
+                            self._clicked_on_target_for_response = False  # Clicked off-target
+                            print("Late mouse response (not on target area, but recorded) in phase 4")
+
+            # Change box color to red for late response feedback if any click occurred in phase 4
+            if response_detected_in_phase_4:
+                if hasattr(self.session, 'virtual_response_box') and self.session.virtual_response_box:
+                    if self.session.virtual_response_box:  # Ensure list is not empty
+                        self.session.virtual_response_box[0].lineColor = "red"
 
     def display_cue_interval(self):
+        # --- 1. Get trial information ---
+        # Access data from the current trial's data handler
+        # Using .get() is good practice for robustness if a column might be missing
+        cue_color_str = self.session.sequence.iloc[self.trial_nr].get("Color",
+                                                                      "target-white-distractor-white")  # Provide a default
+        cue_instruction = self.session.sequence.iloc[self.trial_nr].get("CueInstruction",
+                                                                        "cue_neutral")  # Provide a default
+        target_loc_raw = self.session.sequence.iloc[self.trial_nr].get("TargetLoc")
+        singleton_loc_raw = self.session.sequence.iloc[self.trial_nr].get("SingletonLoc")
 
-        # TODO: here, you must implement the logic of the cue display. Something like
-        raise NotImplementedError("THIS HAS YET TO BE IMPLEMENTED")
+        # --- 2. Parse the color string and define neutral color ---
+        target_color = 'white'  # Default
+        distractor_color = 'white'  # Default
+        neutral_color = 'white'  # Color for non-highlighted arrows
+
+        try:
+            color_parts = cue_color_str.split('-')
+            if 'target' in color_parts:
+                try:
+                    target_index = color_parts.index('target')
+                    if target_index + 1 < len(color_parts):  # Check if color name exists
+                        target_color = color_parts[target_index + 1]
+                    else:
+                        print(f"    Warning: Target color name missing after 'target' in '{cue_color_str}'.")
+                except (ValueError, IndexError):  # Catch if 'target' not found or index out of bounds
+                    print(f"    Warning: Could not parse target color from '{cue_color_str}'.")
+
+            if 'distractor' in color_parts:
+                try:
+                    distractor_index = color_parts.index('distractor')
+                    if distractor_index + 1 < len(color_parts):  # Check if color name exists
+                        distractor_color = color_parts[distractor_index + 1]
+                    else:
+                        print(f"    Warning: Distractor color name missing after 'distractor' in '{cue_color_str}'.")
+                except (ValueError, IndexError):  # Catch if 'distractor' not found or index out of bounds
+                    print(f"    Warning: Could not parse distractor color from '{cue_color_str}'.")
+        except Exception as e:
+            print(f"    Error parsing color string '{cue_color_str}': {e}. Using default colors.")
+            target_color = 'white'
+            distractor_color = 'white'
+
+        # --- 3. Determine the cued location index and cue type ---
+        cued_index = None  # Index of the arrow to be cued (0=left, 1=up, 2=right)
+        cue_type = 'neutral'  # Overall type of cueing for this trial
+
+        if "cue_target_location" in cue_instruction:
+            cue_type = 'target'
+            if target_loc_raw is not None:
+                try:
+                    cued_index = int(target_loc_raw) - 1  # Explicitly convert to int
+                except (ValueError, TypeError):
+                    print(
+                        f"    WARNING: Could not convert TargetLoc '{target_loc_raw}' to int. Cueing might be incorrect.")
+                    cued_index = None  # Invalidate if conversion fails
+            else:
+                print(f"    WARNING: TargetLoc is None for a 'cue_target_location' instruction.")
+        elif "cue_distractor_location" in cue_instruction:
+            cue_type = 'distractor'
+            if singleton_loc_raw is not None:
+                try:
+                    cued_index = int(singleton_loc_raw) - 1  # Explicitly convert to int
+                except (ValueError, TypeError):
+                    print(
+                        f"    WARNING: Could not convert SingletonLoc '{singleton_loc_raw}' to int. Cueing might be incorrect.")
+                    cued_index = None  # Invalidate if conversion fails
+            else:
+                print(f"    WARNING: SingletonLoc is None for a 'cue_distractor_location' instruction.")
+
+        # --- 4. Set colors, draw all arrows, and display ---
+        if not hasattr(self.session, 'arrows') or not isinstance(self.session.arrows, (list, tuple)) or len(
+                self.session.arrows) < 3:
+            print("  ERROR: self.session.arrows is not a list/tuple containing at least 3 arrow stimulus objects.")
+            return
+
+        for i, arrow in enumerate(self.session.arrows):
+            current_arrow_color = neutral_color  # Default to neutral
+
+            if cue_type == 'neutral':
+                current_arrow_color = neutral_color
+            elif cue_type in ['target', 'distractor']:
+                # Only color if cued_index is valid and matches the current arrow's index
+                if cued_index is not None and i == cued_index:
+                    if cue_type == 'target':
+                        current_arrow_color = target_color
+                    else:  # cue_type is 'distractor'
+                        current_arrow_color = distractor_color
+
+            arrow.setFillColor(current_arrow_color)
+            arrow.setLineColor(current_arrow_color)
+            arrow.draw()
 
 class SpaceCueSession(Session):
     def __init__(self, output_str, output_dir=None, settings_file=None, starting_block=0, test=False):
@@ -95,6 +261,8 @@ class SpaceCueSession(Session):
                          os.listdir(f"../SPACECUE/stimuli\\digits_all_250ms")]
         if self.settings["mode"]["record_eeg"]:
             self.port = parallel.ParallelPort(0xCFF8)  # set address of port
+        self.arrows = create_shape_stims(self.win, arrow_size=self.settings["session"]["arrow_size"],
+                                         arrow_offset=self.settings["session"]["arrow_offset"])
 
     def display_response_box(self):
         for stimulus in self.virtual_response_box:
@@ -145,10 +313,10 @@ class SpaceCueSession(Session):
             self.display_text(text=prompts.testing, keys="space", height=0.75)
             self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
-            # TODO: here, in create_trials(), you need to add the duration of the cue phase from whatever you defined in the config file.
             self.create_trials(n_trials=15,
                                durations=(self.settings["session"]["cue_duration"],
-                                          self.settings["session"]["stimulus_duration"],  # INSERT CUE DURATION HERE
+                                          None,
+                                          self.settings["session"]["stimulus_duration"],
                                           self.settings["session"]["response_duration"],
                                           None),
                                timing=self.settings["session"]["timing"])
@@ -166,9 +334,11 @@ class SpaceCueSession(Session):
                 self.set_block(block=block)
                 self.load_sequence()
                 self.create_trials(n_trials=self.n_trials,
-                                   durations=(self.settings["session"]["stimulus_duration"],
+                                   durations=(self.settings["session"]["cue_duration"],
+                                              None,
+                                              self.settings["session"]["stimulus_duration"],
                                               self.settings["session"]["response_duration"],
-                                              None),  # this is hacky and usually not recommended (for ITI Jitter)
+                                              None),
                                    timing=self.settings["session"]["timing"])
                 if block == starting_block:
                     self.start_experiment()
@@ -201,28 +371,6 @@ class SpaceCueSession(Session):
         else:
             pass
 
-    def bbtkv2_test_run(self, n_trials):
-        # set block
-        self.set_block(block=1)
-        # load up trial sequence
-        self.load_sequence()
-        # create trials from sequence
-        self.create_trials(n_trials=n_trials,
-                           durations=(self.settings["session"]["stimulus_duration"],
-                                      self.settings["session"]["response_duration"],
-                                      None),  # this is hacky and usually not recommended (for ITI Jitter)
-                           timing=self.settings["session"]["timing"])
-        # set up timer etc. for the experiment
-        self.start_experiment()
-        # run through trials
-        for trial in self.trials:
-            trial.trigger_name = "test_trigger"
-            # play sound
-            trial.run()
-        # clean up
-        self.close()
-        self.quit()
-
     def run_accuracy_test(self):
         self.display_text(text=prompts.accuracy_instruction, keys="space", height=0.75)
         round_accuracies = []
@@ -247,9 +395,9 @@ class SpaceCueSession(Session):
             for stimulus in stimuli_sequence:
                 stimulus.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
                 #self.display_text(text="L oder M?")
-                l = psychopy.visual.TextStim(win=self.win, text="L", bold=True, color=[-1, 1, -1], pos=[2, 0]).draw()
-                m = psychopy.visual.TextStim(win=self.win, text="M", bold=True, color=[1, -1, -1], pos=[-2, 0]).draw()
-                oder = psychopy.visual.TextStim(win=self.win, text="oder", bold=False).draw()
+                psychopy.visual.TextStim(win=self.win, text="L", bold=True, color=[-1, 1, -1], pos=[2, 0]).draw()
+                psychopy.visual.TextStim(win=self.win, text="M", bold=True, color=[1, -1, -1], pos=[-2, 0]).draw()
+                psychopy.visual.TextStim(win=self.win, text="oder", bold=False).draw()
                 self.win.flip()
                 keys = event.waitKeys(keyList=['l', 'm'])
                 if (keys[0] == 'l' and stimulus in self.targets) or (keys[0] == 'm' and stimulus in self.controls):
@@ -291,5 +439,19 @@ class SpaceCueSession(Session):
         core.wait(10)
         self.send_trigger("camera_calibration_offset")
 
+
 if __name__ == '__main__':
-    pass
+    os.chdir("C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE")
+    sess = SpaceCueSession(output_str='sub-01', output_dir="logs",
+                           settings_file="config.yaml",
+                           starting_block=0, test=True)
+    sess.set_block(block=1)  # intentionally choose block within
+    sess.load_sequence()
+    sess.create_trials(n_trials=15,
+                       durations=(sess.settings["session"]["cue_duration"],
+                                  None,
+                                  sess.settings["session"]["stimulus_duration"],
+                                  sess.settings["session"]["response_duration"],
+                                  None),
+                       timing=sess.settings["session"]["timing"])
+    sess.win.close()
