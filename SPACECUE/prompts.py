@@ -8,7 +8,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 '''
 
 prompt2 = """
-In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter von drei Lautsprechern abgespielt. \n
+In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter aus drei verschiedenen Richtungen abgespielt (links, geradeaus, rechts). \n
 Alle Zahlwörter werden von derselben Stimme gesprochen. Bei den Zahlwörtern handelt es sich um eine Auswahl der Zahlen zwischen 1 und 9. \n
 In einem Durchgang sind alle Ziffern einzigartig, z.B. kann die Zahl 9 nicht sowohl aus dem linken als auch dem rechten Lautsprecher gleichzeitig ertönen. \n
 
@@ -16,7 +16,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 """
 
 prompt3 = """
-Das Zahlwort, welches Sie identifizieren sollen, unterscheidet sich von den anderen beiden in einer Eigenschaft: \n
+Das Zahlwort, welches Sie identifizieren sollen, unterscheidet sich von den anderen beiden in der folgenden Eigenschaft: \n
 Dieses Zahlwort klingt im Vergleich zu den restlichen Zahlwörtern sehr rau und kratzig. \n
 Die Stimme dieses Wortes klingt wie in einer schlechten Telefonverbindung. \n
 Auf genau dieses Zahlwort sollen Sie sich konzentrieren und die Zahl so schnell wie möglich angeben! \n
@@ -25,7 +25,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 """
 
 prompt4 = """
-In manchen Durchgängen hat eines der zwei weiteren Zahlwörter eine andere Tonhöhe. \n
+In allen Durchgängen hat eines der zwei weiteren Zahlwörter eine andere Tonhöhe. Dieses Zahlwort ist ein Störreiz und klingt wie eine Kinderstimme. \n
 Lassen Sie sich davon nicht irritieren: Ihre Aufgabe bleibt es, stets das raue, kratzige Zahlwort zu benennen. \n
 
 Drücken Sie LEERTASTE, um weiterzublättern.
@@ -99,4 +99,62 @@ Sie müssen alle 10 Wörter korrekt identifizieren, um mit dem Experiment beginn
 Erreichen Sie weniger als 100%, wiederholt sich dieser Test automatisch.\n
 
 Drücken Sie LEERTASTE, um zu beginnen.
+"""
+
+
+def get_cue_instruction(csv_subject_path):
+    """
+    Generates the cue instruction string with German color names.
+
+    Args:
+        csv_subject_path: absolute path leading to a csv subject file with a column "Color"
+                          that specifies the target and distractor color
+                          (e.g., "target-blue-distractor-yellow").
+
+    Returns:
+        Instruction text string in German.
+    """
+    import pandas as pd
+
+    df = pd.read_csv(csv_subject_path)
+    # Assuming the "Color" column is consistent for all rows if df has multiple,
+    # or that you specifically want the first row's configuration.
+    instruction_string = df.iloc[0]["Color"]
+    info = instruction_string.split("-")
+
+    # Extract color names from the CSV string (e.g., "blue", "yellow")
+    target_color_from_csv = info[1]
+    distractor_color_from_csv = info[-1]
+
+    # Map English color names to German
+    color_translation_map = {
+        "red": "rot",
+        "green": "grün",
+        "blue": "blau",
+        "yellow": "gelb",
+        "orange": "orange"  # In case you use orange later
+        # Add any other color translations if needed
+    }
+
+    # Translate to German. Use .lower() for case-insensitive matching from CSV.
+    # If a color from CSV is not in the map (e.g., already German), it will use the original.
+    target_color_german = color_translation_map.get(target_color_from_csv.lower(), target_color_from_csv)
+    distractor_color_german = color_translation_map.get(distractor_color_from_csv.lower(), distractor_color_from_csv)
+
+    # Dynamically create the sentence describing which colors the arrow can have.
+    # This makes the prompt accurate for the current subject's color scheme.
+    colored_arrow_description = f"In anderen Durchgängen besitzt ein Pfeil entweder die Farbe {target_color_german} oder {distractor_color_german}."
+
+    # If there's a possibility that only one type of colored cue appears, or other neutral cues,
+    # you might prefer a more general statement like:
+    # colored_arrow_description = "In anderen Durchgängen ist einer der Pfeile farbig."
+    # For now, the version above matches the original structure more closely.
+
+    return f"""
+In jedem Durchgang werden Ihnen drei Pfeile angezeigt, welche in drei Richtungen zeigen. \n
+In einigen Durchgängen sind alle Pfeile farblos. {colored_arrow_description} \n
+Dieser Pfeil ist nützlich, denn er zeigt, welche Art von Zahlwort aus dieser Richtung kommen wird. \n
+Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt. \n
+Ist der Pfeil {target_color_german}, handelt es sich um das raue, kratzige, zu identifizierende Zahlwort. \n
+Ist der Pfeil {distractor_color_german}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört. \n
 """
