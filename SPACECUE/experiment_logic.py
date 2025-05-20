@@ -141,7 +141,7 @@ class SpaceCueTrial(Trial):
             if response_detected_in_phase_4:
                 if hasattr(self.session, 'virtual_response_box') and self.session.virtual_response_box:
                     if self.session.virtual_response_box:  # Ensure list is not empty
-                        self.session.virtual_response_box[0].lineColor = "red"
+                        self.session.virtual_response_box[0].lineColor = "darkorange"
 
     def display_cue_interval(self):
         # --- 1. Get trial information ---
@@ -296,7 +296,7 @@ class SpaceCueSession(Session):
             self.trials.append(trial)
 
     def run(self, starting_block):
-        self.send_trigger("experiment_onset")
+        # self.send_trigger("experiment_onset")  # We do not need this since this was not recorded in SPACEPRIME, anyway.
         # welcome the participant
         self.display_text(text=prompts.prompt1, keys="space", height=0.75)
         self.display_text(text=prompts.prompt2, keys="space", height=0.75)
@@ -310,6 +310,8 @@ class SpaceCueSession(Session):
             self.display_text(text=prompts.prompt5, keys="space", height=0.75)
             self.display_text(text=prompts.prompt6, keys="space", height=0.75)
             self.display_text(text=prompts.testing, keys="space", height=0.75)
+            self.display_text(text=prompts.get_cue_instruction(os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_0.csv")),
+                              keys="space", height=0.75)
             self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
             self.create_trials(n_trials=15,
@@ -323,6 +325,8 @@ class SpaceCueSession(Session):
             for trial in self.trials:
                 trial.run()
         else:
+            self.display_text(text=prompts.get_cue_instruction(os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_0.csv")),
+                              keys="space", height=0.75)
             for block in self.blocks:
                 self.send_trigger("block_onset")
                 # do camera calibration if enabled
