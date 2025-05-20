@@ -402,9 +402,9 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # Pair group index: (0,0), (1,1), (2,2), ... for subjects (1,2), (3,4), (5,6), ...
     pair_group_index = (subject_id_int - 1) // 2
     if pair_group_index % 2 == 0: # Even pair group (0, 2, 4...)
-        color_mapping_for_subject = "target-green-distractor-red"
+        color_mapping_for_subject = "target-blue-distractor-yellow"
     else: # Odd pair group (1, 3, 5...)
-        color_mapping_for_subject = "target-red-distractor-green"
+        color_mapping_for_subject = "target-yellow-distractor-blue"
 
     logging.info(f"Subject ID: {subject_id}, Integer: {subject_id_int}, Is Even: {subject_id_is_even}")
     logging.info(f"Cue Design Strategy for Subject: {cue_design_strategy_for_subject}")
