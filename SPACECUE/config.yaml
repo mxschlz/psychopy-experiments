@@ -60,10 +60,10 @@ mode:
   acc_test: False  # whether you want to run an initial accuracy test
 
 window:
-  size: [600, 600]
+  size: [800, 600]
   pos: [0, 0]
   color: [0, 0, 0]
-  fullscr: False
+  fullscr: True
   waitBlanking: False
   screen: 0
 
