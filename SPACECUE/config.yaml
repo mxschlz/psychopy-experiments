@@ -26,7 +26,7 @@ session:  # these params are relevant for the generation of the possible combina
   level: 50  # not the final volume but choose this to avoid clipping audio data
   samplerate: 44100  # stimulus samplerate
   timing: seconds  # timing of stimuli --> can be seconds or frames (frames is not yet implemented)
-  response_device: mouse  # can be mouse or keypad
+  response_device: keypad  # can be mouse or keypad
   fixation_type: circle  # can be circle or cross
 
 numpad:
@@ -60,7 +60,7 @@ mode:
   acc_test: False  # whether you want to run an initial accuracy test
 
 window:
-  size: [1920, 1080]
+  size: [1920, 1200]
   pos: [0, 0]
   color: [0, 0, 0]
   fullscr: True
@@ -75,7 +75,7 @@ monitor:
   verbose: True
 
 mouse:
-  visible: True
+  visible: False
 
 soundconfig:
   device: 3  # 16 for headphones, 44 for loudspeakers
