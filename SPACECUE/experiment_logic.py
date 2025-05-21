@@ -307,11 +307,14 @@ class SpaceCueSession(Session):
                 self.run_demo()
             if self.settings["mode"]["acc_test"]:
                 self.run_accuracy_test()
-            self.display_text(text=prompts.prompt5, keys="space", height=0.75)
-            self.display_text(text=prompts.prompt6, keys="space", height=0.75)
-            self.display_text(text=prompts.testing, keys="space", height=0.75)
+            if self.settings["session"]["response_device"] == "mouse":
+                self.display_text(text=prompts.prompt5, keys="space", height=0.75)
+                self.display_text(text=prompts.prompt6, keys="space", height=0.75)
+            elif self.settings["session"]["response_device"] == "keypad":
+                self.display_text(text=prompts.prompt7, keys="space", height=0.75)
             self.display_text(text=prompts.get_cue_instruction(os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_0.csv")),
                               keys="space", height=0.75)
+            self.display_text(text=prompts.testing, keys="space", height=0.75)
             self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
             self.create_trials(n_trials=15,
