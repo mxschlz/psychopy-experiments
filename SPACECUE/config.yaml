@@ -60,7 +60,7 @@ mode:
   acc_test: False  # whether you want to run an initial accuracy test
 
 window:
-  size: [800, 600]
+  size: [1920, 1080]
   pos: [0, 0]
   color: [0, 0, 0]
   fullscr: True
@@ -68,8 +68,8 @@ window:
   screen: 0
 
 monitor:
-  name: SPACEPRIME
-  width: 50  # in cm
+  name: SPACECUE
+  width: 52  # in cm
   distance: 70  # in cm
   gamma: 1
   verbose: True
