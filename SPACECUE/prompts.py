@@ -59,6 +59,13 @@ Der Mauszeiger erscheint in der Mitte der Box am Anfang jedes Durchgangs und ver
 Drücken Sie LEERTASTE, um weiterzublättern.
 """
 
+prompt7 = """
+Während des Experiments können Sie Ihre Antwort auf der horizontalen Leiste Ihrer Tastatur abgeben (1 - 9). \n
+Bitte achten Sie darauf, dass sie Ihren Blick auf den Bildschirm gerichtet halten. Wenn Sie ab und zu auf die Tastatur für Ihre Antwort schauen sollten, ist das natürlich kein Problem. \n
+
+Drücken Sie LEERTASTE, um weiterzublättern.
+"""
+
 testing = """
 Im Kommenden werden Ihnen einige Probe-Durchläufe präsentiert. Diese sollen Sie mit der Aufgabe vertraut machen. \n
 Sie können üben und Antworten geben, diese werden natürlich nicht gespeichert. \n
@@ -157,4 +164,6 @@ Dieser Pfeil ist nützlich, denn er zeigt, welche Art von Zahlwort aus dieser Ri
 Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt. \n
 Ist der Pfeil {target_color_german}, handelt es sich um das raue, kratzige, zu identifizierende Zahlwort. \n
 Ist der Pfeil {distractor_color_german}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört. \n
+
+Drücken Sie LEERTASTE, um weiterzublättern.
 """
