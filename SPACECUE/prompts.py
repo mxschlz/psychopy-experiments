@@ -2,7 +2,7 @@ prompt1 = '''
 Willkommen und vielen Dank für die Teilnahme an diesem Experiment zur räumlichen Aufmerksamkeit. \n
 In jedem Durchgang des Experiments sollen Sie ein Zahlwort aus jeweils drei verschiedenen Zahlwörtern identifizieren. \n
 Versuchen Sie dabei stets, so korrekt und so schnell wie möglich zu antworten! \n
-Das Experiment ist in 10 Blöcke aufgeteilt, zwischen denen Sie kurze Pausen einlegen können. \n
+Das Experiment ist in 4 Blöcke aufgeteilt, zwischen denen Sie kurze Pausen einlegen können. \n
 
 Drücken Sie LEERTASTE, um weiterzublättern.
 '''
