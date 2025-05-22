@@ -68,7 +68,7 @@ window:
   screen: 0
 
 monitor:
-  name: SPACECUE
+  name: testMonitor
   width: 52  # in cm
   distance: 70  # in cm
   gamma: 1
