@@ -250,14 +250,14 @@ class SpaceCueSession(Session):
         self.this_block = None
         self.subject_id = int(self.output_str.split("-")[1])
         self.subj_id_is_even = True if self.subject_id % 2 == 0 else False
-        self.targets = [Sound(filename=os.path.join("../SPACECUE/stimuli\\targets_low_30_Hz", x),
+        self.targets = [Sound(filename=os.path.join("../SPACECUE/stimuli/targets_low_30_Hz", x),
                               device=self.settings["soundconfig"]["device"],
                               mul=self.settings["soundconfig"]["mul"]) for x in
-                        os.listdir(f"../SPACECUE/stimuli\\targets_low_30_Hz")]
-        self.controls = [Sound(filename=os.path.join("../SPACECUE/stimuli\\digits_all_250ms", x),
+                        os.listdir(f"../SPACECUE/stimuli/targets_low_30_Hz")]
+        self.controls = [Sound(filename=os.path.join("../SPACECUE/stimuli/digits_all_250ms", x),
                                device=self.settings["soundconfig"]["device"],
                                mul=self.settings["soundconfig"]["mul"]) for x in
-                         os.listdir(f"../SPACECUE/stimuli\\digits_all_250ms")]
+                         os.listdir(f"../SPACECUE/stimuli/digits_all_250ms")]
         if self.settings["mode"]["record_eeg"]:
             self.port = parallel.ParallelPort(0xCFF8)  # set address of port
         self.arrows = create_shape_stims(self.win, arrow_size=self.settings["session"]["arrow_size"],
