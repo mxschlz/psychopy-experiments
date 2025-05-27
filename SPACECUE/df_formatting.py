@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from utils.utils import get_input_from_dict
 from datetime import datetime
+import yaml
 
 
 # get subject info
@@ -9,25 +10,25 @@ info = get_input_from_dict({"subject_id": 99,
                             "gender": "m",
                             "handedness": "r",
                             "age": 0})
+
+# load settings
+settings_path = "config.yaml"
+with open(settings_path) as file:
+    settings = yaml.safe_load(file)
+
+
 # some filepaths
 fp = os.path.join(os.getcwd(), "logs")
 fp_clean = os.path.join(fp, "clean")
 results_path = os.path.join("results")
 # get files in log dir
 fn = [x for x in os.listdir(fp) if f'sub-{info["subject_id"]}' in x]
-# filter for excel files
-if info["subject_id"] == 101:
-    file_format = "events.xlsx"
-else:
-    file_format = "events.csv"
+file_format = "events.csv"
 fn = [x for x in fn if file_format in x]
 if len(fn) > 1:
     files = []
     for file in fn:
-        if info["subject_id"] != 101:
-            files.append(pd.read_csv(os.path.join(fp, file)))
-        else:
-            files.append(pd.read_excel(os.path.join(fp, file)))
+        files.append(pd.read_csv(os.path.join(fp, file)))
     df = pd.concat(files, ignore_index=True)
 elif len(fn) == 1:
     file = fn[0]
@@ -35,13 +36,13 @@ elif len(fn) == 1:
 else:
     print("Could not find any excel files!")
 # sort for mouse clicks
-df = df[(df["event_type"]=="mouse_click")]
+df = df[(df["event_type"]=="key_press")]
 # some cleaning
 df.response = pd.to_numeric(df.response, errors='coerce')
 # delete non numerical space entries
 df.loc[df["response"] == "space", "response"] = 999
 # make responses numerical
-df.response = df.response.astype(int)
+df.response = df.response.dropna().astype(int)
 # get correct in singleton absent vs present trials
 df["select_target"] = df.response == df.TargetDigit
 df["select_distractor"] = df["response"] == df["SingletonDigit"]
@@ -61,7 +62,7 @@ df = df.drop_duplicates(subset='absolute_trial_nr', keep='first')  # or 'last'
 # Create a new DataFrame to store aligned behavioral data
 df = df.set_index('absolute_trial_nr')
 # Create a complete range of trial numbers
-all_trials = pd.RangeIndex(start=0, stop=1800, step=1, name='absolute_trial_nr')  # TODO: hacky hardcoded
+all_trials = pd.RangeIndex(start=0, stop=settings["session"]["n_trials"]*settings["session"]["n_blocks"], step=1, name='absolute_trial_nr')  # TODO: hacky hardcoded
 # Reindex the DataFrame with the complete range
 df = df.reindex(all_trials)
 # save dataframe
