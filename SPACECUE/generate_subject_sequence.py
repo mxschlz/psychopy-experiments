@@ -13,9 +13,10 @@ import matplotlib.pyplot as plt
 import logging
 import time
 from copy import deepcopy
+import re
 
 
-#os.chdir("C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE")
+os.chdir("C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE")
 
 info = get_input_from_dict({"subject_id": 99, "block": 0})
 
@@ -24,6 +25,25 @@ settings_path = "config.yaml"
 with open(settings_path) as file:
     settings = yaml.safe_load(file)
 
+
+def extract_number_for_sorting(filename_with_ext):
+    """
+    Extracts a number from a filename for sorting.
+    Assumes filenames like '1.wav', '01.wav', 'sound_1.wav', 'item_05.wav'.
+    Adjust regex if your naming convention is different.
+    """
+    basename = os.path.splitext(filename_with_ext)[0]
+    # Try to find number at the end of the basename, possibly after an underscore
+    match = re.search(r'(?:_|^)(\d+)$', basename)
+    if match:
+        return int(match.group(1))
+    # Fallback: try to convert the whole basename if it's just a number
+    try:
+        return int(basename)
+    except ValueError:
+        logging.warning(f"Could not extract a sortable number from '{filename_with_ext}'. It might be ignored or sorted unpredictably.")
+        # Return a value that sorts it last or handle as an error
+        return float('inf')
 
 def _check_max_consecutive_items(data_list: list, item_to_check: any, max_allowed: int) -> bool:
     """
@@ -375,11 +395,11 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
     # load sounds
     singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
-                  for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
+                  for x in sorted(os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}"))]
     targets = [slab.Sound.read(f"stimuli/targets_low_30_Hz/{x}") for x in
-               os.listdir(f"stimuli/targets_low_30_hz")]  # Ensure path is correct
+               sorted(os.listdir(f"stimuli/targets_low_30_hz"))]  # Ensure path is correct
     others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in
-              os.listdir(f"stimuli/digits_all_250ms")]
+              sorted(os.listdir(f"stimuli/digits_all_250ms"))]
 
     for s_list in [singletons, targets, others]:
         for sound_item in s_list:
