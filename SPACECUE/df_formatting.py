@@ -3,7 +3,7 @@ import os
 from utils.utils import get_input_from_dict
 from datetime import datetime
 import yaml
-
+os.chdir("C:\\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE")
 
 # get subject info
 info = get_input_from_dict({"subject_id": 99,
@@ -62,7 +62,7 @@ df = df.drop_duplicates(subset='absolute_trial_nr', keep='first')  # or 'last'
 # Create a new DataFrame to store aligned behavioral data
 df = df.set_index('absolute_trial_nr')
 # Create a complete range of trial numbers
-all_trials = pd.RangeIndex(start=0, stop=settings["session"]["n_trials"]*settings["session"]["n_blocks"], step=1, name='absolute_trial_nr')  # TODO: hacky hardcoded
+all_trials = pd.RangeIndex(start=0, stop=settings["session"]["n_trials"]*settings["session"]["n_blocks"], step=1, name='absolute_trial_nr')
 # Reindex the DataFrame with the complete range
 df = df.reindex(all_trials)
 # save dataframe
