@@ -53,41 +53,23 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # load sounds
     singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
                   for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
-    targets_high = [slab.Sound.read(f"stimuli/targets_high_30_Hz/{x}") for x in
-                    os.listdir(f"stimuli/targets_high_30_hz")]
-    targets_low = [slab.Sound.read(f"stimuli/targets_low_30_Hz/{x}") for x in
+    targets = [slab.Sound.read(f"stimuli/targets_low_30_Hz/{x}") for x in
                    os.listdir(f"stimuli/targets_low_30_hz")]
     others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in
               os.listdir(f"stimuli/digits_all_250ms")]
 
     # set equal level --> this sets the RMS value of all sounds to an equal level :)
-    for s, th, tl, o in zip(singletons, targets_high, targets_low, others):
+    for s, th, tl, o in zip(singletons, targets, others):
         s.level = soundlvl
-        th.level = soundlvl
         tl.level = soundlvl
         o.level = soundlvl
 
     # binauralize if not freefield mode
     if not freefield:
         singletons = [slab.Binaural(data=x) for x in singletons]
-        targets_low = [slab.Binaural(data=x) for x in targets_low]
-        targets_high = [slab.Binaural(data=x) for x in targets_high]
+        targets = [slab.Binaural(data=x) for x in targets]
         others = [slab.Binaural(data=x) for x in others]
 
-    subject_id_is_even = None
-    singletons_copy = singletons.copy()
-    others_copy = others.copy()
-    # if subject_id is even, start with low-pitched targets
-    if int(subject_id) % 2 == 0:
-        subject_id_is_even = True
-        targets = targets_low
-        singletons = singletons_copy
-        others = others_copy
-    elif int(subject_id) % 2 != 0:
-        subject_id_is_even = False
-        targets = targets_high
-        others = singletons_copy
-        singletons = others_copy
     # iterate over block
     for block in range(block, n_blocks):
         print(f"Running block {block}")
@@ -210,14 +192,6 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         print_final_traits(trial_sequence)
         trial_sequence["ITI-Jitter"] = generate_balanced_jitter(trial_sequence, iti=settings["session"]["iti"])
         trial_sequence["ITI-Jitter"] = round(trial_sequence["ITI-Jitter"], 3)
-        if subject_id_is_even:
-            trial_sequence['target_modulation'] = 0  # Initialize with 0
-            # if block >= midpoint:
-                # trial_sequence['target_modulation'] = 1
-        elif not subject_id_is_even:
-            trial_sequence['target_modulation'] = 1  # Initialize with 1
-            # if block >= midpoint:
-                # trial_sequence['target_modulation'] = 0
         file_name = f"sequences/sub-{subject_id}_block_{block}.csv"
         trial_sequence.to_csv(file_name, index=False)  # Save as CSV, excluding the row index
         logging.info(f"Precomputing trial sounds for subject {subject_id}, block {block} ... ")
