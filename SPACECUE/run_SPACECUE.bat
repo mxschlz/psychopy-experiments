@@ -4,10 +4,10 @@
 SET CONDA_ENV=psypy
 
 :: Replace with the actual path to your project directory
-SET PROJECT_DIR=C:\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACEPRIME
+SET PROJECT_DIR=C:\Users\Max\PycharmProjects\psychopy-experiments
 
 :: Replace with the actual name of your Python script
-SET PYTHON_SCRIPT=run_SPACEPRIME.py
+SET PYTHON_SCRIPT=SPACECUE\run_SPACECUE.py
 
 :: Activate the Anaconda environment
 CALL conda activate %CONDA_ENV%
