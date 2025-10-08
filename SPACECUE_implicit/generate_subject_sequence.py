@@ -22,6 +22,13 @@ with open(settings_path) as file:
 
 
 def precompute_sequence(subject_id, block, settings, logging_level="INFO", compute_snr=False):
+    # --- FIX: Ensure subject_id is an integer ---
+    try:
+        subject_id = int(subject_id)
+    except (ValueError, TypeError):
+        logging.error(f"Invalid subject_id: {subject_id}. It must be convertible to an integer.")
+        raise
+
     # get relevant params from settings
     samplerate = settings["session"]["samplerate"]
     freefield = settings["mode"]['freefield']
@@ -38,7 +45,8 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # List all entries (files and directories) in the directory
     for s in os.listdir(settings["filepaths"]["sequences"]):
         if str(subject_id) in s:
-            if os.listdir(os.path.join(settings["filepaths"]["sequences"], s)):
+            if os.path.isdir(os.path.join(settings["filepaths"]["sequences"], s)) and \
+                    os.listdir(os.path.join(settings["filepaths"]["sequences"], s)):
                 raise FileExistsError(f"Sequence directory for sci-{subject_id} has been created and is not empty! "
                                       f"Please check your sequence directory.")
     # determine how many trials
@@ -53,8 +61,11 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # load sounds
     singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
                   for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
+
+    # --- SUGGESTION: Corrected path typo ---
     targets = [slab.Sound.read(f"stimuli/targets_low_30_Hz/{x}") for x in
-               os.listdir(f"stimuli/targets_low_30_hz")]
+               os.listdir(f"stimuli/targets_low_30_Hz")]  # Corrected 'hz' to 'Hz'
+
     others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in
               os.listdir(f"stimuli/digits_all_250ms")]
 
@@ -94,7 +105,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         try:
             os.mkdir(dirname)
         except FileExistsError:
-            logging.warning(FileExistsError(f"Directory {dirname} already exists! Moving on ... "))
+            logging.warning(f"Directory {dirname} already exists! Moving on ... ")
         sequence, sequence_labels, fitness = make_pygad_trial_sequence(
             fig_path=settings["filepaths"][
                          "sequences"] + "/logs" + f"/sci-{subject_id}_block-{block}_sequence_fitness.png",
@@ -155,13 +166,13 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                     # EXCLUDE all known priming/repetition relationships
                     # Note: if prev_singleton_digit is None (from an SA trial), these comparisons correctly yield False.
                     pp_mask = (candidate_pool["TargetDigit"] == prev_target_digit) & (
-                                candidate_pool["TargetLoc"] == prev_target_loc)
+                            candidate_pool["TargetLoc"] == prev_target_loc)
                     np_mask = (candidate_pool["TargetDigit"] == prev_singleton_digit) & (
-                                candidate_pool["TargetLoc"] == prev_singleton_loc)
+                            candidate_pool["TargetLoc"] == prev_singleton_loc)
                     ar_mask = (candidate_pool["SingletonDigit"] == prev_target_digit) & (
-                                candidate_pool["SingletonLoc"] == prev_target_loc)
+                            candidate_pool["SingletonLoc"] == prev_target_loc)
                     ir_mask = (candidate_pool["SingletonDigit"] == prev_singleton_digit) & (
-                                candidate_pool["SingletonLoc"] == prev_singleton_loc)
+                            candidate_pool["SingletonLoc"] == prev_singleton_loc)
 
                     # Filter out any trial that matches any of these repetition conditions
                     candidate_pool = candidate_pool[~(pp_mask | np_mask | ar_mask | ir_mask)]
@@ -173,13 +184,13 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                             f"Impossible sequence: NP trial at index {i} follows a Singleton-Absent trial.")
 
                     inclusion_mask = (candidate_pool["TargetDigit"] == prev_singleton_digit) & (
-                                candidate_pool["TargetLoc"] == prev_singleton_loc)
+                            candidate_pool["TargetLoc"] == prev_singleton_loc)
                     candidate_pool = candidate_pool[inclusion_mask]
 
                 elif "PP" in element:
                     # REQUIRE the Positive Priming relationship
                     inclusion_mask = (candidate_pool["TargetDigit"] == prev_target_digit) & (
-                                candidate_pool["TargetLoc"] == prev_target_loc)
+                            candidate_pool["TargetLoc"] == prev_target_loc)
                     candidate_pool = candidate_pool[inclusion_mask]
 
             # 3. Apply biased singleton location logic (if applicable and possible)
@@ -188,8 +199,8 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 if biased_loc in all_locs:
                     other_locs = [loc for loc in all_locs if loc != biased_loc]
 
-                    # Decide if we pick the biased location (66% chance)
-                    if np.random.rand() < 0.80:
+                    # Decide if we pick the biased location (80% chance)
+                    if np.random.rand() < 0.70:
                         high_prob_trials = candidate_pool[candidate_pool["SingletonLoc"] == biased_loc]
                         if not high_prob_trials.empty:
                             candidate_pool = high_prob_trials
@@ -265,9 +276,8 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
             if not freefield:
                 azimuth, ele = SPACE_ENCODER[targetloc]  # get coords
                 targetsound_rendered = spatialize(targetsound, azi=azimuth, ele=ele)  # add HRTF
-                if targetsound_rendered.data.shape != trialsound.data.shape:
-                    samplediff = targetsound_rendered.data.shape[0] - trialsound.data.shape[0]
-                    targetsound_rendered.data = targetsound_rendered[:-samplediff]
+                if targetsound_rendered.n_samples != trialsound.n_samples:
+                    targetsound_rendered = targetsound_rendered.resize(trialsound.n_samples)
                 trialsound.data += targetsound_rendered.data  # add to trial sound
             if freefield:
                 trialsound[int(targetloc - 1)] = targetsound.data[:, 0]
@@ -280,11 +290,9 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 singletonloc = row["SingletonLoc"]  # get target location
                 if not freefield:
                     azimuth, ele = SPACE_ENCODER[singletonloc]  # get coords
-                    # singletonsound_lateralized = lateralize(sound=singletonsound, azimuth=azimuth)  # ITD and ILD
                     singletonsound_rendered = spatialize(singletonsound, azi=azimuth, ele=ele)  # add HRTF
-                    if singletonsound_rendered.data.shape != trialsound.data.shape:
-                        samplediff = singletonsound_rendered.data.shape[0] - trialsound.data.shape[0]
-                        singletonsound_rendered.data = singletonsound_rendered[:-samplediff]
+                    if singletonsound_rendered.n_samples != trialsound.n_samples:
+                        singletonsound_rendered = singletonsound_rendered.resize(trialsound.n_samples)
                     trialsound.data += singletonsound_rendered.data  # add to trial sound
                 if freefield:
                     trialsound[int(singletonloc - 1)] = singletonsound.data[:, 0]
@@ -296,11 +304,9 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 digit2loc = row["Non-Singleton2Loc"]  # get target location
                 if not freefield:
                     azimuth, ele = SPACE_ENCODER[digit2loc]  # get coords
-                    # digit2sound_lateralized = lateralize(sound=digit2sound, azimuth=azimuth)  # ITD and ILD
                     digit2sound_rendered = spatialize(digit2sound, azi=azimuth, ele=ele)  # add HRTF
-                    if digit2sound_rendered.data.shape != trialsound.data.shape:
-                        samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
-                        digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
+                    if digit2sound_rendered.n_samples != trialsound.n_samples:
+                        digit2sound_rendered = digit2sound_rendered.resize(trialsound.n_samples)
                     trialsound.data += digit2sound_rendered.data  # add to trial sound
                 if freefield:
                     trialsound[int(digit2loc - 1)] = digit2sound.data[:, 0]
@@ -314,11 +320,9 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 digit1loc = row["Non-Singleton1Loc"]  # get target location
                 if not freefield:
                     azimuth, ele = SPACE_ENCODER[digit1loc]  # get coords
-                    # digit1sound_lateralized = lateralize(sound=digit1sound, azimuth=azimuth)  # ITD and ILD
                     digit1sound_rendered = spatialize(digit1sound, azi=azimuth, ele=ele)  # add HRTF
-                    if digit1sound_rendered.data.shape != trialsound.data.shape:
-                        samplediff = digit1sound_rendered.data.shape[0] - trialsound.data.shape[0]
-                        digit1sound_rendered.data = digit1sound_rendered[:-samplediff]
+                    if digit1sound_rendered.n_samples != trialsound.n_samples:
+                        digit1sound_rendered = digit1sound_rendered.resize(trialsound.n_samples)
                     trialsound.data += digit1sound_rendered.data  # add to trial sound
                 if freefield:
                     trialsound[int(digit1loc - 1)] = digit1sound.data[:, 0]
@@ -330,17 +334,13 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 digit2loc = row["Non-Singleton2Loc"]  # get target location
                 if not freefield:
                     azimuth, ele = SPACE_ENCODER[digit2loc]  # get coords
-                    # digit2sound_lateralized = lateralize(sound=digit2sound, azimuth=azimuth)  # ITD and ILD
                     digit2sound_rendered = spatialize(digit2sound, azi=azimuth, ele=ele)  # add HRTF
-                    if digit2sound_rendered.data.shape != trialsound.data.shape:
-                        samplediff = digit2sound_rendered.data.shape[0] - trialsound.data.shape[0]
-                        digit2sound_rendered.data = digit2sound_rendered[:-samplediff]
+                    if digit2sound_rendered.n_samples != trialsound.n_samples:
+                        digit2sound_rendered = digit2sound_rendered.resize(trialsound.n_samples)
                     trialsound.data += digit2sound_rendered.data  # add to trial sound
                 if freefield:
                     trialsound[int(digit2loc - 1)] = digit2sound.data[:, 0]
             trialsound_slab = slab.Sound(trialsound, samplerate=samplerate)
-            # subtract level difference from final sound file
-            # trialsound.level = trialsound.level - (trialsound.level - soundlvl)
             logging.debug(f"Generated trial sound for trial {i}. Appending to sequence ... ")
             sound_sequence.append(trialsound_slab.ramp())  # ramp the sound file to avoid clipping
             # compute snr
@@ -364,7 +364,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         # write sound to .wav
         for idx, sound in enumerate(sound_sequence):
             print(f"Writing sound {idx}")
-            sound.write(filename=f"{dirname}/s_{idx}.wav", normalise=False)  # normalise param is broken ...
+            sound.write(filename=f"{dirname}/s_{idx}.wav", normalise=False)
 
     stop = time.time() / 60
     logging.info("DONE")

@@ -1,4 +1,4 @@
-from experiment_logic import SpaceprimeSession
+from experiment_logic import SpacecueImplicitSession
 from utils.utils import get_input_from_dict
 
 
@@ -8,7 +8,7 @@ info = get_input_from_dict({"subject_id": 99,  # enter subject id
 
 # create subject sequence
 # generate_subject_sequence(subject_id=info["subject_id"])
-sess = SpaceprimeSession(output_str=f'sub-{info["subject_id"]}', output_dir="logs",
+sess = SpacecueImplicitSession(output_str=f'sub-{info["subject_id"]}', output_dir="logs",
                          settings_file="config.yaml",
                          starting_block=info["block"], test=True if info["test"] == 1 else False)
 sess.run(starting_block=info["block"])
