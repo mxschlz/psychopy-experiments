@@ -167,3 +167,6 @@ cython_debug/
 /SPACECUE/stimuli/
 /SPACECUE/sequences/
 /SPACECUE/logs/
+/SPACECUE_implicit/logs/
+/SPACECUE_implicit/stimuli/
+/SPACECUE_implicit/sequences/
