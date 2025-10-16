@@ -5,8 +5,7 @@ import slab
 from encoding import SPACE_ENCODER
 from utils.signal_processing import spatialize, snr_sound_mixture_two_ears
 from utils.utils import get_input_from_dict, generate_balanced_jitter
-from trial_sequence_pygad import (make_pygad_trial_sequence, insert_singleton_present_trials,
-                                  get_element_indices, print_final_traits)
+from trial_sequence_pygad import make_pygad_trial_sequence, get_element_indices, print_final_traits
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -57,14 +56,12 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # retrieve sound level to adjust sounds to
     soundlvl = settings["session"]["level"]
     n_blocks = settings["session"]["n_blocks"]
-    # midpoint = n_blocks // 2  # pitch everything but singletons after 50 % of blocks
     # load sounds
     singletons = [slab.Sound.read(f"stimuli/distractors_{settings['session']['distractor_type']}/{x}")
                   for x in os.listdir(f"stimuli/distractors_{settings['session']['distractor_type']}")]
 
-    # --- SUGGESTION: Corrected path typo ---
     targets = [slab.Sound.read(f"stimuli/targets_low_30_Hz/{x}") for x in
-               os.listdir(f"stimuli/targets_low_30_Hz")]  # Corrected 'hz' to 'Hz'
+               os.listdir(f"stimuli/targets_low_30_Hz")]
 
     others = [slab.Sound.read(f"stimuli/digits_all_250ms/{x}") for x in
               os.listdir(f"stimuli/digits_all_250ms")]
@@ -81,39 +78,25 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         targets = [slab.Binaural(data=x) for x in targets]
         others = [slab.Binaural(data=x) for x in others]
 
-    # --- START: Added for biased singleton location ---
     is_even_subject = subject_id % 2 == 0
     n_locations = settings["session"]["n_locations"]
     all_locs = list(range(1, n_locations + 1))
-    # --- END: Added for biased singleton location ---
 
     # iterate over block
     for block in range(block, n_blocks):
         print(f"Running block {block}")
-        """if block >= midpoint:
-            # really confusing but this should do the trick
-            if subject_id_is_even:
-                targets = targets_high
-                others = singletons_copy
-                singletons = others_copy
-            if not subject_id_is_even:
-                targets = targets_low
-                singletons = singletons_copy
-                others = others_copy"""
         logging.info(f"Processing block {block}")
         dirname = f"sequences/sci-{subject_id}_block_{block}"
         try:
             os.mkdir(dirname)
         except FileExistsError:
             logging.warning(f"Directory {dirname} already exists! Moving on ... ")
-        sequence, sequence_labels, fitness = make_pygad_trial_sequence(
+        # The new function directly generates the final sequence with SP trials included.
+        sequence_final, fitness = make_pygad_trial_sequence(
             fig_path=settings["filepaths"][
                          "sequences"] + "/logs" + f"/sci-{subject_id}_block-{block}_sequence_fitness.png",
             num_trials=n_trials,
-            conditions=settings["trial_sequence"]["conditions"],
-            prop_c=settings["trial_sequence"]["prop_c"],
-            prop_np=settings["trial_sequence"]["prop_np"],
-            prop_pp=settings["trial_sequence"]["prop_pp"],
+            prop_sp=settings["trial_sequence"]["prop_sp"],
             rule_violation_factor=settings["trial_sequence"]["rule_violation_factor"],
             num_generations=settings["trial_sequence"]["num_generations"],
             num_parents_mating=settings["trial_sequence"]["num_parents_mating"],
@@ -121,19 +104,17 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
             keep_parents=settings["trial_sequence"]["keep_parents"],
             mutation_percent_genes=settings["trial_sequence"]["mutation_percent_genes"]
         )
-        sequence_final = insert_singleton_present_trials(sequence_labels,
-                                                         fig_path=settings["filepaths"]["sequences"] + "/logs" +
-                                                                  f"/sci-{subject_id}_sequence_block-{block}_hist_sp_trials.png")
 
         c_indices = get_element_indices(sequence_final, element="C")
-        distances_c = np.diff(c_indices)
-        # plot the stuff
-        sns.histplot(x=distances_c)
-        plt.title("Histogram of distances between C trials")
-        plt.savefig(
-            settings["filepaths"]["sequences"] + "/logs" + f"/sci-{subject_id}_sequence_hist_block{block}_"
-                                                           f"diff_control_trials.png")
-        plt.close()
+        if len(c_indices) > 1:
+            distances_c = np.diff(c_indices)
+            # plot the stuff
+            sns.histplot(x=distances_c)
+            plt.title("Histogram of distances between C trials")
+            plt.savefig(
+                settings["filepaths"]["sequences"] + "/logs" + f"/sci-{subject_id}_sequence_hist_block{block}_"
+                                                               f"diff_control_trials.png")
+            plt.close()
 
         # instantiate final trial sequence as placeholder
         trial_sequence = pd.DataFrame()
@@ -143,64 +124,20 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         prev_target_loc = None
         prev_singleton_loc = None
 
-        # --- START: REPLACEMENT FOR THE TRIAL INSTANTIATION LOOP ---
+        # --- START: REFACTORED TRIAL INSTANTIATION LOOP ---
         for i, element in enumerate(sequence_final):
-            # --- Emergency Safeguards (from original code) ---
-            if i == 0 and "C" not in element:
-                logging.warning(f"First trial is not a control trial. Fixing. Old: {element}, New: C_SP")
-                element = "C_SP"
-
-            if i > 0:
-                previous_element = sequence_final[i - 1]
-                if "NP" in element and "NP" in previous_element:
-                    logging.warning(f"Fixing consecutive NP trial at index {i}. Changing to Control.")
-                    element = element.replace("NP", "C")
-
             # 1. Define the pool of candidates for this trial
             select_singleton_present = "SP" in element
             candidate_pool = df[df["SingletonPresent"] == select_singleton_present].copy()
 
-            # 2. Apply trial-to-trial constraint filtering
-            if i > 0:  # No constraints for the first trial
-                if "C" in element:
-                    # EXCLUDE all known priming/repetition relationships
-                    # Note: if prev_singleton_digit is None (from an SA trial), these comparisons correctly yield False.
-                    pp_mask = (candidate_pool["TargetDigit"] == prev_target_digit) & (
-                            candidate_pool["TargetLoc"] == prev_target_loc)
-                    np_mask = (candidate_pool["TargetDigit"] == prev_singleton_digit) & (
-                            candidate_pool["TargetLoc"] == prev_singleton_loc)
-                    ar_mask = (candidate_pool["SingletonDigit"] == prev_target_digit) & (
-                            candidate_pool["SingletonLoc"] == prev_target_loc)
-                    ir_mask = (candidate_pool["SingletonDigit"] == prev_singleton_digit) & (
-                            candidate_pool["SingletonLoc"] == prev_singleton_loc)
-
-                    # Filter out any trial that matches any of these repetition conditions
-                    candidate_pool = candidate_pool[~(pp_mask | np_mask | ar_mask | ir_mask)]
-
-                elif "NP" in element:
-                    # REQUIRE the Negative Priming relationship
-                    if prev_singleton_digit is None:
-                        raise ValueError(
-                            f"Impossible sequence: NP trial at index {i} follows a Singleton-Absent trial.")
-
-                    inclusion_mask = (candidate_pool["TargetDigit"] == prev_singleton_digit) & (
-                            candidate_pool["TargetLoc"] == prev_singleton_loc)
-                    candidate_pool = candidate_pool[inclusion_mask]
-
-                elif "PP" in element:
-                    # REQUIRE the Positive Priming relationship
-                    inclusion_mask = (candidate_pool["TargetDigit"] == prev_target_digit) & (
-                            candidate_pool["TargetLoc"] == prev_target_loc)
-                    candidate_pool = candidate_pool[inclusion_mask]
-
-            # 3. Apply biased singleton location logic (if applicable and possible)
-            if select_singleton_present and not candidate_pool.empty:
+            # 2. Apply biased singleton location logic (if applicable)
+            if select_singleton_present:
                 biased_loc = 1 if is_even_subject else 3
                 if biased_loc in all_locs:
                     other_locs = [loc for loc in all_locs if loc != biased_loc]
 
-                    # Decide if we pick the biased location (80% chance)
-                    if np.random.rand() < 0.70:
+                    # Decide if we pick the biased location (e.g., 80% chance)
+                    if np.random.rand() < settings["trial_sequence"]["hp_distractor"]:
                         high_prob_trials = candidate_pool[candidate_pool["SingletonLoc"] == biased_loc]
                         if not high_prob_trials.empty:
                             candidate_pool = high_prob_trials
@@ -209,24 +146,29 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                         if not low_prob_trials.empty:
                             candidate_pool = low_prob_trials
 
-            # 4. Final sampling and error handling
+            # 3. Final sampling
+            # If the filtered pool is empty (unlikely but possible), fall back to the unfiltered pool.
             if candidate_pool.empty:
-                logging.error(f"Could not find a valid trial for element '{element}' at index {i}. "
-                              f"Previous trial had: T_digit={prev_target_digit}, T_loc={prev_target_loc}, "
-                              f"S_digit={prev_singleton_digit}, S_loc={prev_singleton_loc}. "
-                              f"This indicates the GA-generated sequence is impossible to fulfill.")
-                raise ValueError(f"Impossible sequence generated. Could not find trial for '{element}' at index {i}.")
+                logging.warning(f"Biased location filtering resulted in an empty pool at trial {i}. "
+                                f"Sampling from all available SP trials.")
+                candidate_pool = df[df["SingletonPresent"] == select_singleton_present].copy()
 
             sample = candidate_pool.sample(1).copy()  # Use .copy() to avoid SettingWithCopyWarning
 
-            # 5. Add metadata and update state
-            # Set Priming label
-            if "C" in element:
-                sample["Priming"] = 0
-            elif "NP" in element:
-                sample["Priming"] = -1
-            elif "PP" in element:
-                sample["Priming"] = 1
+            # 4. Add metadata and update state
+            # Determine priming by chance (post-hoc labeling)
+            priming_label = 0  # Default to Control
+            if i > 0:
+                # Check for Positive Priming (target repeats)
+                if (sample["TargetDigit"].values[0] == prev_target_digit and
+                        sample["TargetLoc"].values[0] == prev_target_loc):
+                    priming_label = 1
+                # Check for Negative Priming (target matches previous distractor)
+                elif (prev_singleton_digit is not None and
+                      sample["TargetDigit"].values[0] == prev_singleton_digit and
+                      sample["TargetLoc"].values[0] == prev_singleton_loc):
+                    priming_label = -1
+            sample["Priming"] = priming_label
 
             # Add distractor probability column
             if not select_singleton_present:
@@ -247,7 +189,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
             trial_sequence = pd.concat([trial_sequence, sample], ignore_index=True)
             logging.debug(f"Found and appended trial for {element}. Sequence length: {len(trial_sequence)}")
-        # --- END: REPLACEMENT LOOP ---
+        # --- END: REFACTORED LOOP ---
 
         trial_sequence.reset_index(drop=True, inplace=True)
         print_final_traits(trial_sequence)

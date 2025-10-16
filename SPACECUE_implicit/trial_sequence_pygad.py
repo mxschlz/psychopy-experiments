@@ -1,55 +1,66 @@
 import pygad
 import matplotlib.pyplot as plt
 import numpy as np
-import random
 from collections import Counter
 import seaborn as sns
 import logging
-import heapq
 
 
-def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=(1, 2, 3), prop_c=0.6, prop_np=0.2, prop_pp=0.2,
+def make_pygad_trial_sequence(fig_path=None, num_trials=225, prop_sp=0.7,
                               rule_violation_factor=1000, num_generations=3000, num_parents_mating=10,
                               sol_per_pop=200, keep_parents=2, mutation_percent_genes=5,
                               fitness_threshold=0.9999):
+    """
+    Generates a trial sequence using a genetic algorithm.
+
+    The sequence consists of two types of trials, represented by integers in the GA:
+    - 1: Singleton Present (SP)
+    - 0: Singleton Absent (SA)
+
+    The GA optimizes for two criteria:
+    1. The proportion of SP trials should match `prop_sp`.
+    2. There should be a maximum of 5 consecutive SP trials.
+    """
     # Define Trial Parameters
-    desired_c = prop_c * num_trials
-    desired_np = prop_np * num_trials
-    desired_pp = prop_pp * num_trials
-    max_np_pp = int(num_trials * prop_np) + int(num_trials * prop_pp)
-    max_fitness = 0  # Since we're only using penalties, the ideal fitness is 0
-    max_violation_count = max_np_pp // 2 - 1
-    min_fitness = - 2 * (max_violation_count * rule_violation_factor) - num_trials * (2 - 2*prop_c)
+    gene_space = [0, 1]  # 0 for Singleton Absent, 1 for Singleton Present
+    desired_sp = prop_sp * num_trials
+    desired_sa = (1 - prop_sp) * num_trials
+
+    # Since we only use penalties, the ideal fitness is 0.
+    # We normalize it to be between 0 and 1 for the GA's `on_generation` callback.
+    max_fitness = 0
+    # Estimate a reasonable minimum fitness for normalization.
+    # Worst case: all trials are of one type (penalty ~num_trials) and a rule is violated (penalty ~rule_violation_factor)
+    min_fitness = -num_trials - rule_violation_factor
 
     # Fitness Function
     def fitness_func(ga_instance, solution, solution_idx):
         fitness = 0
-        # Convert integers to condition labels for easier comparison
-        solution_labels = ["C" if x == 1 else "NP" if x == 2 else "PP" for x in solution]  # 1 C, 2 NP, 3 PP
 
-        # 1. Desired proportion of conditions
-        counts = Counter(solution_labels)
-        count_penalty = abs(desired_c - counts.get("C", 0)) + \
-                        abs(desired_pp - counts.get("PP", 0)) + \
-                        abs(desired_np - counts.get("NP", 0))
+        # 1. Desired proportion of SP/SA trials
+        counts = Counter(solution)
+        count_penalty = abs(desired_sp - counts.get(1, 0)) + \
+                        abs(desired_sa - counts.get(0, 0))
         fitness -= count_penalty
 
-        # 2. At Least One C Between NP and PP
-        violation_count = 0
-        for i in range(len(solution_labels) - 1):
-            if solution_labels[i] in ("NP", "PP") and solution_labels[i + 1] in ("NP", "PP"):
-                violation_count += 1
-        fitness -= violation_count * rule_violation_factor
-
-        # 3. Solution must start with C
-        if solution_labels[0] != "C":
-            # Apply a fixed, large penalty if the first element is not 'C'
-            fitness -= rule_violation_factor
+        # 2. Penalize sequences with more than 5 consecutive SP trials
+        max_consecutive_sp_allowed = 5
+        consecutive_sp_count = 0
+        for trial in solution:
+            if trial == 1:
+                consecutive_sp_count += 1
+                if consecutive_sp_count > max_consecutive_sp_allowed:
+                    fitness -= rule_violation_factor
+                    break  # Rule is violated, no need to check further
+            else:
+                # Reset counter if the trial is not an SP trial
+                consecutive_sp_count = 0
 
         # Avoid division by zero if max_fitness equals min_fitness
         if max_fitness == min_fitness:
             return 0.0
 
+        # Normalize fitness to be in the range [0, 1] for the threshold check
         normalized_fitness = (fitness - min_fitness) / (max_fitness - min_fitness)
         return normalized_fitness
 
@@ -66,14 +77,14 @@ def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=(1, 2, 3
                            fitness_func=fitness_func,
                            sol_per_pop=sol_per_pop,
                            num_genes=num_trials,
-                           gene_space=list(conditions),
+                           gene_space=gene_space,
                            gene_type=int,
                            parent_selection_type="sss",
                            keep_parents=keep_parents,
                            mutation_type="random",
                            mutation_percent_genes=mutation_percent_genes,
                            suppress_warnings=True,
-                           on_generation=on_generation) # Stop based on fitness
+                           on_generation=on_generation)
 
     ga_instance.run()
 
@@ -81,61 +92,30 @@ def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=(1, 2, 3
     solution, solution_fitness, solution_idx = ga_instance.best_solution()
     logging.info(f"GA finished after {ga_instance.generations_completed} generations.")
     logging.info(f"Fitness value of the best solution = {solution_fitness}")
+
+    # The base trial type is always 'Control'. Priming is not an enforced factor.
+    # We label trials based on whether a singleton is present or not.
+    sequence_labels = ["C_SP" if x == 1 else "C" for x in solution]
+
+    counts = Counter(sequence_labels)
     logging.info(f"TRAITS OF FITTEST TRIAL SEQUENCE: \n"
-                 f"Control trials: {solution.tolist().count(1)} \n"
-                 f"Negative priming trials: {solution.tolist().count(2)} \n"
-                 f"Positive priming trials: {solution.tolist().count(3)} ")
-    sequence_labels = ["C" if x == 1 else "NP" if x == 2 else "PP" for x in solution]
+                 f"Singleton Present trials: {counts.get('C_SP', 0)} \n"
+                 f"Singleton Absent trials: {counts.get('C', 0)}")
 
     if fig_path:
-        #ga_instance.plot_fitness(save_dir=fig_path,
-        #                         title=f"Trial sequence fitness: {round(solution_fitness, 5)}",
-        #                         color="black")
-        #plt.close()
-        pass
-    return solution, sequence_labels, solution_fitness
+        # Optional: Plot distribution of distances between SP trials for the best solution
+        sp_indices = [i for i, trial in enumerate(solution) if trial == 1]
+        if len(sp_indices) > 1:
+            plt.figure()
+            sns.histplot(data=np.diff(sp_indices))
+            plt.title("Histogram of distances between SP trials in best solution")
+            plt.xlabel("Trials between SP trials")
+            plt.ylabel("Frequency")
+            plt.savefig(fig_path)
+            plt.close()
 
-
-def insert_singleton_present_trials(sequence, fig_path=None):
-    while True:
-        copy = sequence.copy()
-        # Calculate the desired number of "SingletonPresent" == 1 trials
-        target_singleton_present_trials = len(copy) // 2
-        current_singleton_present_trials = 0
-        occupied_suffix_indices = list()
-        # iterate over sequence
-        for i, element in enumerate(copy):
-            if i < len(copy) - 1:
-                upcoming_element = copy[i+1]
-            else:
-                upcoming_element = None
-            if upcoming_element == "NP" and element == "C":
-                copy[i] += "_SP"
-                current_singleton_present_trials += 1
-                occupied_suffix_indices.append(i)
-        remaining_singleton_present_trials = target_singleton_present_trials - current_singleton_present_trials
-        all_indices = list(range(len(copy)))
-        remaining_indices = list(set(all_indices) - set(occupied_suffix_indices))
-        random_suffix_selection = random.sample(remaining_indices, remaining_singleton_present_trials)
-        for i, element in enumerate(copy):
-            if i in random_suffix_selection:
-                copy[i] += "_SP"
-        sp_indices = get_element_indices(copy, element="SP")
-        distances_sp = np.diff(sp_indices)
-        occurrences = Counter(distances_sp)
-        top_three_keys = heapq.nlargest(3, occurrences, key=occurrences.get)
-        if occurrences[top_three_keys[0]] < occurrences[top_three_keys[1]] + occurrences[top_three_keys[2]]:
-            logging.info(f"Found the following occurrences of sp distances: {list(occurrences.items())}.")
-            break
-        else:
-            continue
-    if fig_path:
-        # plot the stuff
-        sns.histplot(data=distances_sp)
-        plt.title("Histogram of distances between SP trials")
-        plt.savefig(fig_path)
-        plt.close()
-    return copy
+    # Return the labels and fitness. The labels are what the downstream script will use.
+    return sequence_labels, solution_fitness
 
 
 def get_element_indices(sequence, element):
@@ -177,17 +157,16 @@ def print_final_traits(dataframe):
     logging.info(f"THE FINAL TRIAL SEQUENCE CONTAINS: \n"
                  f"Total length of sequence: {total_length} \n"
                  f"Singleton present trials: {sp_count} \n"
-                 f"Control trials: {c_count} \n"
-                 f"Negative priming trials: {np_count} \n"
-                 f"Positive priming trials: {pp_count} \n"
+                 f"Control trials (by random chance): {c_count} \n"
+                 f"Negative priming trials (by random chance): {np_count} \n"
+                 f"Positive priming trials (by random chance): {pp_count} \n"
                  f"Attended repetition control trials: {attended_rc} \n"
                  f"Ignored repetition control trials: {ignored_rc} ")
 
 
 if __name__ == "__main__":
-    solution, solution_fitness = make_pygad_trial_sequence()
-    # Example usage
-    original_sequence = solution  # Your provided sequence
-    modified_sequence = insert_singleton_present_trials(original_sequence)
-    print(modified_sequence)
-
+    # Example usage of the new function
+    final_sequence_labels, fitness = make_pygad_trial_sequence(num_trials=225, prop_sp=0.7)
+    print(f"Generated a sequence of {len(final_sequence_labels)} trials with fitness {fitness:.4f}")
+    print(f"First 20 trials: {final_sequence_labels[:20]}")
+    print(f"SP count: {final_sequence_labels.count('C_SP')}")

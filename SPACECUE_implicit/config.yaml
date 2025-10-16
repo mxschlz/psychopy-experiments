@@ -24,13 +24,11 @@ session:  # these params are relevant for the generation of the possible combina
 
 numpad:
   digits: [1, 2, 3, 4, 5, 6, 7, 8, 9]  # number of digits on the numpad
-  size: 2  # visual angle of 1 degree to left and right
+  size: 3  # visual angle of 1 degree to left and right
 
 trial_sequence:
-  conditions: [1, 2, 3]  # C, NP and PP
-  prop_c: 0.6  # 60 % control trials
-  prop_np: 0.2  # 20 % negative priming trials
-  prop_pp: 0.2  #  20 % positive priming trials
+  hp_distractor: 0.8  # high-probability distractor value
+  prop_sp: 0.7  # proportion of singleton present trials
   rule_violation_factor: 1000  # rule violation weight
   num_generations: 50000  # 50000 iterations for genetic algorithm is definitely enough
   num_parents_mating: 10  # 10 parents per generation
@@ -57,7 +55,7 @@ window:
   size: [600, 600]
   pos: [0, 0]
   color: [0, 0, 0]
-  fullscr: False
+  fullscr: True
   waitBlanking: False
   screen: 0
 
