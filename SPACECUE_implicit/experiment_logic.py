@@ -73,24 +73,14 @@ class SpacecueImplicitSession(Session):
         self.this_block = None
         self.subject_id = int(self.output_str.split("-")[1])
         self.subj_id_is_even = True if self.subject_id % 2 == 0 else False
-        if self.subj_id_is_even:
-            self.targets = [Sound(filename=os.path.join("stimuli\\targets_low_30_Hz", x),
-                                  device=self.settings["soundconfig"]["device"],
-                                  mul=self.settings["soundconfig"]["mul"]) for x in
-                            os.listdir(f"stimuli\\targets_low_30_Hz")]
-            self.controls = [Sound(filename=os.path.join("stimuli\\digits_all_250ms", x),
-                                   device=self.settings["soundconfig"]["device"],
-                                   mul=self.settings["soundconfig"]["mul"]) for x in
-                             os.listdir(f"stimuli\\digits_all_250ms")]
-        elif not self.subj_id_is_even:
-            self.targets = [Sound(filename=os.path.join("stimuli\\targets_high_30_Hz", x),
-                                  device=self.settings["soundconfig"]["device"],
-                                  mul=self.settings["soundconfig"]["mul"]) for x in
-                            os.listdir(f"stimuli\\targets_high_30_Hz")]
-            self.controls = [Sound(filename=os.path.join("stimuli\\distractors_high", x),
-                                   device=self.settings["soundconfig"]["device"],
-                                   mul=self.settings["soundconfig"]["mul"]) for x in
-                             os.listdir(f"stimuli\\distractors_high")]
+        self.targets = [Sound(filename=os.path.join("stimuli\\targets_low_30_Hz", x),
+                              device=self.settings["soundconfig"]["device"],
+                              mul=self.settings["soundconfig"]["mul"]) for x in
+                        os.listdir(f"stimuli\\targets_low_30_Hz")]
+        self.controls = [Sound(filename=os.path.join("stimuli\\digits_all_250ms", x),
+                               device=self.settings["soundconfig"]["device"],
+                               mul=self.settings["soundconfig"]["mul"]) for x in
+                         os.listdir(f"stimuli\\digits_all_250ms")]
         if self.settings["mode"]["record_eeg"]:
             self.port = parallel.ParallelPort(0xCFF8)  # set address of port
 
