@@ -2,9 +2,9 @@ logging:
   level: DATA  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
 
 filepaths:  # some relevant filepaths
-  project: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit\  # project path
-  stimuli: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit\stimuli\  # stimuli path
-  sequences: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit\sequences\  # sequences path
+  project: D:\MSchulz\SPACECUE_implicit\  # project path
+  stimuli: D:\MSchulz\SPACECUE_implicit\stimuli\  # stimuli path
+  sequences: D:\MSchulz\SPACECUE_implicit\sequences\  # sequences path
 
 session:  # these params are relevant for the generation of the possible combinations excel sheet or trial sequence
   name: SPACECUE_implicit  # use study acronym here
@@ -24,7 +24,7 @@ session:  # these params are relevant for the generation of the possible combina
 
 numpad:
   digits: [1, 2, 3, 4, 5, 6, 7, 8, 9]  # number of digits on the numpad
-  size: 3  # visual angle of 1 degree to left and right
+  size: 4  # visual angle of 1 degree to left and right
 
 trial_sequence:
   hp_distractor: 0.8  # high-probability distractor value
@@ -46,7 +46,7 @@ preferences:  # set some preferences (NOT IMPLEMENTED)
 
 mode:
   record_eeg: False  # whether you want to record eeg data or not
-  freefield: False  # whether you want to use a free-field setup. False means headphone usage
+  freefield: True  # whether you want to use a free-field setup. False means headphone usage
   camera: False  # whether you want to run the eye tracker
   demo: False  # whether you want to run the demo
   acc_test: False  # whether you want to run an initial accuracy test
@@ -70,5 +70,5 @@ mouse:
   visible: True
 
 soundconfig:
-  device: 3  # 16 for headphones, 44 for loudspeakers
-  mul: 12
+  device: 22
+  mul: 15

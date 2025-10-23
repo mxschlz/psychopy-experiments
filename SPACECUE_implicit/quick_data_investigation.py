@@ -3,13 +3,12 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import matplotlib
-matplotlib.use("TkAgg")
 plt.ion()
 
 
 # load up dataframe
-fp = "C:\\Users\\Max\\PycharmProjects\\psychopy-experiments\\SPACECUE_implicit\\logs\\clean"
-file_excel = "sci-98_clean_October_09_2025_16_52_43.csv"
+fp = "D:\MSchulz\SPACECUE_implicit\logs\clean"
+file_excel = "sci-998_clean_October_22_2025_17_28_44.csv"
 # read dataframe
 df = pd.read_csv(os.path.join(fp, file_excel))
 df = df[df["phase"]!= 2]

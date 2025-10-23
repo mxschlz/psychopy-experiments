@@ -25,6 +25,8 @@ class SpacecueImplicitTrial(Trial):
         self.trigger_name = None  # this holds the trial-specific trigger name encoding
 
     def send_trig_and_sound(self):
+        print(f"Target Digit {self.session.sequence.iloc[self.trial_nr]['TargetDigit']} over Speaker {self.session.sequence.iloc[self.trial_nr]['TargetLoc']}")
+        print(f"Distractor Digit {self.session.sequence.iloc[self.trial_nr]['SingletonDigit']} over Speaker {self.session.sequence.iloc[self.trial_nr]['SingletonLoc']}")
         self.stim.play(latency="low", blocksize=0)  # not sure whether this does anything ...
         self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
         self.session.send_trigger(trigger_name=self.trigger_name)

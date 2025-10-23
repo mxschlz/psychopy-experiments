@@ -7,9 +7,9 @@ os.environ["SD_ENABLE_ASIO"] = "1"
 # add 15 dB to the 50 dB sounds so that we get to 65 dB
 mul = 15
 # define soundpath for sound files
-soundpath = "C:\\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACEPRIME\sequences\sub-104_block_0"
+soundpath = "D:\MSchulz\SPACECUE_implicit\sequences\sci-999_block_0"
 arrays = []
-stream = sd.OutputStream(samplerate=44100, channels=3, blocksize=None, latency="low", device=44, dtype="float32")
+stream = sd.OutputStream(samplerate=44100, channels=3, blocksize=None, latency="low", device=10, dtype="float32")
 # start stream
 stream.start()
 

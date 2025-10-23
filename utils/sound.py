@@ -1,4 +1,6 @@
 import sys
+import os
+os.environ['SD_ENABLE_ASIO'] = '1'
 
 
 class SoundDeviceSound(object):
@@ -83,7 +85,9 @@ class SoundDeviceSound(object):
 
 
 if __name__ == "__main__":
-	sound = SoundDeviceSound(filename='C:\\PycharmProjects\\psychopy-experiments\\stimuli\\digits_all_250ms\\1.wav')
+	import time
+	sound = SoundDeviceSound(filename='C:\\Users\\ac\\anaconda3\\envs\\psypy\\Lib\\site-packages\\IPython\\lib\\tests\\test.wav',
+							 device=22, mul=10)
 	while True:
-		if not sound.isPlaying():
-			sound.play()
+		sound.play(mapping=[1])
+		time.sleep(1)

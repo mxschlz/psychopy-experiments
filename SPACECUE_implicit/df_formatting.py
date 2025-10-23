@@ -3,7 +3,7 @@ import os
 from utils.utils import get_input_from_dict
 from datetime import datetime
 import yaml
-os.chdir("C:\\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit")
+#os.chdir("C:\\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit")
 
 # get subject info
 info = get_input_from_dict({"subject_id": 99,
