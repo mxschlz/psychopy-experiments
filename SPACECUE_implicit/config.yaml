@@ -2,9 +2,9 @@ logging:
   level: DATA  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
 
 filepaths:  # some relevant filepaths
-  project: D:\MSchulz\SPACECUE_implicit\  # project path
-  stimuli: D:\MSchulz\SPACECUE_implicit\stimuli\  # stimuli path
-  sequences: D:\MSchulz\SPACECUE_implicit\sequences\  # sequences path
+  project: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit  # project path
+  stimuli: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit\stimuli\  # stimuli path
+  sequences: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit\sequences\  # sequences path
 
 session:  # these params are relevant for the generation of the possible combinations excel sheet or trial sequence
   name: SPACECUE_implicit  # use study acronym here
@@ -21,6 +21,7 @@ session:  # these params are relevant for the generation of the possible combina
   timing: seconds  # timing of stimuli --> can be seconds or frames (frames is not yet implemented)
   response_device: mouse  # can be mouse or keypad
   fixation_type: circle  # can be circle or cross
+  cue: 'control'  # can be 'control' or 'distractor'
 
 numpad:
   digits: [1, 2, 3, 4, 5, 6, 7, 8, 9]  # number of digits on the numpad
@@ -28,7 +29,7 @@ numpad:
 
 trial_sequence:
   hp_distractor: 0.8  # high-probability distractor value
-  prop_sp: 0.7  # proportion of singleton present trials
+  prop_sp: 1.0  # proportion of singleton present trials
   rule_violation_factor: 1000  # rule violation weight
   num_generations: 50000  # 50000 iterations for genetic algorithm is definitely enough
   num_parents_mating: 10  # 10 parents per generation
@@ -70,5 +71,5 @@ mouse:
   visible: True
 
 soundconfig:
-  device: 22
+  device: 30
   mul: 15
