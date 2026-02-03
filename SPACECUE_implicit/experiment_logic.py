@@ -176,6 +176,17 @@ class SpacecueImplicitSession(Session):
                 self.send_trigger("block_offset")
                 print(f"Stopping block {block}")
                 self.save_data()
+
+                accuracies = []
+                for t in self.trials:
+                    if t.last_resp is not None:
+                        accuracies.append(str(t.parameters['TargetDigit']) == str(t.last_resp))
+
+                if accuracies:
+                    mean_acc = np.mean(accuracies)
+                    print(f"Block accuracy: {mean_acc}")
+                    self.display_text(text=f"Genauigkeit im letzten Block: {mean_acc:.1%}", duration=3.0, height=0.75)
+
                 if not block == max(self.blocks):
                     self.display_text(text=prompts.pause, duration=60, height=0.75)
                     self.display_text(text=prompts.pause_finished, keys="space", height=0.75)
