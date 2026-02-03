@@ -21,6 +21,16 @@ def make_pygad_trial_sequence(fig_path=None, num_trials=225, prop_sp=0.7,
     1. The proportion of SP trials should match `prop_sp`.
     2. There should be a maximum of 5 consecutive SP trials.
     """
+    # --- FIX: Handle 100% and 0% SP trials directly ---
+    if prop_sp == 1.0:
+        logging.info("prop_sp is 1.0, returning a sequence of all SP trials without running GA.")
+        sequence_labels = ["C_SP"] * num_trials
+        return sequence_labels, 1.0
+    if prop_sp == 0.0:
+        logging.info("prop_sp is 0.0, returning a sequence of all SA trials without running GA.")
+        sequence_labels = ["C"] * num_trials
+        return sequence_labels, 1.0
+
     # Define Trial Parameters
     gene_space = [0, 1]  # 0 for Singleton Absent, 1 for Singleton Present
     desired_sp = prop_sp * num_trials
@@ -44,7 +54,7 @@ def make_pygad_trial_sequence(fig_path=None, num_trials=225, prop_sp=0.7,
         fitness -= count_penalty
 
         # 2. Penalize sequences with more than 5 consecutive SP trials
-        max_consecutive_sp_allowed = 5
+        max_consecutive_sp_allowed = num_trials
         consecutive_sp_count = 0
         for trial in solution:
             if trial == 1:
