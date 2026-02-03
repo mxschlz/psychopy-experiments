@@ -87,6 +87,10 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     elif what_to_cue == "control":
         what_to_cue_col = "Non-Singleton2Loc"
 
+    # Initialize dynamic biased location and flip interval
+    current_biased_loc = 1 if is_even_subject else 3
+    flip_interval = settings["trial_sequence"]["flip_distractor_prob_coin_after_trials"]
+
     # iterate over block
     for block in range(block, n_blocks):
         print(f"Running block {block}")
@@ -131,13 +135,22 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
         # --- START: REFACTORED TRIAL INSTANTIATION LOOP ---
         for i, element in enumerate(sequence_final):
+            # Check if we need to flip the biased location
+            global_trial_idx = block * n_trials + i
+            if global_trial_idx > 0 and global_trial_idx % flip_interval == 0:
+                if np.random.rand() < 0.5:
+                    current_biased_loc = 3 if current_biased_loc == 1 else 1
+                    logging.info(f"Trial {global_trial_idx}: Coin flip -> SWITCHED HP distractor to {current_biased_loc}")
+                else:
+                    logging.info(f"Trial {global_trial_idx}: Coin flip -> KEPT HP distractor at {current_biased_loc}")
+
             # 1. Define the pool of candidates for this trial
             select_singleton_present = "SP" in element
             candidate_pool = df[df["SingletonPresent"] == select_singleton_present].copy()
 
             # 2. Apply biased singleton location logic (if applicable)
             if select_singleton_present:
-                biased_loc = 1 if is_even_subject else 3
+                biased_loc = current_biased_loc
                 if biased_loc in all_locs:
                     other_locs = [loc for loc in all_locs if loc != biased_loc]
 
@@ -174,12 +187,13 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                       sample["TargetLoc"].values[0] == prev_singleton_loc):
                     priming_label = -1
             sample["Priming"] = priming_label
+            sample["HP_Distractor_Loc"] = current_biased_loc
 
             # Add distractor probability column
             if not select_singleton_present:
                 sample["DistractorProb"] = "distractor-absent"
             else:
-                biased_loc = 1 if is_even_subject else 3
+                biased_loc = current_biased_loc
                 actual_singleton_loc = sample["Non-Singleton2Loc"].values[0]
                 if actual_singleton_loc == biased_loc:
                     sample["DistractorProb"] = "high-probability"
