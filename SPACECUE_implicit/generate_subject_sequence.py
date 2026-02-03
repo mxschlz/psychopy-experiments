@@ -81,6 +81,11 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     is_even_subject = subject_id % 2 == 0
     n_locations = settings["session"]["n_locations"]
     all_locs = list(range(1, n_locations + 1))
+    what_to_cue = settings["session"]["cue"]
+    if what_to_cue == "distractor":
+        what_to_cue_col = "SingletonLoc"
+    elif what_to_cue == "control":
+        what_to_cue_col = "Non-Singleton2Loc"
 
     # iterate over block
     for block in range(block, n_blocks):
@@ -138,11 +143,11 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
                     # Decide if we pick the biased location (e.g., 80% chance)
                     if np.random.rand() < settings["trial_sequence"]["hp_distractor"]:
-                        high_prob_trials = candidate_pool[candidate_pool["SingletonLoc"] == biased_loc]
+                        high_prob_trials = candidate_pool[candidate_pool[what_to_cue_col] == biased_loc]
                         if not high_prob_trials.empty:
                             candidate_pool = high_prob_trials
                     else:
-                        low_prob_trials = candidate_pool[candidate_pool["SingletonLoc"].isin(other_locs)]
+                        low_prob_trials = candidate_pool[candidate_pool[what_to_cue_col].isin(other_locs)]
                         if not low_prob_trials.empty:
                             candidate_pool = low_prob_trials
 
@@ -175,7 +180,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 sample["DistractorProb"] = "distractor-absent"
             else:
                 biased_loc = 1 if is_even_subject else 3
-                actual_singleton_loc = sample["SingletonLoc"].values[0]
+                actual_singleton_loc = sample["Non-Singleton2Loc"].values[0]
                 if actual_singleton_loc == biased_loc:
                     sample["DistractorProb"] = "high-probability"
                 else:
