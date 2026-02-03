@@ -25,8 +25,8 @@ class SpacecueImplicitTrial(Trial):
         self.trigger_name = None  # this holds the trial-specific trigger name encoding
 
     def send_trig_and_sound(self):
-        print(f"Target Digit {self.session.sequence.iloc[self.trial_nr]['TargetDigit']} over Speaker {self.session.sequence.iloc[self.trial_nr]['TargetLoc']}")
-        print(f"Distractor Digit {self.session.sequence.iloc[self.trial_nr]['SingletonDigit']} over Speaker {self.session.sequence.iloc[self.trial_nr]['SingletonLoc']}")
+        # print(f"Target Digit {self.session.sequence.iloc[self.trial_nr]['TargetDigit']} over Speaker {self.session.sequence.iloc[self.trial_nr]['TargetLoc']}")
+        # print(f"Distractor Digit {self.session.sequence.iloc[self.trial_nr]['SingletonDigit']} over Speaker {self.session.sequence.iloc[self.trial_nr]['SingletonLoc']}")
         self.stim.play(latency="low", blocksize=0)  # not sure whether this does anything ...
         self.wait(delay_ms=80)  # wait for 80 ms because of constant internal delay
         self.session.send_trigger(trigger_name=self.trigger_name)
@@ -97,9 +97,11 @@ class SpacecueImplicitSession(Session):
         self.this_block = block
 
     def load_sequence(self):
+        print("Loading sequence")
         self.sequence = pd.read_csv(self.blockdir + ".csv")
 
     def create_trials(self, n_trials, durations, timing="seconds"):
+        print("Creating trials")
         self.trials = []
         for trial_nr in range(n_trials):
             trial = SpacecueImplicitTrial(session=self,
@@ -119,6 +121,7 @@ class SpacecueImplicitSession(Session):
             self.trials.append(trial)
 
     def run(self, starting_block):
+        print("Running experiment")
         # self.send_trigger("experiment_onset")
         # welcome the participant
         self.display_text(text=prompts.prompt1, keys="space", height=0.75)
@@ -126,9 +129,12 @@ class SpacecueImplicitSession(Session):
         self.display_text(text=prompts.prompt3, keys="space", height=0.75)
         self.display_text(text=prompts.prompt4, keys="space", height=0.75)
         if self.test:
+            print("Running test")
             if self.settings["mode"]["demo"]:
+                print("Running demo")
                 self.run_demo()
             if self.settings["mode"]["acc_test"]:
+                print("Running accuracy test")
                 self.run_accuracy_test()
             self.display_text(text=prompts.prompt5, keys="space", height=0.75)
             self.display_text(text=prompts.prompt6, keys="space", height=0.75)
@@ -145,6 +151,7 @@ class SpacecueImplicitSession(Session):
                 trial.run()
         else:
             for block in self.blocks:
+                print(f"Running block {block}")
                 self.send_trigger("block_onset")
                 # do camera calibration if enabled
                 if self.settings["mode"]["camera"]:
@@ -167,6 +174,7 @@ class SpacecueImplicitSession(Session):
                 for trial in self.trials:
                     trial.run()
                 self.send_trigger("block_offset")
+                print(f"Stopping block {block}")
                 self.save_data()
                 if not block == max(self.blocks):
                     self.display_text(text=prompts.pause, duration=60, height=0.75)
@@ -176,8 +184,8 @@ class SpacecueImplicitSession(Session):
 
     # Function to send trigger value by specifying event name
     def send_trigger(self, trigger_name):
-        print(trigger_name)
-        print(EEG_TRIGGER_MAP[trigger_name])
+        #print(trigger_name)
+        #print(EEG_TRIGGER_MAP[trigger_name])
         if self.settings["mode"]["record_eeg"]:
             # get corresponding trigger value:
             trigger_value = EEG_TRIGGER_MAP[trigger_name]
