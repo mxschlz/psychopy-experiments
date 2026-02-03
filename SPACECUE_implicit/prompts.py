@@ -25,7 +25,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.
 """
 
 prompt4 = """
-In manchen Durchgängen hat eines der zwei weiteren Zahlwörter eine andere Tonhöhe. \n
+In allen Durchgängen hat eines der zwei weiteren Zahlwörter eine andere Tonhöhe. \n
 Lassen Sie sich davon nicht irritieren: Ihre Aufgabe bleibt es, stets das raue, kratzige Zahlwort zu benennen. \n
 
 Drücken Sie LEERTASTE, um weiterzublättern.
