@@ -85,10 +85,46 @@ class SpacecueImplicitSession(Session):
                          os.listdir(f"stimuli\\digits_all_250ms")]
         if self.settings["mode"]["record_eeg"]:
             self.port = parallel.ParallelPort(0xCFF8)  # set address of port
+        self.randomize_locations = self.settings["numpad"].get("randomize_locations", False)
 
     def display_response_box(self):
         for stimulus in self.virtual_response_box:
             stimulus.draw()
+
+    def configure_response_box(self, active_digits):
+        """Configures the response box to show only active digits."""
+        display_presented_only = self.settings["numpad"].get("display_presented_sounds_only", True)
+
+        if self.virtual_response_box:
+            active_stimuli = []
+            # Skip the first element (guide)
+            for stim in self.virtual_response_box[1:]:
+                if not display_presented_only or stim.text in active_digits:
+                    active_stimuli.append(stim)
+                else:
+                    stim.pos = (10000, 10000)  # Move off-screen
+
+            # Recalculate positions for active stimuli
+            if active_stimuli and self.settings["numpad"].get("layout") == "circle":
+                size = self.settings["numpad"]["size"]
+                radius = size / 2
+
+                equilateral = self.settings["numpad"].get("rotate_triangle", False)
+
+                if equilateral and len(active_stimuli) == 3:
+                    # Equilateral triangle (0, 120, 240) + random rotation
+                    angles = np.linspace(0, 360, 3, endpoint=False) + np.random.uniform(0, 360)
+                else:
+                    angles = np.linspace(180, 0, len(active_stimuli))
+
+                if self.randomize_locations:
+                    np.random.shuffle(angles)
+
+                for i, stim in enumerate(active_stimuli):
+                    angle_rad = np.deg2rad(angles[i])
+                    x_pos = radius * np.cos(angle_rad)
+                    y_pos = radius * np.sin(angle_rad)
+                    stim.pos = (x_pos, y_pos)
 
     def set_block(self, block):
         self.blockdir = os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_{block}")
@@ -148,6 +184,13 @@ class SpacecueImplicitSession(Session):
                                timing=self.settings["session"]["timing"])
             self.start_experiment()
             for trial in self.trials:
+                # Extract active digits
+                active_digits = []
+                for key in ["TargetDigit", "SingletonDigit", "Non-Singleton1Digit", "Non-Singleton2Digit"]:
+                    if key in trial.parameters and pd.notna(trial.parameters[key]):
+                        active_digits.append(str(int(trial.parameters[key])))
+                self.configure_response_box(active_digits)
+                #print(trial.parameters)
                 trial.run()
         else:
             for block in self.blocks:
@@ -172,6 +215,12 @@ class SpacecueImplicitSession(Session):
                     self.timer.reset()
                     # self.clock.reset()
                 for trial in self.trials:
+                    # Extract active digits
+                    active_digits = []
+                    for key in ["TargetDigit", "SingletonDigit", "Non-Singleton1Digit", "Non-Singleton2Digit"]:
+                        if key in trial.parameters and pd.notna(trial.parameters[key]):
+                            active_digits.append(str(int(trial.parameters[key])))
+                    self.configure_response_box(active_digits)
                     trial.run()
                 self.send_trigger("block_offset")
                 print(f"Stopping block {block}")
