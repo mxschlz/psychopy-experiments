@@ -1,5 +1,5 @@
 logging:
-  level: DEBUG  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
+  level: DATA  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
 
 filepaths:  # some relevant filepaths
   project: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit  # project path
@@ -26,6 +26,11 @@ session:  # these params are relevant for the generation of the possible combina
 numpad:
   digits: [1, 2, 3, 4, 5, 6, 7, 8, 9]  # number of digits on the numpad
   size: 4  # visual angle of 1 degree to left and right
+  layout: "circle"
+  randomize_locations: False
+  display_presented_sounds_only: False
+  rotate_triangle: False
+
 
 trial_sequence:
   hp_distractor: 0.8  # high-probability distractor value
@@ -57,7 +62,7 @@ window:
   size: [600, 600]
   pos: [0, 0]
   color: [0, 0, 0]
-  fullscr: True
+  fullscr: False
   waitBlanking: False
   screen: 0
 
