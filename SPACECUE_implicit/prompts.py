@@ -84,7 +84,7 @@ Dieser Block ist zu Ende. Bitte machen Sie eine kurze Pause.
 """
 
 pause_finished = """
-Die Pause ist zu Ende. Drücken Sie LEERTASTE, um den nächsten Block zu beginnen.
+Drücken Sie LEERTASTE, um den nächsten Block zu beginnen.
 """
 
 end = """

@@ -111,4 +111,4 @@ def plot_hp_switches(subject_id):
 
 if __name__ == "__main__":
     # Change subject_id here if needed
-    plot_hp_switches(subject_id=99)
+    plot_hp_switches(subject_id=110)

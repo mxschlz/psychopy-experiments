@@ -11,6 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import logging
 import time
+import random
 
 info = get_input_from_dict({"subject_id": 99, "block": 0})
 
@@ -43,7 +44,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         snr_container = dict(snr_left=[], snr_right=[], signal_loc=[])
     # List all entries (files and directories) in the directory
     for s in os.listdir(settings["filepaths"]["sequences"]):
-        if str(subject_id) in s:
+        if s.startswith(f"sci-{subject_id}_"):
             if os.path.isdir(os.path.join(settings["filepaths"]["sequences"], s)) and \
                     os.listdir(os.path.join(settings["filepaths"]["sequences"], s)):
                 raise FileExistsError(f"Sequence directory for sci-{subject_id} has been created and is not empty! "
@@ -78,7 +79,15 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         targets = [slab.Binaural(data=x) for x in targets]
         others = [slab.Binaural(data=x) for x in others]
 
-    is_even_subject = subject_id % 2 == 0
+    # Determine sequence ID for balancing (e.g., subject 1 and 101 get same sequence)
+    subject_mod = settings["trial_sequence"].get("subject_id_mod", 100)
+    sequence_id = subject_id % subject_mod
+
+    # Seed global RNGs to ensure deterministic behavior for this sequence ID
+    np.random.seed(sequence_id)
+    random.seed(sequence_id)
+
+    is_even_sequence = sequence_id % 2 == 0
     n_locations = settings["session"]["n_locations"]
     all_locs = list(range(1, n_locations + 1))
     what_to_cue = settings["session"]["cue"]
@@ -87,9 +96,26 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     elif what_to_cue == "control":
         what_to_cue_col = "Non-Singleton2Loc"
 
-    # Initialize dynamic biased location and flip interval
-    current_biased_loc = 1 if is_even_subject else 3
+    # Initialize flip interval
     flip_interval = settings["trial_sequence"]["flip_distractor_prob_coin_after_trials"]
+    n_switches = settings["trial_sequence"].get("distractor_switches", 6)
+
+    # Generate balanced sequence of biased locations
+    total_trials_session = n_blocks * n_trials
+    n_intervals = int(np.ceil(total_trials_session / flip_interval))
+    biased_locs_pool = [1] * (n_intervals // 2) + [3] * (n_intervals // 2)
+    if n_intervals % 2 != 0:
+        biased_locs_pool.append(1 if is_even_sequence else 3)
+    # Shuffle deterministically based on subject_id
+    rng = np.random.default_rng(sequence_id)
+
+    # Shuffle until distractor_switches constraint is met
+    for _ in range(10000):
+        rng.shuffle(biased_locs_pool)
+        if np.sum(np.diff(biased_locs_pool) != 0) == n_switches:
+            break
+    else:
+        logging.warning(f"Could not generate sequence with exactly {n_switches} switches. Using last generated sequence.")
 
     # iterate over block
     for block in range(block, n_blocks):
@@ -135,14 +161,17 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
         # --- START: REFACTORED TRIAL INSTANTIATION LOOP ---
         for i, element in enumerate(sequence_final):
-            # Check if we need to flip the biased location
+            # Determine biased location for this trial
             global_trial_idx = block * n_trials + i
+            interval_idx = global_trial_idx // flip_interval
+            current_biased_loc = biased_locs_pool[interval_idx]
+
             if global_trial_idx > 0 and global_trial_idx % flip_interval == 0:
-                if np.random.rand() < 0.5:
-                    current_biased_loc = 3 if current_biased_loc == 1 else 1
-                    logging.info(f"Trial {global_trial_idx}: Coin flip -> SWITCHED HP distractor to {current_biased_loc}")
+                prev_loc = biased_locs_pool[interval_idx - 1]
+                if current_biased_loc != prev_loc:
+                    logging.info(f"Trial {global_trial_idx}: Interval change -> SWITCHED HP distractor to {current_biased_loc}")
                 else:
-                    logging.info(f"Trial {global_trial_idx}: Coin flip -> KEPT HP distractor at {current_biased_loc}")
+                    logging.info(f"Trial {global_trial_idx}: Interval change -> KEPT HP distractor at {current_biased_loc}")
 
             # 1. Define the pool of candidates for this trial
             select_singleton_present = "SP" in element

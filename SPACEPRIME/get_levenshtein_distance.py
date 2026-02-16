@@ -2,15 +2,11 @@ import numpy as np
 
 
 def levenshtein(a, b, ratio=False, print_matrix=False, lowercase=False):
-    if not isinstance(a, str):
-        raise TypeError('First argument is not a string!')
-    if not isinstance(b, str):
-        raise TypeError('Second argument is not a string!')
-    if a == '':
+    if len(a) == 0:
         return len(b)
-    if b == '':
+    if len(b) == 0:
         return len(a)
-    if lowercase:
+    if lowercase and isinstance(a, str) and isinstance(b, str):
         a = a.lower()
         b = b.lower()
 
@@ -41,10 +37,9 @@ def levenshtein(a, b, ratio=False, print_matrix=False, lowercase=False):
 
 if __name__ == "__main__":
     import pandas as pd
-    from Levenshtein import distance
     import random
-    df1 = pd.read_excel("C:\PycharmProjects\psychopy-experiments\SPACEPRIME\sequences\sub-999_block_0.xlsx")
-    df2 = pd.read_excel("C:\PycharmProjects\psychopy-experiments\SPACEPRIME\sequences\sub-999_block_1.xlsx")
+    df1 = pd.read_csv("G:\\Meine Ablage\\PhD\\data\\SPACEPRIME\\sequences\\sub-166\\sub-166_block_0.csv")
+    df2 = pd.read_csv("G:\\Meine Ablage\\PhD\\data\\SPACEPRIME\\sequences\\sub-166\\sub-166_block_1.csv")
     sequence1 = list()
     for i, row in df1.iterrows():
         element = row["Priming"]
@@ -58,15 +53,15 @@ if __name__ == "__main__":
             element += 10
         sequence2.append(element)
 
-    total_distance = distance(sequence1, sequence2)
+    total_distance = levenshtein(sequence1, sequence2)
     # compare randomness
     pool = [-1, 0, 1, 9, 10, 11]
     random_sequence1 = list()
     random_sequence2 = list()
-    for trial in range(225):
+    for trial in range(len(sequence1)):
         random_sequence1.append(random.choice(pool))
         random_sequence2.append(random.choice(pool))
-    total_random_distance = distance(random_sequence1, random_sequence2)
+    total_random_distance = levenshtein(random_sequence1, random_sequence2)
 
-    print(f"Total distance: {total_distance/len(sequence1)}% \n"
-          f"Total distance of a completely random sequence: {total_random_distance/len(random_sequence1)}%")
+    print(f"Total distance: {total_distance/len(sequence1)*100:.2f}% \n"
+          f"Total distance of a completely random sequence: {total_random_distance/len(random_sequence1)*100:.2f}%")

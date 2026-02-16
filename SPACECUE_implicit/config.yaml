@@ -13,6 +13,8 @@ session:  # these params are relevant for the generation of the possible combina
   n_digits: 9  # number of digits
   n_trials: 180  # number of trials per block
   stimulus_duration: 0.25  # duration of stimulus
+  probe_task_prob: 0.0  # probability of probe task trials
+  n_probe_time_steps: 1  # number of time steps in the probe task
   response_duration: 1.75  # duration of response
   iti: 1.0  # inter-trial interval
   n_blocks: 10  # number of experimental blocks
@@ -27,10 +29,9 @@ numpad:
   digits: [1, 2, 3, 4, 5, 6, 7, 8, 9]  # number of digits on the numpad
   size: 4  # visual angle of 1 degree to left and right
   layout: "circle"
-  randomize_locations: False
-  display_presented_sounds_only: False
-  rotate_triangle: False
-
+  randomize_locations: True
+  display_presented_sounds_only: True
+  rotate_triangle: True
 
 trial_sequence:
   hp_distractor: 0.8  # high-probability distractor value
@@ -43,6 +44,8 @@ trial_sequence:
   mutation_percent_genes: 5  # 5 % mutation rate
   fitness_threshold: 1.0  # perfect fitness is desired
   flip_distractor_prob_coin_after_trials: 90  # flip a coin after X trials to change or continue HP distractor location
+  distractor_switches: 6  # exact number of switches of the biased location
+  subject_id_mod: 100  # Modulo to determine sequence ID (e.g., 1 and 101 share the same sequence)
 
 preferences:  # set some preferences (NOT IMPLEMENTED)
   general:
@@ -62,9 +65,9 @@ window:
   size: [600, 600]
   pos: [0, 0]
   color: [0, 0, 0]
-  fullscr: False
+  fullscr: True
   waitBlanking: False
-  screen: 0
+  screen: 1
 
 monitor:
   name: testMonitor
