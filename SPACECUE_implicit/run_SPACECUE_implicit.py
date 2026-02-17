@@ -1,3 +1,4 @@
+import sounddevice as sd
 from experiment_logic import SpacecueImplicitSession
 from utils.utils import get_input_from_dict
 
