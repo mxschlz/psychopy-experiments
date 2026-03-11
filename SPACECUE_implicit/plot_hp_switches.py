@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import yaml
 import os
 import numpy as np
+import seaborn as sns
+sns.set_theme("talk", "ticks")
 
 # Define paths relative to the script location or absolute
 PROJECT_PATH = "C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE_implicit"
@@ -74,7 +76,7 @@ def plot_hp_switches(subject_id):
     
     # 1. Plot the HP Rule (The intended high-probability location)
     # drawstyle="steps-post" ensures the line stays flat until the change occurs
-    plt.plot(df.index, df["HP_Distractor_Loc"], label="HP Rule (Intended Bias)", 
+    plt.plot(df.index, df["HP_Distractor_Loc"], label="HP Distractor Loc",
              color="#d62728", linewidth=2.5, drawstyle="steps-post", alpha=0.9)
     
     # 2. Plot Actual Distractor Locations
@@ -84,10 +86,10 @@ def plot_hp_switches(subject_id):
                 alpha=0.3, label=f"Actual {loc_col}", color="#1f77b4", s=15, edgecolors='none')
     
     # Formatting
-    plt.yticks(range(1, n_locations + 1))
-    plt.xlabel("Global Trial Index")
-    plt.ylabel("Location ID")
-    plt.title(f"Implicit Learning Protocol: HP Distractor Switches (Subject {subject_id})")
+    plt.yticks([1, 2, 3], ["Left", "Front", "Right"])
+    plt.xlabel("Trial number")
+    plt.ylabel("Distractor location")
+    #plt.title(f"Implicit Learning Protocol: HP Distractor Switches (Subject {subject_id})")
     
     # Add Block Boundaries
     for b in range(n_blocks + 1):
@@ -102,13 +104,14 @@ def plot_hp_switches(subject_id):
     plt.grid(True, axis='y', linestyle=':', alpha=0.3)
     plt.ylim(0.5, n_locations + 0.5)
     plt.tight_layout()
-    
+    sns.despine()
+
     # Save and Show
     output_file = os.path.join(sequences_path, "logs", f"sci-{subject_id}_HP_switches_plot.png")
-    plt.savefig(output_file, dpi=300)
     print(f"Plot saved to: {output_file}")
+    plt.savefig(output_file, dpi=300)
     plt.show()
 
 if __name__ == "__main__":
     # Change subject_id here if needed
-    plot_hp_switches(subject_id=110)
+    plot_hp_switches(subject_id=99999)
