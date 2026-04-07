@@ -5,11 +5,9 @@ import matplotlib.pyplot as plt
 import yaml
 import os
 import numpy as np
-import seaborn as sns
-sns.set_theme("talk", "ticks")
 
 # Define paths relative to the script location or absolute
-PROJECT_PATH = "C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE_implicit"
+PROJECT_PATH = "C:/Users/Stim/PycharmProjects/psychopy-experiments/SPACECUE_implicit"
 CONFIG_PATH = os.path.join(PROJECT_PATH, "config.yaml")
 
 def plot_hp_switches(subject_id):
@@ -104,14 +102,13 @@ def plot_hp_switches(subject_id):
     plt.grid(True, axis='y', linestyle=':', alpha=0.3)
     plt.ylim(0.5, n_locations + 0.5)
     plt.tight_layout()
-    sns.despine()
-
+    
     # Save and Show
     output_file = os.path.join(sequences_path, "logs", f"sci-{subject_id}_HP_switches_plot.png")
-    print(f"Plot saved to: {output_file}")
     plt.savefig(output_file, dpi=300)
+    print(f"Plot saved to: {output_file}")
     plt.show()
 
 if __name__ == "__main__":
     # Change subject_id here if needed
-    plot_hp_switches(subject_id=99999)
+    plot_hp_switches(subject_id=907)

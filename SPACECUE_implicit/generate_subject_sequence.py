@@ -223,7 +223,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 sample["DistractorProb"] = "distractor-absent"
             else:
                 biased_loc = current_biased_loc
-                actual_singleton_loc = sample["Non-Singleton2Loc"].values[0]
+                actual_singleton_loc = sample[what_to_cue_col].values[0]
                 if actual_singleton_loc == biased_loc:
                     sample["DistractorProb"] = "high-probability"
                 else:

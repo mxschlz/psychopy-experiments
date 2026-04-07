@@ -2,22 +2,22 @@ logging:
   level: DATA  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
 
 filepaths:  # some relevant filepaths
-  project: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit  # project path
-  stimuli: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit\stimuli\  # stimuli path
-  sequences: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit\sequences\  # sequences path
+  project: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit  # project path
+  stimuli: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit\stimuli\  # stimuli path
+  sequences: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit\sequences\  # sequences path
 
 session:  # these params are relevant for the generation of the possible combinations excel sheet or trial sequence
   name: SPACECUE_implicit  # use study acronym here
   distractor_type: high  # can be low or high
   n_locations: 3  # number of locations
   n_digits: 9  # number of digits
-  n_trials: 180  # number of trials per block
+  n_trials: 360  # number of trials per block
   stimulus_duration: 0.25  # duration of stimulus
   probe_task_prob: 0.0  # probability of probe task trials
   n_probe_time_steps: 1  # number of time steps in the probe task
   response_duration: 1.75  # duration of response
   iti: 1.0  # inter-trial interval
-  n_blocks: 10  # number of experimental blocks
+  n_blocks: 5  # number of experimental blocks
   level: 50  # not the final volume but choose this to avoid clipping audio data
   samplerate: 44100  # stimulus samplerate
   timing: seconds  # timing of stimuli --> can be seconds or frames (frames is not yet implemented)
@@ -56,9 +56,9 @@ preferences:  # set some preferences (NOT IMPLEMENTED)
 
 mode:
   record_eeg: False  # whether you want to record eeg data or not
-  freefield: False  # whether you want to use a free-field setup. False means headphone usage
+  freefield: True  # whether you want to use a free-field setup. False means headphone usage
   camera: False  # whether you want to run the eye tracker
-  demo: False  # whether you want to run the demo
+  demo: True  # whether you want to run the demo
   acc_test: False  # whether you want to run an initial accuracy test
 
 window:
@@ -67,7 +67,7 @@ window:
   color: [0, 0, 0]
   fullscr: True
   waitBlanking: False
-  screen: 1
+  screen: 0
 
 monitor:
   name: testMonitor
@@ -80,5 +80,5 @@ mouse:
   visible: True
 
 soundconfig:
-  device: 3
+  device: 30 # 8, 9, 13, 23, 24, 28, 30, 31, 32, 34, 35, 52, 58, 61
   mul: 15

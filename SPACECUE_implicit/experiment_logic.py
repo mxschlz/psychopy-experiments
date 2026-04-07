@@ -129,6 +129,37 @@ class SpacecueImplicitSession(Session):
                     y_pos = radius * np.sin(angle_rad)
                     stim.pos = (x_pos, y_pos)
 
+    def save_stim_positions(self, trial):
+        """Saves the positions of the active stimuli to the trial parameters."""
+        if self.virtual_response_box:
+            # Helper to safely get string digit from parameters
+            def get_param_digit(key):
+                val = trial.parameters.get(key)
+                if pd.notna(val):
+                    return str(int(val))
+                return None
+
+            target_digit = get_param_digit("TargetDigit")
+            singleton_digit = get_param_digit("SingletonDigit")
+            ns1_digit = get_param_digit("Non-Singleton1Digit")
+            ns2_digit = get_param_digit("Non-Singleton2Digit")
+
+            # Iterate over response box items (skipping guide)
+            for stim in self.virtual_response_box[1:]:
+                # Check if stim.text matches any of our digits
+                if stim.text == target_digit:
+                    trial.parameters["Target_pos_x"] = stim.pos[0]
+                    trial.parameters["Target_pos_y"] = stim.pos[1]
+                elif stim.text == singleton_digit:
+                    trial.parameters["Distractor_pos_x"] = stim.pos[0]
+                    trial.parameters["Distractor_pos_y"] = stim.pos[1]
+                elif stim.text == ns1_digit:
+                    trial.parameters["Control1_pos_x"] = stim.pos[0]
+                    trial.parameters["Control1_pos_y"] = stim.pos[1]
+                elif stim.text == ns2_digit:
+                    trial.parameters["Control2_pos_x"] = stim.pos[0]
+                    trial.parameters["Control2_pos_y"] = stim.pos[1]
+
     def set_block(self, block):
         self.blockdir = os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_{block}")
         self.display_text(text=f"Initialisiere Block {block+1} von insgesamt {max(self.blocks)+1}... ",
@@ -197,6 +228,7 @@ class SpacecueImplicitSession(Session):
                     if key in trial.parameters and pd.notna(trial.parameters[key]):
                         active_digits.append(str(int(trial.parameters[key])))
                 self.configure_response_box(active_digits)
+                self.save_stim_positions(trial)
                 #print(trial.parameters)
                 trial.run()
         else:
@@ -228,6 +260,7 @@ class SpacecueImplicitSession(Session):
                         if key in trial.parameters and pd.notna(trial.parameters[key]):
                             active_digits.append(str(int(trial.parameters[key])))
                     self.configure_response_box(active_digits)
+                    self.save_stim_positions(trial)
                     trial.run()
                 self.send_trigger("block_offset")
                 print(f"Stopping block {block}")
