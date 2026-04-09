@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 # Define paths relative to the script location or absolute
-PROJECT_PATH = "C:/Users/Stim/PycharmProjects/psychopy-experiments/SPACECUE_implicit"
+PROJECT_PATH = r"C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit"
 CONFIG_PATH = os.path.join(PROJECT_PATH, "config.yaml")
 
 def plot_hp_switches(subject_id):
@@ -69,38 +69,65 @@ def plot_hp_switches(subject_id):
     else:
         sp_trials = df.copy()
 
+    # Encode combined (loc, prob) state into 4 levels:
+    # 1 = Left (80%), 2 = Left (60%), 3 = Right (60%), 4 = Right (80%)
+    def encode_hp_state(loc, prob):
+        if loc == 1:  # Left
+            return 1 if prob == 0.8 else 2
+        else:  # Right (loc == 3)
+            return 3 if prob == 0.6 else 4
+
+    df["HP_State"] = df.apply(lambda r: encode_hp_state(r["HP_Distractor_Loc"], r["HP_Distractor_Prob"]), axis=1)
+
+    # --- TRANSITION COVERAGE CHECK ---
+    hp_states = df["HP_State"].values
+    observed_transitions = set(zip(hp_states[:-1], hp_states[1:]))
+    all_states = sorted(df["HP_State"].unique())
+    all_transitions = {(a, b) for a in all_states for b in all_states if a != b}
+    missing = all_transitions - observed_transitions
+    if missing:
+        state_labels = {1: "Left(80%)", 2: "Left(60%)", 3: "Right(60%)", 4: "Right(80%)"}
+        missing_str = ", ".join(f"{state_labels[a]}→{state_labels[b]}" for a, b in sorted(missing))
+        print(f"WARNING: {len(missing)} transition(s) never observed: {missing_str}")
+    else:
+        print(f"OK: all {len(all_transitions)} transitions observed at least once.")
+
+    # Map actual distractor location to midpoint of its band for scatter
+    loc_to_y = {1: 1.5, 3: 3.5}
+
     # --- PLOTTING ---
     plt.figure(figsize=(14, 6))
-    
+
     # 1. Plot the HP Rule (The intended high-probability location)
     # drawstyle="steps-post" ensures the line stays flat until the change occurs
-    plt.plot(df.index, df["HP_Distractor_Loc"], label="HP Distractor Loc",
+    plt.plot(df.index, df["HP_State"], label="HP Distractor Loc",
              color="#d62728", linewidth=2.5, drawstyle="steps-post", alpha=0.9)
-    
+
     # 2. Plot Actual Distractor Locations
     # Add jitter to y-axis to visualize density
-    y_jitter = np.random.uniform(-0.15, 0.15, size=len(sp_trials))
-    plt.scatter(sp_trials.index, sp_trials[loc_col] + y_jitter, 
+    y_base = sp_trials[loc_col].map(loc_to_y)
+    y_jitter = np.random.uniform(-0.35, 0.35, size=len(sp_trials))
+    plt.scatter(sp_trials.index, y_base + y_jitter,
                 alpha=0.3, label=f"Actual {loc_col}", color="#1f77b4", s=15, edgecolors='none')
-    
+
     # Formatting
-    plt.yticks([1, 2, 3], ["Left", "Front", "Right"])
+    plt.yticks([1, 2, 3, 4], ["Left (80%)", "Left (60%)", "Right (60%)", "Right (80%)"])
     plt.xlabel("Trial number")
     plt.ylabel("Distractor location")
     #plt.title(f"Implicit Learning Protocol: HP Distractor Switches (Subject {subject_id})")
-    
+
     # Add Block Boundaries
     for b in range(n_blocks + 1):
         boundary = b * n_trials
         plt.axvline(x=boundary, color='gray', linestyle='--', alpha=0.5)
         if b < n_blocks:
             # Label blocks
-            plt.text(boundary + (n_trials/2), n_locations + 0.2, f"Block {b}", 
+            plt.text(boundary + (n_trials/2), 4.2, f"Block {b}",
                      ha='center', va='bottom', fontsize=9, color='gray')
 
     plt.legend(loc='center right', frameon=True)
     plt.grid(True, axis='y', linestyle=':', alpha=0.3)
-    plt.ylim(0.5, n_locations + 0.5)
+    plt.ylim(0.5, 4.5)
     plt.tight_layout()
     
     # Save and Show
@@ -111,4 +138,4 @@ def plot_hp_switches(subject_id):
 
 if __name__ == "__main__":
     # Change subject_id here if needed
-    plot_hp_switches(subject_id=907)
+    plot_hp_switches(subject_id=5)

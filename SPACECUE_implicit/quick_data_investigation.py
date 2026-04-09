@@ -7,11 +7,10 @@ plt.ion()
 
 
 # load up dataframe
-fp = "D:\MSchulz\SPACECUE_implicit\logs\clean"
-file_excel = "sci-998_clean_October_22_2025_17_28_44.csv"
+fp = "C:\\Users\\Max\\PycharmProjects\\psychopy-experiments\\SPACECUE_implicit\\logs"
+file_excel = "sci-99_February_11_2026_13_26_02_events.csv"
 # read dataframe
 df = pd.read_csv(os.path.join(fp, file_excel))
-df = df[df["phase"]!= 2]
 
 # singleton absent versus present percentage correct
 sns.barplot(data=df, x="DistractorProb", y="select_target", order=[])

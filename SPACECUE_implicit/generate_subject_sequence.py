@@ -100,22 +100,48 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     flip_interval = settings["trial_sequence"]["flip_distractor_prob_coin_after_trials"]
     n_switches = settings["trial_sequence"].get("distractor_switches", 6)
 
-    # Generate balanced sequence of biased locations
     total_trials_session = n_blocks * n_trials
     n_intervals = int(np.ceil(total_trials_session / flip_interval))
-    biased_locs_pool = [1] * (n_intervals // 2) + [3] * (n_intervals // 2)
-    if n_intervals % 2 != 0:
-        biased_locs_pool.append(1 if is_even_sequence else 3)
-    # Shuffle deterministically based on subject_id
     rng = np.random.default_rng(sequence_id)
 
-    # Shuffle until distractor_switches constraint is met
-    for _ in range(10000):
-        rng.shuffle(biased_locs_pool)
-        if np.sum(np.diff(biased_locs_pool) != 0) == n_switches:
-            break
+    # Handle HP distractor probabilities (supports both list or single float)
+    hp_distractor_setting = settings["trial_sequence"]["hp_distractor"]
+    if not isinstance(hp_distractor_setting, list):
+        hp_distractor_setting = [hp_distractor_setting]
+
+    # Build all combined (loc, prob) states.
+    states = [(loc, prob) for loc in [1, 3] for prob in hp_distractor_setting]
+
+    # Build a sequence of n_intervals states where every (from→to) transition
+    # appears at least once. Walk the complete directed graph by always following
+    # a random unvisited outgoing edge (Hierholzer's algorithm), then pad to
+    # n_intervals by inserting holds (repeated state) at random positions.
+    outgoing = {}
+    for s in states:
+        other_states = [t for t in states if t != s]
+        rng.shuffle(other_states)
+        outgoing[s] = other_states
+    start_state = states[int(rng.integers(len(states)))]
+    stack, circuit = [start_state], []
+    while stack:
+        if outgoing[stack[-1]]:
+            stack.append(outgoing[stack[-1]].pop())
+        else:
+            circuit.append(stack.pop())
+    circuit.reverse()  # length = n_transitions + 1
+
+    n_holds = n_intervals - len(circuit)
+    if n_holds < 0:
+        logging.warning(f"n_intervals ({n_intervals}) smaller than circuit length ({len(circuit)}). Truncating.")
+        circuit = circuit[:n_intervals]
     else:
-        logging.warning(f"Could not generate sequence with exactly {n_switches} switches. Using last generated sequence.")
+        hold_indices = sorted(rng.integers(1, len(circuit), size=n_holds))
+        for offset, idx in enumerate(hold_indices):
+            circuit.insert(idx + offset, circuit[idx + offset - 1])
+
+    combined_pool = circuit
+    biased_locs_pool = [s[0] for s in combined_pool]
+    hp_probs_pool = [s[1] for s in combined_pool]
 
     # iterate over block
     for block in range(block, n_blocks):
@@ -165,13 +191,15 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
             global_trial_idx = block * n_trials + i
             interval_idx = global_trial_idx // flip_interval
             current_biased_loc = biased_locs_pool[interval_idx]
+            current_hp_prob = float(hp_probs_pool[interval_idx])
 
             if global_trial_idx > 0 and global_trial_idx % flip_interval == 0:
                 prev_loc = biased_locs_pool[interval_idx - 1]
-                if current_biased_loc != prev_loc:
-                    logging.info(f"Trial {global_trial_idx}: Interval change -> SWITCHED HP distractor to {current_biased_loc}")
+                prev_prob = hp_probs_pool[interval_idx - 1]
+                if current_biased_loc != prev_loc or current_hp_prob != prev_prob:
+                    logging.info(f"Trial {global_trial_idx}: Interval change -> SWITCHED config to Loc: {current_biased_loc}, Prob: {current_hp_prob}")
                 else:
-                    logging.info(f"Trial {global_trial_idx}: Interval change -> KEPT HP distractor at {current_biased_loc}")
+                    logging.info(f"Trial {global_trial_idx}: Interval change -> KEPT config at Loc: {current_biased_loc}, Prob: {current_hp_prob}")
 
             # 1. Define the pool of candidates for this trial
             select_singleton_present = "SP" in element
@@ -183,8 +211,8 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                 if biased_loc in all_locs:
                     other_locs = [loc for loc in all_locs if loc != biased_loc]
 
-                    # Decide if we pick the biased location (e.g., 80% chance)
-                    if np.random.rand() < settings["trial_sequence"]["hp_distractor"]:
+                    # Decide if we pick the biased location based on current interval probability
+                    if np.random.rand() < current_hp_prob:
                         high_prob_trials = candidate_pool[candidate_pool[what_to_cue_col] == biased_loc]
                         if not high_prob_trials.empty:
                             candidate_pool = high_prob_trials
@@ -217,6 +245,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
                     priming_label = -1
             sample["Priming"] = priming_label
             sample["HP_Distractor_Loc"] = current_biased_loc
+            sample["HP_Distractor_Prob"] = current_hp_prob
 
             # Add distractor probability column
             if not select_singleton_present:

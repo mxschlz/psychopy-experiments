@@ -2,9 +2,9 @@ logging:
   level: DATA  # choose which logging level you want --> ONLY FOR PSYCHOPY EXPERIMENT; NOT APPLICABLE TO TRIAL SEQUENCES
 
 filepaths:  # some relevant filepaths
-  project: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit  # project path
-  stimuli: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit\stimuli\  # stimuli path
-  sequences: C:\Users\Stim\PycharmProjects\psychopy-experiments\SPACECUE_implicit\sequences\  # sequences path
+  project: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit  # project path
+  stimuli: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit\stimuli\  # stimuli path
+  sequences: C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit\sequences\  # sequences path
 
 session:  # these params are relevant for the generation of the possible combinations excel sheet or trial sequence
   name: SPACECUE_implicit  # use study acronym here
@@ -34,7 +34,7 @@ numpad:
   rotate_triangle: True
 
 trial_sequence:
-  hp_distractor: 0.8  # high-probability distractor value
+  hp_distractor: [0.6, 0.8]  # high-probability distractor values (can be a single float or list of floats)
   prop_sp: 1.0  # proportion of singleton present trials
   rule_violation_factor: 1000  # rule violation weight
   num_generations: 50000  # 50000 iterations for genetic algorithm is definitely enough
@@ -43,8 +43,8 @@ trial_sequence:
   keep_parents: 2  # Elitism
   mutation_percent_genes: 5  # 5 % mutation rate
   fitness_threshold: 1.0  # perfect fitness is desired
-  flip_distractor_prob_coin_after_trials: 90  # flip a coin after X trials to change or continue HP distractor location
-  distractor_switches: 6  # exact number of switches of the biased location
+  flip_distractor_prob_coin_after_trials: 45  # flip a coin after X trials to change or continue HP distractor location
+  distractor_switches: 12  # exact number of switches of the biased location
   subject_id_mod: 100  # Modulo to determine sequence ID (e.g., 1 and 101 share the same sequence)
 
 preferences:  # set some preferences (NOT IMPLEMENTED)
@@ -56,9 +56,9 @@ preferences:  # set some preferences (NOT IMPLEMENTED)
 
 mode:
   record_eeg: False  # whether you want to record eeg data or not
-  freefield: True  # whether you want to use a free-field setup. False means headphone usage
+  freefield: False  # whether you want to use a free-field setup. False means headphone usage
   camera: False  # whether you want to run the eye tracker
-  demo: True  # whether you want to run the demo
+  demo: False  # whether you want to run the demo
   acc_test: False  # whether you want to run an initial accuracy test
 
 window:
