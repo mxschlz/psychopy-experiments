@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 # Define paths relative to the script location or absolute
-PROJECT_PATH = r"C:\Users\Max\PycharmProjects\psychopy-experiments\SPACECUE_implicit"
+PROJECT_PATH = r"C:\Users\AC_STIM\Documents\Experimentskripte\max_schulz_scripts\psychopy-experiments\SPACECUE_implicit"
 CONFIG_PATH = os.path.join(PROJECT_PATH, "config.yaml")
 
 def plot_hp_switches(subject_id):
@@ -104,14 +104,30 @@ def plot_hp_switches(subject_id):
              color="#d62728", linewidth=2.5, drawstyle="steps-post", alpha=0.9)
 
     # 2. Plot Actual Distractor Locations
+    # Dynamically map actual locations so they revolve around the true HP Rule function line states
+    def get_scatter_y(row):
+        loc = row[loc_col]
+        prob = row["HP_Distractor_Prob"]
+        if loc == 1:  # Left
+            return 1 if prob == 0.8 else 2
+        elif loc == 3:  # Right
+            return 4 if prob == 0.8 else 3
+        elif loc == 2:  # Center
+            return 2.5
+        else:
+            return np.nan
+
+    y_base = sp_trials.apply(get_scatter_y, axis=1)
+
     # Add jitter to y-axis to visualize density
-    y_base = sp_trials[loc_col].map(loc_to_y)
-    y_jitter = np.random.uniform(-0.35, 0.35, size=len(sp_trials))
+    # (Reduced to 0.25 to keep dots tightly clustered around the true state line)
+    y_jitter = np.random.uniform(-0.25, 0.25, size=len(sp_trials))
     plt.scatter(sp_trials.index, y_base + y_jitter,
                 alpha=0.3, label=f"Actual {loc_col}", color="#1f77b4", s=15, edgecolors='none')
 
     # Formatting
-    plt.yticks([1, 2, 3, 4], ["Left (80%)", "Left (60%)", "Right (60%)", "Right (80%)"])
+    # Added "Center" to y-ticks to make loc 2 distractors visually clear
+    plt.yticks([1, 2, 2.5, 3, 4], ["Left (80%)", "Left (60%)", "Center", "Right (60%)", "Right (80%)"])
     plt.xlabel("Trial number")
     plt.ylabel("Distractor location")
     #plt.title(f"Implicit Learning Protocol: HP Distractor Switches (Subject {subject_id})")
@@ -138,4 +154,4 @@ def plot_hp_switches(subject_id):
 
 if __name__ == "__main__":
     # Change subject_id here if needed
-    plot_hp_switches(subject_id=5)
+    plot_hp_switches(subject_id=4)
