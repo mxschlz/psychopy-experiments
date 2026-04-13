@@ -8,7 +8,7 @@ import prompts as prompts
 import pandas as pd
 from utils.sound import SoundDeviceSound as Sound
 from psychopy import parallel, core, event
-from encoding import EEG_TRIGGER_MAP, PRIMING
+from encoding import EEG_TRIGGER_MAP
 import random
 import numpy as np
 import csv
@@ -191,7 +191,9 @@ class SpacecueImplicitSession(Session):
             sound_path = os.path.join(trial.session.blockdir, f"s_{trial.trial_nr}.wav")  # s_0, s_1, ... .wav
             trial.stim = Sound(filename=sound_path, device=self.settings["soundconfig"]["device"],
                                mul=self.settings["soundconfig"]["mul"])
-            trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
+            trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-HP-Distractor-Loc-{int(trial.parameters["HP_Distractor_Loc"])}-{float(trial.parameters["HP_Distractor_Prob"])}'
+            print(f"Trigger key: {trial.trigger_name}\n"
+                  f"Trigger value: {EEG_TRIGGER_MAP[trial.trigger_name]}")
             self.trials.append(trial)
 
     def run(self, starting_block):

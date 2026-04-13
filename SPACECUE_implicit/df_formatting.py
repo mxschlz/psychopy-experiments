@@ -12,6 +12,8 @@ info = get_input_from_dict({"subject_id": 99,
                             "handedness": "r",
                             "age": 0})
 
+subject_id = int(info["subject_id"])
+
 # load settings
 settings_path = Path("config.yaml")
 with open(settings_path) as file:
@@ -24,7 +26,7 @@ fp = project_root / "logs"
 fp_clean = fp / "clean"
 fp_clean.mkdir(parents=True, exist_ok=True)  # Ensure the clean directory exists
 # get files in log dir
-fn = list(fp.glob(f'sci-{info["subject_id"]}*events.csv'))
+fn = list(fp.glob(f'sci-{subject_id}*events.csv'))
 if len(fn) > 1:
     files = []
     for file in fn:
@@ -43,18 +45,18 @@ df['response'] = pd.to_numeric(df['response'], errors='coerce')
 df['response'] = df['response'].astype('Int64')
 
 # swap distractor probabilities for subjects 996 and 989
-if info["subject_id"] in [996, 989]:
+if subject_id in [996, 989]:
     swap_dict = {'high-probability': 'low-probability', 'low-probability': 'high-probability'}
     df['DistractorProb'] = df['DistractorProb'].map(swap_dict)
 
 # get correct in singleton absent vs present trials
 df["IsCorrect"] = df.response == df.TargetDigit
-df["select_distractor"] = df["response"] == df["SingletonDigit"]
-df["select_control"] = (df["response"] == df["Non-Singleton2Digit"]) | (df["response"] == df["Non-Singleton1Digit"])
-df["select_other"] = (df["response"] != df["Non-Singleton2Digit"]) & (df["response"] != df["Non-Singleton1Digit"]) & (df["response"] != df["TargetDigit"]) & (df["response"] != df["SingletonDigit"])
+df["SelectDistractor"] = df["response"] == df["SingletonDigit"]
+df["SelectControl"] = (df["response"] == df["Non-Singleton2Digit"]) | (df["response"] == df["Non-Singleton1Digit"])
+df["SelectOther"] = (df["response"] != df["Non-Singleton2Digit"]) & (df["response"] != df["Non-Singleton1Digit"]) & (df["response"] != df["TargetDigit"]) & (df["response"] != df["SingletonDigit"])
 # add meta data
-df["gender"] = "Female" if info["gender"] == "f" else "Male"
-df["handedness"] = "Right-handed" if info["handedness"] == "r" else "Left-handed"
+df["Gender"] = "Female" if info["gender"] == "f" else "Male"
+df["Handedness"] = "Right-handed" if info["handedness"] == "r" else "Left-handed"
 df["age"] = info["age"]
 # get absolute trial_nr count
 df['Absolute Trial Nr'] = (df['block']) * (df["trial_nr"].max() + 1) + df['trial_nr']
@@ -83,6 +85,10 @@ df["Priming"] = df["Priming"].map(priming_map, na_action='ignore')
 df["Block"] = df["block"].astype('Int64')
 df["Subject ID"] = df["subject_id"].astype('Int64')
 df["Age"] = df["age"].astype('Int64')
+
+# swap 990 and 900 for switching HP distractor location design
+if subject_id in [990]:
+    df["Subject ID"] = 900
 
 # Drop original columns that have been renamed or are no longer needed
 columns_to_drop = [
