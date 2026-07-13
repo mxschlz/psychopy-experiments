@@ -281,8 +281,59 @@ class SpacecueImplicitSession(Session):
                 if not block == max(self.blocks):
                     #self.display_text(text=prompts.pause, duration=60, height=0.75)
                     self.display_text(text=prompts.pause_finished, keys="space", height=0.75)
+        self.ask_loudspeaker_question()
         self.display_text(text=prompts.end, keys="q", height=0.75)
         # self.send_trigger("experiment_offset")
+
+    def ask_loudspeaker_question(self):
+        question_text = "Im Experiment wurde die Kinderstimme aus 2 Lautsprechern besonders häufig präsentiert. Bitte wählen Sie die 2 Lautsprecher auf dem Bildschirm aus. Klicken Sie dann auf 'Bestätigen'."
+        question_stim = psychopy.visual.TextStim(self.win, text=question_text, height=0.75, wrapWidth=25)
+
+        # Create loudspeaker stimuli (using text as a fallback for images)
+        positions = [(-10, -2), (0, -2), (10, -2)]
+        names = ["Links", "Vorne", "Rechts"]
+        loudspeakers = []
+        for name, pos in zip(names, positions):
+            loudspeakers.append(psychopy.visual.TextStim(self.win, text=name, pos=pos, height=1.5))
+
+        selected_loudspeakers = []
+        mouse = event.Mouse(win=self.win)
+
+        while True:
+            question_stim.draw()
+            for ls in loudspeakers:
+                ls.draw()
+
+                # Handle clicks
+                if mouse.isPressedIn(ls, buttons=[0]):
+                    if ls not in selected_loudspeakers:
+                        if len(selected_loudspeakers) < 2:
+                            selected_loudspeakers.append(ls)
+                            ls.setColor('green')  # Visual feedback
+                    else:
+                        selected_loudspeakers.remove(ls)
+                        ls.setColor('white')  # Revert visual feedback
+                    core.wait(0.2)  # Debounce
+
+            if len(selected_loudspeakers) == 2:
+                verify_button = psychopy.visual.TextStim(self.win, text="Bestätigen", pos=(0, -8), height=1.5)
+                verify_button.draw()
+                if mouse.isPressedIn(verify_button, buttons=[0]):
+                    break
+
+            self.win.flip()
+
+            if 'escape' in event.getKeys():
+                break
+
+        # Save the response
+        if len(selected_loudspeakers) == 2:
+            with open(os.path.join(self.output_dir, f"loudspeaker_selection_{self.name}.csv"), 'w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["SelectedLoudspeaker1", "SelectedLoudspeaker2"])
+                writer.writerow([ls.text for ls in selected_loudspeakers])
+                
+        self.win.flip()  # Clear the screen
 
     # Function to send trigger value by specifying event name
     def send_trigger(self, trigger_name):
