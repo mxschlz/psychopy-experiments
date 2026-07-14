@@ -81,6 +81,16 @@ def generate_balanced_jitter(df, iti, tolerance=0.001, mode="ITI"):
 
         return pd.Series(jitter_1, index=df.index)
 
+def generate_fixed_levels_jitter(df, levels=[0.5, 1.0, 1.5, 2.0]):
+    n_total = len(df)
+    if n_total == 0:
+        return pd.Series([], dtype=float)
+    base_repeats = n_total // len(levels)
+    remainder = n_total % len(levels)
+    jitter_all = np.array(levels * base_repeats + list(np.random.choice(levels, remainder, replace=False)))
+    np.random.shuffle(jitter_all)
+    return pd.Series(jitter_all, index=df.index)
+
 
 if __name__ == '__main__':
     info = get_input_from_dict(input_dict={"participant_info": 99})
