@@ -87,12 +87,125 @@ Drücken Sie LEERTASTE, um zu beginnen.
 """
 
 pause = """
-Dieser Block ist zu Ende. Bitte machen Sie eine kurze Pause.
+Dieser Block ist zu Ende. Bitte machen Sie eine kurze Pause von 60 Sekunden. \n
+Der nächste Block startet im Anschluss automatisch.
 """
 
 pause_finished = """
 Die Pause ist zu Ende. Drücken Sie LEERTASTE, um den nächsten Block zu beginnen.
 """
+
+# --- STUDY INFO & CONSENT (From infos.md and consent.md) ---
+
+info_pages = [
+    """
+Sehr geehrte Dame, sehr geehrter Herr,
+vielen Dank für Ihr Interesse an unserer Studie!
+
+Im Folgenden erhalten Sie von uns einige grundlegende Informationen zur Studie und den geplanten Messungen. Außerdem informieren wir Sie über den Umgang mit den erhobenen Daten und nennen Ausschlusskriterien für die Teilnahme an der Studie.
+
+Bitte lesen Sie diese Studieninformation sorgfältig durch und kontaktieren Sie bei Fragen die Studienleitung.
+
+1. Studienziele
+Mit dieser Studie erhoffen wir uns neue Erkenntnisse zu Verhaltensmechanismen, während Menschen ihre Aufmerksamkeit mit ihrem Gehör auf eine bestimmte richten.
+Zu diesem Zweck werden Ihnen verschiedene räumliche, akustische Reize vorgespielt, von denen Sie immer nur einen Reiz beachten sollen.
+Am Ende jedes Durchgangs beantworten Sie eine Frage zur Identität des relevanten akustischen Reizes. 
+Vor dem eigentlichen Experiment findet eine Einführung statt, in der Sie sich mit dem Ablauf des Experiments vertraut machen können. 
+Mit einer Teilnahme würden Sie einen wichtigen Beitrag zur kognitionspsychologischen Grundlagenforschung bezüglich Aufmerksamkeit beitragen.
+
+[Drücken Sie LEERTASTE, um weiterzublättern]
+""",
+    """
+2. Studienumfang, geplanter Ablauf, Risiken und Vergütung
+
+Die Studie umfasst einen einzigen Termin von circa 60 Minuten Dauer. Die Teilnahme erfolgt online.
+Bitte beachten Sie, dass die Studie nicht über Handys oder Tablets abgespielt werden kann, da Sie eine Tastatur benötigen.
+Außerdem sind Kopfhörer zwingend erforderlich. 
+
+Die Durchführung der Studie teilt sich in folgende Punkte auf:
+1. Die schriftliche Aufklärung der Versuchsperson.
+2. Das Sammeln von personenbezogenen Daten (Alter, Händigkeit und Geschlecht).
+3. Die Durchführung der Aufmerksamkeitsaufgabe durch Sie.
+
+Für Sie bestehen keine erkennbaren Risiken. Sie erhalten eine Aufwandsentschädigung von 12 Euro pro Stunde.
+
+[Drücken Sie LEERTASTE, um weiterzublättern]
+""",
+    """
+3. Einschluss- und Ausschlusskriterien
+
+Einschlusskriterien:
+- 18 - 35 Jahre
+- Rechtshändigkeit
+- Fähigkeit der Einverständniserklärung zur Teilnahme an dem Experiment
+
+Ausschlusskriterien:
+- Neurologische oder audiologische Erkrankungen, z.B. Tragen eines Hörgeräts oder ein Schlaganfall in vergangener Zeit
+- Unfähigkeit, die experimentellen Aufgaben entsprechend den Anweisungen auszuführen
+- Unfähigkeit, die Einverständniserklärung zu geben
+
+[Drücken Sie LEERTASTE, um weiterzublättern]
+""",
+    """
+4. Datenschutzrechtliche Informationen
+
+Die erhobenen Daten werden pseudonymisiert und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.
+Die personenbezogenen Daten (Adressen, Namen etc.) werden streng vertraulich und nach gesetzlichen Bestimmungen behandelt.
+Die erhobenen Daten im Experiment werden in pseudonymisierter Form, d.h. ohne direkten Bezug zu Ihrem Namen, elektronisch gespeichert und ausgewertet.
+Für die spätere Auswertung werden die Daten aller Probanden vollständig anonymisiert herangezogen.
+
+Für die Datenverarbeitung verantwortlich ist:
+Max Schulz, M.Sc.
+Maria-Goeppert-Straße 9a
+23562 Lübeck
+Gebäude MFC 8, 1. OG., Raum 2
+Tel.: +49 451 3101 3647
+E-Mail: max.schulz@uni-luebeck.de
+
+Zugriff auf Ihre Daten haben nur Mitarbeitende der Studie.
+Sie haben das Recht auf Auskunft über die Sie betreffenden Daten, auch in Form einer unentgeltlichen Kopie.
+Bei Rücknahme Ihrer Einwilligung haben Sie das Recht, die Löschung der bis dahin gesammelten Daten zu verlangen.
+Dazu kontaktieren Sie bitte Max Schulz.
+
+[Drücken Sie LEERTASTE, um weiterzublättern]
+""",
+    """
+5. Datenschutzrechtliche Informationen (Fortsetzung)
+
+Im Falle einer Beschwerde wenden Sie sich bitte an den Datenschutzbeauftragte der Universität zu Lübeck:
+x-tention Informationstechnologie GmbH
+Margot-Becke-Ring 37, 69124 Heidelberg
+Telefon: 0451 3101 1903
+E-Mail: datenschutz@uni-luebeck.de
+
+Sie können sich mit einer Beschwerde auch an die zuständige Datenschutzbehörde wenden:
+Unabhängiges Landeszentrum für Datenschutz Schleswig-Holstein
+Holstenstraße 98, 24103 Kiel
+E-Mail: mail@datenschutzzentrum.de
+
+Herzlichen Dank!
+Max Schulz
+---
+[1] Pseudonymisierung: "die Verarbeitung personenbezogener Daten in einer Weise, dass die personenbezogenen Daten ohne Hinzuziehung zusätzlicher Informationen nicht mehr einer spezifischen betroffenen Person zugeordnet werden können..." Artikel 4 Abs. 5 DSGVO
+[2] Anonymisierung: "das Verändern personenbezogener Daten derart, dass Einzelangaben über persönliche oder sachliche Verhältnisse nicht mehr... einer bestimmten oder bestimmbaren natürlichen Person zugeordnet werden können." §3 Abs. 6 BDSG
+
+[Drücken Sie LEERTASTE, um weiterzublättern]
+"""
+]
+
+consent_form = """
+EINVERSTÄNDNISERKLÄRUNG
+
+Ich bestätige hiermit, dass ich über Wesen, Bedeutung, Risiken und Tragweite der beabsichtigten Studie aufgeklärt wurde und für meine Entscheidung genügend Bedenkzeit hatte.
+Ich wurde darauf hingewiesen, dass meine Teilnahme freiwillig ist und ich das Recht habe, diese jederzeit ohne Angabe von Gründen zu beenden, ohne dass dadurch Nachteile entstehen.
+Ich habe verstanden, dass ich jederzeit ohne Angabe von Gründen die Untersuchung abbrechen kann sowie das Recht auf Datenlöschung besitze.
+Ich erkläre mich bereit, an der verhaltenspsychologischen Untersuchung teilzunehmen. Ich erkläre mich dazu bereit, dass meine Verhaltensdaten aufgenommen und gespeichert werden.
+Ich erkläre mich damit einverstanden, dass meine erhobenen Daten in anonymisierter Form für Publikationszwecke verwendet werden können.
+
+Drücken Sie 'Y' (Yes/Ja), wenn Sie zustimmen und teilnehmen möchten.
+Drücken Sie 'N' (No/Nein), wenn Sie NICHT zustimmen und das Experiment abbrechen möchten.
+"""
+
 
 end = """
 Das Experiment ist nun vorbei. Vielen Dank für die Teilnahme! \n
@@ -162,7 +275,7 @@ In jedem Durchgang werden Ihnen drei Pfeile angezeigt, welche in drei Richtungen
 In einigen Durchgängen sind alle Pfeile farblos. {colored_arrow_description} \n
 Dieser Pfeil ist nützlich, denn er zeigt, welche Art von Zahlwort aus dieser Richtung kommen wird. \n
 Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt. \n
-Ist der Pfeil {target_color_german}, handelt es sich um das raue, kratzige, zu identifizierende Zahlwort. \n
+Ist der Pfeil {target_color_german}, handelt es sich um einen Störreiz mit normaler Stimme. \n
 Ist der Pfeil {distractor_color_german}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört. \n
 
 Drücken Sie LEERTASTE, um weiterzublättern.
