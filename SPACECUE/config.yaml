@@ -19,6 +19,7 @@ session:  # these params are relevant for the generation of the possible combina
   prop_distractor_present_trials: 1.0  # proportion of distractor-present trials
   cue_duration: 0.2  # duration of cue
   cue_stim_delay: 1.0  # delay between cue and stimulus
+  cue_stim_delay_levels: [0.5, 1.0, 1.5, 2.0]  # possible fixed intervals for delay between cue and stimulus
   stimulus_duration: 0.25  # duration of stimulus
   response_duration: 1.75  # duration of response
   iti: 1.0  # inter-trial interval
@@ -26,7 +27,7 @@ session:  # these params are relevant for the generation of the possible combina
   level: 50  # not the final volume but choose this to avoid clipping audio data
   samplerate: 44100  # stimulus samplerate
   timing: seconds  # timing of stimuli --> can be seconds or frames (frames is not yet implemented)
-  response_device: keypad  # can be mouse or keypad
+  response_device: mouse  # can be mouse or keypad
   fixation_type: circle  # can be circle or cross
 
 numpad:
