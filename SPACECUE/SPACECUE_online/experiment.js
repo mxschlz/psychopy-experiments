@@ -647,6 +647,8 @@ function buildAndRunExperiment(trial_data) {
                 choices: "NO_KEYS",
                 trial_duration: 200, 
                 on_start: function() {
+                    const logo = document.getElementById('uzl-logo');
+                    if (logo) logo.style.display = 'none';
                     document.body.classList.add('hide-cursor');
                 },
                 extensions: [{type: jsPsychExtensionMouseTracking}],
