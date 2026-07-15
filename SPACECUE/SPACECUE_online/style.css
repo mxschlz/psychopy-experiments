@@ -1,0 +1,189 @@
+body {
+    background: radial-gradient(circle at center, #1a1a2e 0%, #0f0f1a 100%);
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    overflow: hidden; /* Prevent scrolling during experiment */
+}
+
+/* Modern Glassmorphic Exit Button */
+.modern-exit-btn {
+    position: fixed; 
+    top: 20px; 
+    right: 20px; 
+    z-index: 9999; 
+    padding: 12px 24px; 
+    background: rgba(244, 67, 54, 0.15);
+    color: #ff6b6b; 
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    cursor: pointer; 
+    border-radius: 12px; 
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modern-exit-btn:hover {
+    background: rgba(244, 67, 54, 0.8);
+    color: white;
+    border-color: rgba(244, 67, 54, 1);
+    box-shadow: 0 0 15px rgba(244, 67, 54, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Instruction Text (Glassmorphic Cards) */
+.instruction-text {
+    font-size: 22px;
+    font-weight: 300;
+    max-width: 750px;
+    margin: 0 auto;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 50px 60px;
+    border-radius: 24px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    animation: fadeIn 0.8s ease-out;
+}
+
+.instruction-text br {
+    display: block;
+    content: "";
+    margin-top: 12px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fixation and Arrows Layout */
+.cue-screen {
+    position: relative;
+    width: 500px;
+    height: 500px;
+    margin: 0 auto;
+    animation: pulseGlow 4s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    from { filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
+    to { filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); }
+}
+
+.fixation {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 64px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.arrow {
+    position: absolute;
+    width: 0; 
+    height: 0; 
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 40px solid white; /* default color */
+    filter: drop-shadow(0 0 8px currentColor);
+    transition: all 0.3s ease;
+}
+
+/* 1: Left arrow on the left of fixation */
+.arrow-left {
+    top: 50%;
+    left: 20%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+/* 2: Up arrow above fixation */
+.arrow-up {
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(0deg);
+}
+
+/* 3: Right arrow on the right of fixation */
+.arrow-right {
+    top: 50%;
+    left: 80%;
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+/* 3x3 Numpad grid (Glassmorphism Panel) */
+#jspsych-audio-button-response-btngroup {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    width: 340px;
+    margin: 0 auto;
+    padding: 30px;
+    background: rgba(20, 20, 35, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Modern Numpad Buttons */
+.jspsych-btn.virtual-response-box {
+    width: 85px;
+    height: 85px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: linear-gradient(145deg, rgba(40, 40, 60, 0.8), rgba(20, 20, 35, 0.8));
+    color: #e2e8f0;
+    font-size: 36px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    border-radius: 16px;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    margin: 0 !important;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.jspsych-btn.virtual-response-box:hover {
+    background: linear-gradient(145deg, rgba(60, 60, 90, 0.9), rgba(40, 40, 60, 0.9));
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.jspsych-btn.virtual-response-box:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Optional: when a button is clicked late */
+.late-response {
+    border-color: #ff5252 !important;
+    box-shadow: 0 0 15px rgba(255, 82, 82, 0.5) !important;
+}
+
+/* Override jsPsych default styling for better dark mode compatibility */
+.jspsych-content-wrapper {
+    background: transparent !important;
+}
+
+.jspsych-content {
+    color: #e2e8f0 !important;
+}
