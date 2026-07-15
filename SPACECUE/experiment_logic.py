@@ -301,6 +301,33 @@ class SpaceCueSession(Session):
             trial.trigger_name = f'Target-{int(trial.parameters["TargetLoc"])}-Singleton-{int(trial.parameters["SingletonLoc"])}-{PRIMING[trial.parameters["Priming"]]}'
             self.trials.append(trial)
 
+    def display_pages(self, pages, height=0.5):
+        from psychopy import event
+        from psychopy.visual import TextStim
+        idx = 0
+        while idx < len(pages):
+            page_text = pages[idx]
+            nav_hint = "\n\n[Rechte Pfeiltaste = Weiter"
+            if idx > 0:
+                nav_hint += " | Linke Pfeiltaste = Zurück]"
+            else:
+                nav_hint += "]"
+            
+            # Remove any mention of spacebar
+            clean_text = page_text.replace("[Drücken Sie LEERTASTE, um weiterzublättern]", "")
+            clean_text = clean_text.replace("Drücken Sie LEERTASTE, um weiterzublättern.", "")
+            clean_text = clean_text.replace("Drücken Sie LEERTASTE, um fortzufahren.", "")
+            
+            text_stim = TextStim(self.win, text=clean_text + nav_hint, height=height, wrapWidth=30)
+            text_stim.draw()
+            self.win.flip()
+            
+            keys = event.waitKeys(keyList=["right", "left"])
+            if "right" in keys:
+                idx += 1
+            elif "left" in keys and idx > 0:
+                idx -= 1
+
     def run(self, starting_block):
         # self.send_trigger("experiment_onset")  # We do not need this since this was not recorded in SPACEPRIME, anyway.
         # --- STUDY INFO & CONSENT ---
@@ -308,24 +335,7 @@ class SpaceCueSession(Session):
             from psychopy import event, core
             from psychopy.visual import TextStim
             
-            idx = 0
-            while idx < len(prompts.info_pages):
-                page_text = prompts.info_pages[idx]
-                nav_hint = "\n\n[Rechte Pfeiltaste = Weiter"
-                if idx > 0:
-                    nav_hint += " | Linke Pfeiltaste = Zurück]"
-                else:
-                    nav_hint += "]"
-                    
-                text_stim = TextStim(self.win, text=page_text.replace("[Drücken Sie LEERTASTE, um weiterzublättern]", "") + nav_hint, height=0.5, wrapWidth=30)
-                text_stim.draw()
-                self.win.flip()
-                
-                keys = event.waitKeys(keyList=["right", "left"])
-                if "right" in keys:
-                    idx += 1
-                elif "left" in keys and idx > 0:
-                    idx -= 1
+            self.display_pages(prompts.info_pages, height=0.5)
             text_stim = TextStim(self.win, text=prompts.consent_form, height=0.5, wrapWidth=30)
             text_stim.draw()
             self.win.flip()
@@ -362,17 +372,17 @@ Drücken Sie 'p', um einen Testton abzuspielen. Passen Sie die Systemlautstärke
 
 WICHTIG: Bitte verändern Sie die Lautstärke nach diesem Test während des restlichen Experiments nicht mehr!
 
-Drücken Sie LEERTASTE, wenn die Lautstärke eingestellt ist und Sie fortfahren möchten.
+Drücken Sie auf die RECHTE PFEILTASTE, wenn die Lautstärke eingestellt ist und Sie fortfahren möchten.
 """
             hp_stim = TextStim(self.win, text=headphone_text, height=0.5, wrapWidth=30)
             hp_stim.draw()
             self.win.flip()
             
             while True:
-                hp_keys = event.waitKeys(keyList=["p", "space"])
-                if "p" in hp_keys:
+                keys = event.waitKeys(keyList=["right", "p"])
+                if "p" in keys:
                     test_sound.play()
-                if "space" in hp_keys:
+                elif "right" in keys:
                     break
             # --------------------------------
             
@@ -387,7 +397,7 @@ Wenn Sie einen Kopfhörer falsch herum aufhaben, werden Sie Fehler machen. Bitte
 
 Drücken Sie LEERTASTE, um zu beginnen.
 """
-            self.display_text(text=loc_text, keys="space", height=0.5)
+            self.display_pages([loc_text], height=0.5)
             
             screening_errors = 0
 
@@ -415,7 +425,7 @@ Sie werden wieder einzelne Zahlwörter hören. Ihre Aufgabe ist es nun anzugeben
 
 Drücken Sie LEERTASTE, um zu beginnen.
 """
-            self.display_text(text=id_text, keys="space", height=0.5)
+            self.display_pages([id_text], height=0.5)
             
             id_trials = [("8_loc2.wav", "8"), ("3_loc1.wav", "3"), ("5_loc3.wav", "5")]
             for file, correct_id in id_trials:
@@ -459,28 +469,27 @@ Drücken Sie eine beliebige Taste zum Beenden.
                         pass
                 core.quit()
 
-            self.display_text(text="Screening bestanden!\nVielen Dank. Das eigentliche Experiment beginnt nun mit einer ausführlichen Einführung.\n\nDrücken Sie LEERTASTE, um fortzufahren.", keys="space", height=0.5)
+            self.display_pages(["Screening bestanden!\nVielen Dank. Das eigentliche Experiment beginnt nun mit einer ausführlichen Einführung."], height=0.5)
             # --------------------------------
         # ----------------------------
 
         # welcome the participant
-        self.display_text(text=prompts.prompt1, keys="space", height=0.75)
-        self.display_text(text=prompts.prompt2, keys="space", height=0.75)
-        self.display_text(text=prompts.prompt3, keys="space", height=0.75)
-        self.display_text(text=prompts.prompt4, keys="space", height=0.75)
+        welcome_pages = [prompts.prompt1, prompts.prompt2, prompts.prompt3, prompts.prompt4]
+        
         if self.test:
             if self.settings["mode"]["demo"]:
                 self.run_demo()
             if self.settings["mode"]["acc_test"]:
                 self.run_accuracy_test()
             if self.settings["session"]["response_device"] == "mouse":
-                self.display_text(text=prompts.prompt5, keys="space", height=0.75)
-                self.display_text(text=prompts.prompt6, keys="space", height=0.75)
+                welcome_pages.extend([prompts.prompt5, prompts.prompt6])
             elif self.settings["session"]["response_device"] == "keypad":
-                self.display_text(text=prompts.prompt7, keys="space", height=0.75)
-            self.display_text(text=prompts.get_cue_instruction(os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_0.csv")),
-                              keys="space", height=0.75)
-            self.display_text(text=prompts.testing, keys="space", height=0.75)
+                welcome_pages.append(prompts.prompt7)
+            
+            welcome_pages.append(prompts.get_cue_instruction(os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_0.csv")))
+            welcome_pages.append(prompts.testing)
+            
+            self.display_pages(welcome_pages, height=0.75)
             self.set_block(block=1)  # intentionally choose block within
             self.load_sequence()
             self.create_trials(n_trials=15,
@@ -494,15 +503,13 @@ Drücken Sie eine beliebige Taste zum Beenden.
             for trial in self.trials:
                 trial.run()
         else:
-            self.display_text(text=prompts.get_cue_instruction(os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_0.csv")),
-                              keys="space", height=0.75)
+            self.display_pages([prompts.get_cue_instruction(os.path.join(self.settings["filepaths"]["sequences"], f"{self.output_str}_block_{starting_block}.csv"))], height=0.75)
             for block in self.blocks:
                 self.send_trigger("block_onset")
                 # do camera calibration if enabled
                 if self.settings["mode"]["camera"]:
                     self.camera_calibration()
-                self.display_text("Drücken Sie LEERTASTE, um zu beginnen.", keys="space",
-                                  height=0.75)
+                self.display_pages(["Drücken Sie auf die RECHTE PFEILTASTE, um zu beginnen."], height=0.5)
                 self.set_block(block=block)
                 self.load_sequence()
                 self.create_trials(n_trials=self.n_trials,
@@ -548,7 +555,7 @@ Drücken Sie eine beliebige Taste zum Beenden.
             pass
 
     def run_accuracy_test(self):
-        self.display_text(text=prompts.accuracy_instruction, keys="space", height=0.75)
+        self.display_pages([prompts.accuracy_instruction], height=0.75)
         round_accuracies = []
         while True:
             stimuli_sequence = []
@@ -584,8 +591,8 @@ Drücken Sie eine beliebige Taste zum Beenden.
                 core.wait(0.5)
             accuracy = correct_count / len(stimuli_sequence)
             round_accuracies.append(accuracy)
-            self.display_text(text=f"Sie haben {accuracy * 100:.2f}% der Zahlwörter korrekt identifiziert.\n\n"
-                                   f"Drücken Sie LEERTASTE, um {'weiterzublättern' if accuracy==1.0 else 'den Test zu wiederholen'}.", keys="space", height=0.75)
+            self.display_pages([f"Sie haben {accuracy * 100:.2f}% der Zahlwörter korrekt identifiziert.\n\n"
+                                f"Drücken Sie auf die Rechte Pfeiltaste, um {'weiterzublättern' if accuracy==1.0 else 'den Test zu wiederholen'}."], height=0.75)
             if accuracy == 1.0:
                 break
         # Save accuracy and rounds to a CSV file
@@ -596,15 +603,14 @@ Drücken Sie eine beliebige Taste zum Beenden.
                 writer.writerow([round_num, accuracy])  # Write data row
 
     def run_demo(self):
-        self.display_text(text=prompts.demo, keys="space", height=0.75)
+        self.display_pages([prompts.demo], height=0.75)
         for digit in self.targets:
             digit.play(latency="low", blocksize=0, mapping=[np.random.randint(1, 4)])
             core.wait(1.5)
 
     def camera_calibration(self):
         # participant instructions
-        self.display_text(text=prompts.camera_calibration, keys="space",
-                          height=0.75)
+        self.display_pages([prompts.camera_calibration], height=0.75)
         self.mouse.setVisible(False)
         # display fixation dot
         self.default_fix.draw()

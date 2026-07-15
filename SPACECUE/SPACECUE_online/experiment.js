@@ -199,10 +199,20 @@ Drücken Sie LEERTASTE, um weiterzublättern.`;
 
 // Reusable instruction trial factory
 function createInstructionTrial(htmlContent) {
+    // Remove spacebar prompts if they happen to exist in the html
+    htmlContent = htmlContent.replace("[Drücken Sie LEERTASTE, um weiterzublättern]", "");
+    htmlContent = htmlContent.replace("Drücken Sie LEERTASTE, um weiterzublättern.", "");
+    htmlContent = htmlContent.replace("Drücken Sie LEERTASTE, um zu beginnen.", "");
+    
     return {
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: `<div class="instruction-text">${htmlContent}</div>`,
-        choices: [" "] // Spacebar
+        type: jsPsychInstructions,
+        pages: [`<div class="instruction-text">${htmlContent}</div>`],
+        show_clickable_nav: true,
+        button_label_previous: "Zurück",
+        button_label_next: "Weiter",
+        allow_keys: true,
+        key_forward: "ArrowRight",
+        key_backward: "ArrowLeft"
     };
 }
 
@@ -320,23 +330,17 @@ const consentTrial = {
     }
 };
 
-const headphoneCheckTrial = {
-    type: jsPsychHtmlButtonResponse,
-    stimulus: function() {
-        return `<div class="instruction-text" style="text-align: left; padding: 0 20px;">
-            <h2 style="color: #4da8da; margin-bottom: 20px; text-align: center;">Kopfhörer-Test & Lautstärke</h2>
+const headphoneCheckTrial = createInstructionTrial(`
+        <div style="text-align: left;">
+            <h2 style="color: #4da8da; margin-bottom: 20px;">Kopfhörer-Test & Lautstärke</h2>
             <p>Dieses Experiment erfordert das Tragen von Kopfhörern. Bitte stellen Sie sicher, dass Sie diese jetzt aufgesetzt haben.</p>
             <p>Klicken Sie auf den Button unten, um einen Testton abzuspielen. Passen Sie die Systemlautstärke Ihres Computers so an, dass Sie den Ton klar und deutlich hören können, er aber nicht unangenehm laut ist.</p>
-            <p style="color: #ff6b6b;"><strong>WICHTIG:</strong> Bitte verändern Sie die Lautstärke nach diesem Test während des restlichen Experiments nicht mehr!</p>
             <div style="text-align: center;">
-                <audio id="test-audio" src="${audio_folder}s_0.wav"></audio>
+                <audio id="test-audio" src="${base_url}sequences/sub-${subject}_block_0/s_0.wav" preload="auto"></audio>
                 <button class="jspsych-btn" style="margin: 20px 0; background-color: #4caf50;" onclick="document.getElementById('test-audio').play();">Testton abspielen</button>
             </div>
-        </div>`;
-    },
-    choices: ['Lautstärke ist eingestellt. Weiter.'],
-    margin_vertical: '20px'
-};
+            <p style="color: #ff6b6b; font-weight: bold;">WICHTIG: Bitte verändern Sie die Lautstärke nach diesem Test während des restlichen Experiments nicht mehr!</p>
+        </div>`);
 
 function getScreeningTrials() {
     let screeningTimeline = [];
@@ -380,17 +384,12 @@ function getScreeningTrials() {
     }
 
     // Identification Instructions
-    screeningTimeline.push({
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: `<div class="instruction-text" style="text-align: center;">
+    screeningTimeline.push(createInstructionTrial(`
+        <div style="text-align: center;">
             <h2 style="color: #4da8da;">Kopfhörer-Screening: Teil 2 (Erkennung)</h2>
             <p>Nun prüfen wir, ob Sie die Zahlwörter gut verstehen können.</p>
             <p>Sie werden wieder einzelne Zahlwörter hören. Ihre Aufgabe ist es nun anzugeben, <strong>welche Zahl (1-9)</strong> gesprochen wurde.</p>
-            <br>
-            <p>Drücken Sie LEERTASTE, um zu beginnen.</p>
-        </div>`,
-        choices: [' ']
-    });
+        </div>`));
 
     const id_trials = [
         { file: '8_loc2.wav', correct_id: '8' },
@@ -413,12 +412,16 @@ function getScreeningTrials() {
     }
     
     screeningTimeline.push({
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: `<div class="instruction-text" style="text-align: center;">
+        type: jsPsychInstructions,
+        pages: [`<div class="instruction-text" style="text-align: center;">
             <h2 style="color: #4caf50;">Screening beendet!</h2>
-            <p>Drücken Sie LEERTASTE, um fortzufahren.</p>
-        </div>`,
-        choices: [' '],
+        </div>`],
+        show_clickable_nav: true,
+        button_label_previous: "Zurück",
+        button_label_next: "Weiter",
+        allow_keys: true,
+        key_forward: "ArrowRight",
+        key_backward: "ArrowLeft",
         on_finish: function() {
             if (screening_errors > 0) {
                 abort_experiment = true;
