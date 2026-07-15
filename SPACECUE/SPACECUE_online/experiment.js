@@ -599,6 +599,9 @@ function buildAndRunExperiment(trial_data) {
                 },
                 choices: "NO_KEYS",
                 trial_duration: 200, 
+                on_start: function() {
+                    document.body.classList.remove('hide-cursor');
+                },
                 data: { phase: 'cue' }
             },
             
@@ -631,6 +634,15 @@ function buildAndRunExperiment(trial_data) {
                 },
                 on_start: function() {
                     window.responded_in_trial = false;
+                    document.body.classList.remove('hide-cursor');
+                },
+                on_load: function() {
+                    const btns = document.querySelectorAll('.virtual-response-box');
+                    btns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            document.body.classList.add('hide-cursor');
+                        });
+                    });
                 },
                 on_finish: function(data) {
                     if (data.response !== null) {
@@ -654,10 +666,20 @@ function buildAndRunExperiment(trial_data) {
                 },
                 on_load: function() {
                     const btns = document.querySelectorAll('.virtual-response-box');
+                    
+                    if (window.responded_in_trial) {
+                        // Already responded: disable buttons and hide cursor
+                        btns.forEach(btn => btn.setAttribute('disabled', 'disabled'));
+                        document.body.classList.add('hide-cursor');
+                    } else {
+                        document.body.classList.remove('hide-cursor');
+                    }
+
                     btns.forEach(btn => {
                         btn.addEventListener('click', (e) => {
+                            document.body.classList.add('hide-cursor');
                             const container = document.querySelector('#jspsych-html-button-response-btngroup');
-                            if (container) {
+                            if (container && !window.responded_in_trial) {
                                 container.classList.add('error-glow');
                                 // Briefly glow red, then remove glow
                                 setTimeout(() => {

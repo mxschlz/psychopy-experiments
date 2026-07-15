@@ -194,3 +194,8 @@ body {
 #jspsych-instructions-back:disabled {
     display: none !important;
 }
+
+/* Hide cursor utility */
+.hide-cursor, .hide-cursor * {
+    cursor: none !important;
+}
