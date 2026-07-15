@@ -45,9 +45,10 @@ const jsPsych = initJsPsych({
                 <h2 style="color: #4da8da;">Daten werden gespeichert...</h2>
             </div>`;
             
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             jsPsychPipe.saveData(
                 datapipe_id, 
-                `sub-${subject}_block_${block}_data_early_exit.csv`, 
+                `sub-${subject}_block_${block}_data_early_exit_${timestamp}.csv`, 
                 formatDataToCSV()
             ).then((result) => {
                 if (result && !result.error) {
@@ -640,7 +641,7 @@ function buildAndRunExperiment(trial_data) {
         type: jsPsychPipe,
         action: "save",
         experiment_id: datapipe_id,
-        filename: `sub-${subject}_block_${block}_data.csv`,
+        filename: `sub-${subject}_block_${block}_data_${new Date().toISOString().replace(/[:.]/g, '-')}.csv`,
         data_string: ()=>formatDataToCSV()
     };
     timeline.push(save_data);
