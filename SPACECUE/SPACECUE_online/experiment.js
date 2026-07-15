@@ -667,6 +667,14 @@ function buildAndRunExperiment(trial_data) {
                 on_load: function() {
                     const btns = document.querySelectorAll('.virtual-response-box');
                     
+                    // Prevent initial hover transition bump
+                    btns.forEach(btn => {
+                        btn.style.transition = 'none';
+                        setTimeout(() => {
+                            btn.style.transition = '';
+                        }, 50);
+                    });
+
                     if (window.responded_in_trial) {
                         // Already responded: disable buttons and hide cursor
                         btns.forEach(btn => btn.setAttribute('disabled', 'disabled'));
