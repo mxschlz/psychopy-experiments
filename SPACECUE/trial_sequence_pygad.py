@@ -10,7 +10,8 @@ import heapq
 
 def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=[1, 2, 3], prop_c=0.6, prop_np=0.2, prop_pp=0.2,
                               rule_violation_factor=1000, num_generations=3000, num_parents_mating=10,
-                              sol_per_pop=200, keep_parents=2, mutation_percent_genes=5):
+                              sol_per_pop=200, keep_parents=2, mutation_percent_genes=5,
+                              fitness_threshold=0.9999):
     # Define Trial Parameters
     desired_c = prop_c * num_trials
     desired_np = prop_np * num_trials
@@ -46,6 +47,13 @@ def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=[1, 2, 3
 
         return normalized_fitness
 
+    # Callback function to stop GA when fitness threshold is reached
+    def on_generation(ga_instance):
+        best_fitness = ga_instance.best_solution(pop_fitness=ga_instance.last_generation_fitness)[1]
+        if best_fitness >= fitness_threshold:
+            logging.info(f"Fitness threshold of {fitness_threshold} reached. Stopping at generation {ga_instance.generations_completed}.")
+            return "stop"
+
     # GA Parameters
     ga_instance = pygad.GA(num_generations=num_generations,
                            num_parents_mating=num_parents_mating,
@@ -58,7 +66,8 @@ def make_pygad_trial_sequence(fig_path=None, num_trials=225, conditions=[1, 2, 3
                            keep_parents=keep_parents,  # Elitism: keep top parents
                            mutation_type="random",
                            mutation_percent_genes=mutation_percent_genes,
-                           suppress_warnings=True
+                           suppress_warnings=True,
+                           on_generation=on_generation
                            )
 
     ga_instance.run()
