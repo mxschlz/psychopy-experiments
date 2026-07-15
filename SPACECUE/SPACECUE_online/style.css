@@ -70,12 +70,6 @@ body {
     width: 500px;
     height: 500px;
     margin: 0 auto;
-    animation: pulseGlow 4s infinite alternate;
-}
-
-@keyframes pulseGlow {
-    from { filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
-    to { filter: drop-shadow(0 0 15px rgba(255,255,255,0.3)); }
 }
 
 .fixation {
