@@ -121,7 +121,7 @@ body {
 }
 
 /* 3x3 Numpad grid (Glassmorphism Panel) */
-#jspsych-audio-button-response-btngroup {
+#jspsych-audio-button-response-btngroup, #jspsych-html-button-response-btngroup {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
