@@ -45,6 +45,7 @@ trial_sequence:
   sol_per_pop: 200  # 200 children per generation
   keep_parents: 2  # Elitism
   mutation_percent_genes: 5  # 5 % mutation rate
+  fitness_threshold: 0.9999  # early stopping threshold for the genetic algorithm
 
 preferences:  # set some preferences (NOT IMPLEMENTED)
   general:

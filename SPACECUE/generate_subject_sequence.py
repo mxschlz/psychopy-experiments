@@ -454,7 +454,8 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
             num_parents_mating=settings["trial_sequence"]["num_parents_mating"],
             sol_per_pop=settings["trial_sequence"]["sol_per_pop"],
             keep_parents=settings["trial_sequence"]["keep_parents"],
-            mutation_percent_genes=settings["trial_sequence"]["mutation_percent_genes"]
+            mutation_percent_genes=settings["trial_sequence"]["mutation_percent_genes"],
+            fitness_threshold=settings["trial_sequence"].get("fitness_threshold", 0.9999)
         )
         sequence_final = insert_singleton_present_trials(sequence_labels,
                                                          fig_path=settings["filepaths"]["sequences"] + "/logs" +
