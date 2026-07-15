@@ -216,15 +216,22 @@ Drücken Sie LEERTASTE, um weiterzublättern.`;
 }
 
 // Reusable instruction trial factory
-function createInstructionTrial(htmlContent) {
-    // Remove spacebar prompts if they happen to exist in the html
-    htmlContent = htmlContent.replace("[Drücken Sie LEERTASTE, um weiterzublättern]", "");
-    htmlContent = htmlContent.replace("Drücken Sie LEERTASTE, um weiterzublättern.", "");
-    htmlContent = htmlContent.replace("Drücken Sie LEERTASTE, um zu beginnen.", "");
+function createInstructionTrial(htmlContentArray) {
+    if (!Array.isArray(htmlContentArray)) {
+        htmlContentArray = [htmlContentArray];
+    }
+    
+    let pages = htmlContentArray.map(htmlContent => {
+        // Remove spacebar prompts if they happen to exist in the html
+        htmlContent = htmlContent.replace("[Drücken Sie LEERTASTE, um weiterzublättern]", "");
+        htmlContent = htmlContent.replace("Drücken Sie LEERTASTE, um weiterzublättern.", "");
+        htmlContent = htmlContent.replace("Drücken Sie LEERTASTE, um zu beginnen.", "");
+        return `<div class="instruction-text">${htmlContent}</div>`;
+    });
     
     return {
         type: jsPsychInstructions,
-        pages: [`<div class="instruction-text">${htmlContent}</div>`],
+        pages: pages,
         show_clickable_nav: true,
         button_label_previous: "Zurück",
         button_label_next: "Weiter",
@@ -365,19 +372,15 @@ function getScreeningTrials() {
     const screening_audio_folder = `${base_url}screening_stimuli/`;
     
     // Localization Instructions
-    screeningTimeline.push({
-        type: jsPsychHtmlKeyboardResponse,
-        stimulus: `<div class="instruction-text" style="text-align: center;">
+    screeningTimeline.push(createInstructionTrial(`
+        <div style="text-align: center;">
             <h2 style="color: #4da8da;">Kopfhörer-Screening: Teil 1 (Ortung)</h2>
             <p>Wir prüfen nun, ob Ihr System die räumlichen Klänge korrekt wiedergibt.</p>
             <p>Sie werden gleich ein einzelnes gesprochenes Zahlwort hören. Ihre Aufgabe ist es anzugeben, aus welcher <strong>Richtung</strong> das Wort kam.</p>
             <br>
             <p style="color: #ff6b6b;">Wenn Sie einen Kopfhörer falsch herum aufhaben, werden Sie Fehler machen. Bitte prüfen Sie den Sitz (L/R) Ihrer Kopfhörer!</p>
-            <br>
-            <p>Drücken Sie LEERTASTE, um zu beginnen.</p>
-        </div>`,
-        choices: [' ']
-    });
+        </div>
+    `));
 
     const loc_trials = [
         { file: '4_loc1.wav', correct_loc: 'Links' },
@@ -429,29 +432,23 @@ function getScreeningTrials() {
         });
     }
     
-    screeningTimeline.push({
-        type: jsPsychInstructions,
-        pages: [`<div class="instruction-text" style="text-align: center;">
+    let finish_trial = createInstructionTrial(`
+        <div style="text-align: center;">
             <h2 style="color: #4caf50;">Screening beendet!</h2>
-        </div>`],
-        show_clickable_nav: true,
-        button_label_previous: "Zurück",
-        button_label_next: "Weiter",
-        allow_keys: true,
-        key_forward: "ArrowRight",
-        key_backward: "ArrowLeft",
-        on_finish: function() {
-            if (screening_errors > 0) {
-                abort_experiment = true;
-                jsPsych.endExperiment(`<div class="instruction-text" style="text-align: center; max-width: 600px;">
-                    <h2 style="color: #ff6b6b;">Screening nicht bestanden</h2>
-                    <p>Leider haben Sie einen oder mehrere Fehler im Screening gemacht.</p>
-                    <p>Dies deutet darauf hin, dass Sie entweder keine Kopfhörer tragen, diese falsch herum aufhaben (L/R vertauscht), oder die räumlichen Klänge nicht richtig wahrnehmen können.</p>
-                    <p>Das Experiment wird daher nun abgebrochen. Vielen Dank für Ihr Interesse.</p>
-                </div>`);
-            }
+        </div>
+    `);
+    finish_trial.on_finish = function() {
+        if (screening_errors > 0) {
+            abort_experiment = true;
+            jsPsych.endExperiment(`<div class="instruction-text" style="text-align: center; max-width: 600px;">
+                <h2 style="color: #ff6b6b;">Screening nicht bestanden</h2>
+                <p>Leider haben Sie einen oder mehrere Fehler im Screening gemacht.</p>
+                <p>Dies deutet darauf hin, dass Sie entweder keine Kopfhörer tragen, diese falsch herum aufhaben (L/R vertauscht), oder die räumlichen Klänge nicht richtig wahrnehmen können.</p>
+                <p>Das Experiment wird daher nun abgebrochen. Vielen Dank für Ihr Interesse.</p>
+            </div>`);
         }
-    });
+    };
+    screeningTimeline.push(finish_trial);
 
     return screeningTimeline;
 }
@@ -542,17 +539,24 @@ function buildAndRunExperiment(trial_data) {
         timeline.push(headphoneCheckTrial);
         timeline = timeline.concat(getScreeningTrials());
         
-        timeline.push(createInstructionTrial(prompts.prompt1));
-        timeline.push(createInstructionTrial(prompts.prompt2));
-        timeline.push(createInstructionTrial(prompts.prompt3));
-        timeline.push(createInstructionTrial(prompts.prompt4));
-        timeline.push(createInstructionTrial(prompts.prompt5));
-        timeline.push(createInstructionTrial(prompts.prompt6));
+        let main_instructions = [
+            prompts.prompt1,
+            prompts.prompt2,
+            prompts.prompt3,
+            prompts.prompt4,
+            prompts.prompt5,
+            prompts.prompt6
+        ];
+        
+        let cue_instruction_html = getCueInstruction(trial_data[0].Color);
+        main_instructions.push(cue_instruction_html);
+        
+        timeline.push(createInstructionTrial(main_instructions));
+    } else {
+        // The cue instruction needs the color configuration from the first row of CSV
+        let cue_instruction_html = getCueInstruction(trial_data[0].Color);
+        timeline.push(createInstructionTrial(cue_instruction_html));
     }
-    
-    // The cue instruction needs the color configuration from the first row of CSV
-    let cue_instruction_html = getCueInstruction(trial_data[0].Color);
-    timeline.push(createInstructionTrial(cue_instruction_html));
 
     // 3. Main Trial Loop
     let trial_timeline = {
