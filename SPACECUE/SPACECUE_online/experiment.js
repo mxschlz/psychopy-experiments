@@ -396,7 +396,7 @@ function getScreeningTrials() {
             stimulus: screening_audio_folder + t.file,
             choices: ['Links', 'Mitte', 'Rechts'],
             prompt: '<div style="margin-top:20px; font-size: 20px; color: white;">Aus welcher Richtung kam der Ton?</div>',
-            button_html: '<button class="jspsych-btn virtual-response-box" style="margin: 0 10px;">%choice%</button>',
+            button_html: '<button class="jspsych-btn virtual-response-box screening-btn" style="margin: 0 10px;">%choice%</button>',
             on_finish: function(data) {
                 let selected_choice = ['Links', 'Mitte', 'Rechts'][data.response];
                 if (selected_choice !== t.correct_loc) screening_errors++;

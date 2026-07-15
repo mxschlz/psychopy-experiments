@@ -158,6 +158,15 @@ body {
     cursor: pointer;
     border-radius: 16px;
     transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.jspsych-btn.virtual-response-box.screening-btn {
+    width: auto;
+    min-width: 150px;
+    font-size: 26px;
+    padding: 0 30px;
+}
+.jspsych-btn.virtual-response-box {
     margin: 0 !important;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
