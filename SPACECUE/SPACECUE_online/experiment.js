@@ -630,7 +630,7 @@ function buildAndRunExperiment(trial_data) {
                 choices: "NO_KEYS",
                 trial_duration: 200, 
                 on_start: function() {
-                    document.body.classList.remove('hide-cursor');
+                    document.body.classList.add('hide-cursor');
                 },
                 extensions: [{type: jsPsychExtensionMouseTracking}],
                 data: { phase: 'cue', trial_nr: jsPsych.timelineVariable('original_index') }
@@ -643,6 +643,9 @@ function buildAndRunExperiment(trial_data) {
                 choices: "NO_KEYS",
                 trial_duration: function() {
                     return jsPsych.timelineVariable('cue_stim_delay_jitter', true) * 1000; 
+                },
+                on_start: function() {
+                    document.body.classList.add('hide-cursor');
                 },
                 extensions: [{type: jsPsychExtensionMouseTracking}],
                 data: { phase: 'delay', trial_nr: jsPsych.timelineVariable('original_index') }
