@@ -78,8 +78,12 @@ let demo_age = urlParams.get('age') || null;
 let demo_gender = urlParams.get('gender') || null;
 let demo_handedness = urlParams.get('handedness') || null;
 
-const csv_path = `../sequences/sub-${subject}_block_${block}.csv`;
-const audio_folder = `../sequences/sub-${subject}_block_${block}/`;
+// Configure this to point to your Cloudflare R2 or OSF storage bucket link when deploying
+// Example: const base_url = "https://pub-xxxxxx.r2.dev/";
+const base_url = "https://pub-65f7c7cdfbd94569a681f48c959ee559.r2.dev/";
+
+const csv_path = `${base_url}sequences/sub-${subject}_block_${block}.csv`;
+const audio_folder = `${base_url}sequences/sub-${subject}_block_${block}/`;
 
 // Bind the exit button
 document.getElementById('exit-btn').addEventListener('click', function() {
@@ -289,7 +293,7 @@ const headphoneCheckTrial = {
 
 function getScreeningTrials() {
     let screeningTimeline = [];
-    const screening_audio_folder = '../screening_stimuli/';
+    const screening_audio_folder = `${base_url}screening_stimuli/`;
     
     // Localization Instructions
     screeningTimeline.push({
@@ -452,7 +456,7 @@ function buildAndRunExperiment(trial_data) {
     // Add screening stimuli to preload if block 0
     if (parseInt(block) === 0) {
         ['4_loc1.wav', '7_loc3.wav', '2_loc2.wav', '8_loc2.wav', '3_loc1.wav', '5_loc3.wav'].forEach(f => {
-            audio_files.push(`../screening_stimuli/${f}`);
+            audio_files.push(`${base_url}screening_stimuli/${f}`);
         });
     }
     
