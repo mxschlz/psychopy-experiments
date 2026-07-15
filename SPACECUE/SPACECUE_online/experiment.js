@@ -254,8 +254,8 @@ function getInfoTrials() {
         
         `<div style="text-align: left;">
             <h3 style="color: #4da8da;">4. Datenschutzrechtliche Informationen</h3>
-            <p>Die erhobenen Daten werden pseudonymisiert und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.<br>Die personenbezogenen Daten (Adressen, Namen etc.) werden streng vertraulich und nach gesetzlichen Bestimmungen behandelt.<br>Die erhobenen Daten im Experiment werden in pseudonymisierter Form, d.h. ohne direkten Bezug zu Ihrem Namen, elektronisch gespeichert und ausgewertet.</p>
-            <p>Für die spätere Auswertung werden die Daten aller Probanden vollständig anonymisiert herangezogen.</p>
+            <p>Die erhobenen Daten werden pseudonymisiert[1] und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.<br>Die personenbezogenen Daten (Adressen, Namen etc.) werden streng vertraulich und nach gesetzlichen Bestimmungen behandelt.<br>Die erhobenen Daten im Experiment werden in pseudonymisierter Form, d.h. ohne direkten Bezug zu Ihrem Namen, elektronisch gespeichert und ausgewertet.</p>
+            <p>Für die spätere Auswertung werden die Daten aller Probanden vollständig anonymisiert[2] herangezogen.</p>
             <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-top: 15px;">
                 <strong>Für die Datenverarbeitung verantwortlich ist:</strong><br>
                 Max Schulz, M.Sc.<br>

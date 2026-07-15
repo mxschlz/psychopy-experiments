@@ -149,10 +149,10 @@ Ausschlusskriterien:
     """
 4. Datenschutzrechtliche Informationen
 
-Die erhobenen Daten werden pseudonymisiert und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.
+Die erhobenen Daten werden pseudonymisiert[1] und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.
 Die personenbezogenen Daten (Adressen, Namen etc.) werden streng vertraulich und nach gesetzlichen Bestimmungen behandelt.
 Die erhobenen Daten im Experiment werden in pseudonymisierter Form, d.h. ohne direkten Bezug zu Ihrem Namen, elektronisch gespeichert und ausgewertet.
-Für die spätere Auswertung werden die Daten aller Probanden vollständig anonymisiert herangezogen.
+Für die spätere Auswertung werden die Daten aller Probanden vollständig anonymisiert[2] herangezogen.
 
 Für die Datenverarbeitung verantwortlich ist:
 Max Schulz, M.Sc.
