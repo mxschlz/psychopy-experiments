@@ -565,10 +565,10 @@ function buildAndRunExperiment(trial_data) {
             {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: function() {
-                    let nonsingletonLoc = jsPsych.evaluateTimelineVariable('Non-Singleton2Loc'); 
-                    let singletonLoc = jsPsych.evaluateTimelineVariable('SingletonLoc');
-                    let colorStr = jsPsych.evaluateTimelineVariable('Color'); 
-                    let cueInstruction = jsPsych.evaluateTimelineVariable('CueInstruction');
+                    let nonsingletonLoc = jsPsych.timelineVariable('Non-Singleton2Loc', true); 
+                    let singletonLoc = jsPsych.timelineVariable('SingletonLoc', true);
+                    let colorStr = jsPsych.timelineVariable('Color', true); 
+                    let cueInstruction = jsPsych.timelineVariable('CueInstruction', true);
 
                     let nonsingletonColor = colorStr.includes('nonsingleton-blue') ? 'blue' : (colorStr.includes('nonsingleton-yellow') ? 'yellow' : 'white');
                     let distractorColor = colorStr.includes('distractor-blue') ? 'blue' : (colorStr.includes('distractor-yellow') ? 'yellow' : 'white');
@@ -608,7 +608,7 @@ function buildAndRunExperiment(trial_data) {
                 stimulus: '<div class="cue-screen"><div class="fixation">+</div></div>',
                 choices: "NO_KEYS",
                 trial_duration: function() {
-                    return jsPsych.evaluateTimelineVariable('cue_stim_delay_jitter') * 1000; 
+                    return jsPsych.timelineVariable('cue_stim_delay_jitter', true) * 1000; 
                 },
                 data: { phase: 'delay' }
             },
@@ -617,7 +617,7 @@ function buildAndRunExperiment(trial_data) {
             {
                 type: jsPsychAudioButtonResponse,
                 stimulus: function() {
-                    let i = jsPsych.evaluateTimelineVariable('original_index');
+                    let i = jsPsych.timelineVariable('original_index', true);
                     return `${audio_folder}s_${i}.wav`;
                 },
                 // 9 choices for the digits 1 through 9
@@ -650,7 +650,7 @@ function buildAndRunExperiment(trial_data) {
                 button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
                 response_ends_trial: false,
                 trial_duration: function() {
-                    return jsPsych.evaluateTimelineVariable('ITI-Jitter') * 1000;
+                    return jsPsych.timelineVariable('ITI-Jitter', true) * 1000;
                 },
                 on_load: function() {
                     const btns = document.querySelectorAll('.virtual-response-box');

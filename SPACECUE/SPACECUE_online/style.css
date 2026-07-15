@@ -186,3 +186,8 @@ body {
 .jspsych-content {
     color: #e2e8f0 !important;
 }
+
+/* Hide disabled back buttons on instruction screens */
+#jspsych-instructions-back:disabled {
+    display: none !important;
+}
