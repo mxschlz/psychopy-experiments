@@ -565,10 +565,10 @@ function buildAndRunExperiment(trial_data) {
             {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: function() {
-                    let nonsingletonLoc = jsPsych.timelineVariable('Non-Singleton2Loc'); 
-                    let singletonLoc = jsPsych.timelineVariable('SingletonLoc');
-                    let colorStr = jsPsych.timelineVariable('Color'); 
-                    let cueInstruction = jsPsych.timelineVariable('CueInstruction');
+                    let nonsingletonLoc = jsPsych.evaluateTimelineVariable('Non-Singleton2Loc'); 
+                    let singletonLoc = jsPsych.evaluateTimelineVariable('SingletonLoc');
+                    let colorStr = jsPsych.evaluateTimelineVariable('Color'); 
+                    let cueInstruction = jsPsych.evaluateTimelineVariable('CueInstruction');
 
                     let nonsingletonColor = colorStr.includes('nonsingleton-blue') ? 'blue' : (colorStr.includes('nonsingleton-yellow') ? 'yellow' : 'white');
                     let distractorColor = colorStr.includes('distractor-blue') ? 'blue' : (colorStr.includes('distractor-yellow') ? 'yellow' : 'white');
@@ -608,7 +608,7 @@ function buildAndRunExperiment(trial_data) {
                 stimulus: '<div class="cue-screen"><div class="fixation">+</div></div>',
                 choices: "NO_KEYS",
                 trial_duration: function() {
-                    return jsPsych.timelineVariable('cue_stim_delay_jitter') * 1000; 
+                    return jsPsych.evaluateTimelineVariable('cue_stim_delay_jitter') * 1000; 
                 },
                 data: { phase: 'delay' }
             },
@@ -617,7 +617,7 @@ function buildAndRunExperiment(trial_data) {
             {
                 type: jsPsychAudioButtonResponse,
                 stimulus: function() {
-                    let i = jsPsych.timelineVariable('original_index');
+                    let i = jsPsych.evaluateTimelineVariable('original_index');
                     return `${audio_folder}s_${i}.wav`;
                 },
                 // 9 choices for the digits 1 through 9
@@ -627,20 +627,10 @@ function buildAndRunExperiment(trial_data) {
                 trial_duration: 1750, // response_duration = 1.75s
                 data: {
                     phase: 'response',
-                    targetDigit: jsPsych.timelineVariable('TargetDigit')
+                    targetDigit: jsPsych.timelineVariable('TargetDigit') // This one is fine as timelineVariable because it's evaluated natively by jsPsych outside a function
                 },
                 on_start: function() {
                     window.responded_in_trial = false;
-                },
-                on_load: function() {
-                    // Hide buttons immediately when one is clicked
-                    const btns = document.querySelectorAll('.virtual-response-box');
-                    btns.forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const container = document.querySelector('#jspsych-audio-button-response-btngroup');
-                            if (container) container.style.display = 'none';
-                        });
-                    });
                 },
                 on_finish: function(data) {
                     if (data.response !== null) {
@@ -656,30 +646,26 @@ function buildAndRunExperiment(trial_data) {
             {
                 type: jsPsychHtmlButtonResponse,
                 stimulus: '',
-                choices: function() {
-                    return window.responded_in_trial ? [] : ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                },
+                choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
                 button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
                 response_ends_trial: false,
                 trial_duration: function() {
-                    return jsPsych.timelineVariable('ITI-Jitter') * 1000;
+                    return jsPsych.evaluateTimelineVariable('ITI-Jitter') * 1000;
                 },
                 on_load: function() {
-                    if (!window.responded_in_trial) {
-                        const btns = document.querySelectorAll('.virtual-response-box');
-                        btns.forEach(btn => {
-                            btn.addEventListener('click', (e) => {
-                                const container = document.querySelector('#jspsych-html-button-response-btngroup');
-                                if (container) {
-                                    container.classList.add('error-glow');
-                                    // Briefly glow red, then disappear
-                                    setTimeout(() => {
-                                        container.style.display = 'none';
-                                    }, 200); 
-                                }
-                            });
+                    const btns = document.querySelectorAll('.virtual-response-box');
+                    btns.forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const container = document.querySelector('#jspsych-html-button-response-btngroup');
+                            if (container) {
+                                container.classList.add('error-glow');
+                                // Briefly glow red, then remove glow
+                                setTimeout(() => {
+                                    container.classList.remove('error-glow');
+                                }, 500); 
+                            }
                         });
-                    }
+                    });
                 },
                 data: { phase: 'iti' }
             }
