@@ -329,7 +329,7 @@ class SpaceCueSession(Session):
             text_stim = TextStim(self.win, text=prompts.consent_form, height=0.5, wrapWidth=30)
             text_stim.draw()
             self.win.flip()
-            keys = event.waitKeys(keyList=["y", "n"])
+            keys = event.waitKeys(keyList=["j", "n"])
             if "n" in keys:
                 import glob
                 import os

@@ -202,8 +202,8 @@ Ich habe verstanden, dass ich jederzeit ohne Angabe von Gründen die Untersuchun
 Ich erkläre mich bereit, an der verhaltenspsychologischen Untersuchung teilzunehmen. Ich erkläre mich dazu bereit, dass meine Verhaltensdaten aufgenommen und gespeichert werden.
 Ich erkläre mich damit einverstanden, dass meine erhobenen Daten in anonymisierter Form für Publikationszwecke verwendet werden können.
 
-Drücken Sie 'Y' (Yes/Ja), wenn Sie zustimmen und teilnehmen möchten.
-Drücken Sie 'N' (No/Nein), wenn Sie NICHT zustimmen und das Experiment abbrechen möchten.
+Drücken Sie 'J' (Ja), wenn Sie zustimmen und teilnehmen möchten.
+Drücken Sie 'N' (Nein), wenn Sie NICHT zustimmen und das Experiment abbrechen möchten.
 """
 
 

@@ -1,10 +1,15 @@
 import os
 import glob
 import slab
+import yaml
 from utils.signal_processing import spatialize
 from SPACECUE.encoding import SPACE_ENCODER
 
 def main():
+    # Load config to get the correct level
+    with open("config.yaml", "r", encoding="utf-8") as f:
+        settings = yaml.safe_load(f)
+    soundlvl = settings["session"]["level"]
     stimuli_dir = "stimuli/digits_all_250ms"
     output_dir = "screening_stimuli"
     
@@ -25,6 +30,7 @@ def main():
         # Load the sound using slab
         try:
             sound = slab.Sound(stim_file)
+            sound.level = soundlvl  # MATCH THE EXPERIMENT LEVEL
         except Exception as e:
             print(f"Error loading {stim_file}: {e}")
             continue

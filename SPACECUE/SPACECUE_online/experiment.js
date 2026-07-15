@@ -127,7 +127,7 @@ const audio_folder = `${base_url}sequences/sub-${subject}_block_${block}/`;
 
 // Bind the exit button
 document.getElementById('exit-btn').addEventListener('click', function() {
-    if (confirm("Are you sure you want to exit the experiment early? Your data up to this point will be saved.")) {
+    if (confirm("Möchten Sie das Experiment wirklich frühzeitig abbrechen? Ihre bisherigen Daten werden gespeichert.")) {
         exited_early = true;
         jsPsych.endExperiment();
     }
@@ -306,12 +306,12 @@ const consentTrial = {
             <p>Ich erkläre mich bereit, an der verhaltenspsychologischen Untersuchung teilzunehmen. Ich erkläre mich dazu bereit, dass meine Verhaltensdaten aufgenommen und gespeichert werden.</p>
             <p>Ich erkläre mich damit einverstanden, dass meine erhobenen Daten in anonymisierter Form für Publikationszwecke verwendet werden können.</p>
             <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
-                Drücken Sie <strong style="color:#4caf50; font-size: 22px;">'Y' (Yes/Ja)</strong>, wenn Sie zustimmen und teilnehmen möchten.<br><br>
-                Drücken Sie <strong style="color:#f44336; font-size: 22px;">'N' (No/Nein)</strong>, wenn Sie NICHT zustimmen und abbrechen möchten.
+                Drücken Sie <strong style="color:#4caf50; font-size: 22px;">'J' (Ja)</strong>, wenn Sie zustimmen und teilnehmen möchten.<br><br>
+                Drücken Sie <strong style="color:#f44336; font-size: 22px;">'N' (Nein)</strong>, wenn Sie NICHT zustimmen und abbrechen möchten.
             </div>
         </div>
     </div>`,
-    choices: ['y', 'n'],
+    choices: ['j', 'n'],
     on_finish: function(data) {
         if (jsPsych.pluginAPI.compareKeys(data.response, 'n')) {
             abort_experiment = true;
@@ -437,7 +437,7 @@ function getScreeningTrials() {
 
 fetch(csv_path)
     .then(response => {
-        if (!response.ok) throw new Error("Could not load CSV: " + csv_path);
+        if (!response.ok) throw new Error("CSV konnte nicht geladen werden: " + csv_path);
         return response.text();
     })
     .then(csvText => {
@@ -453,7 +453,7 @@ fetch(csv_path)
     })
     .catch(error => {
         console.error(error);
-        document.body.innerHTML = `<h1>Error Loading Sequence!</h1>
+        document.body.innerHTML = `<h1>Fehler beim Laden der Sequenz!</h1>
         <p style="color:red;">${error.message}</p>`;
     });
 
@@ -510,7 +510,7 @@ function buildAndRunExperiment(trial_data) {
     timeline.push({
         type: jsPsychPreload,
         audio: audio_files,
-        message: "Loading auditory stimuli, please wait..."
+        message: "Lade akustische Stimuli, bitte warten..."
     });
 
     // 2. Instructions (Block 0 gets all prompts, other blocks get just the cue instruction)
