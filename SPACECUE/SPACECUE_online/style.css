@@ -125,7 +125,8 @@ body {
     display: grid !important;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
-    width: 340px;
+    width: fit-content;
+    max-width: 90vw;
     margin: 0 auto;
     padding: 30px;
     background: rgba(20, 20, 35, 0.6);
