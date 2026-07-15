@@ -308,9 +308,24 @@ class SpaceCueSession(Session):
             from psychopy import event, core
             from psychopy.visual import TextStim
             
-            for page in prompts.info_pages:
-                self.display_text(text=page, keys="space", height=0.5)
+            idx = 0
+            while idx < len(prompts.info_pages):
+                page_text = prompts.info_pages[idx]
+                nav_hint = "\n\n[Rechte Pfeiltaste = Weiter"
+                if idx > 0:
+                    nav_hint += " | Linke Pfeiltaste = Zurück]"
+                else:
+                    nav_hint += "]"
+                    
+                text_stim = TextStim(self.win, text=page_text.replace("[Drücken Sie LEERTASTE, um weiterzublättern]", "") + nav_hint, height=0.5, wrapWidth=30)
+                text_stim.draw()
+                self.win.flip()
                 
+                keys = event.waitKeys(keyList=["right", "left"])
+                if "right" in keys:
+                    idx += 1
+                elif "left" in keys and idx > 0:
+                    idx -= 1
             text_stim = TextStim(self.win, text=prompts.consent_form, height=0.5, wrapWidth=30)
             text_stim.draw()
             self.win.flip()

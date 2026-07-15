@@ -207,8 +207,8 @@ function createInstructionTrial(htmlContent) {
 }
 
 function getInfoTrials() {
-    return [
-        `<div style="text-align: left;">
+    let pages = [
+        `<div class="instruction-text" style="text-align: left;">
             <p>Sehr geehrte Dame, sehr geehrter Herr,</p>
             <p>vielen Dank für Ihr Interesse an unserer Studie!</p>
             <p>Im Folgenden erhalten Sie von uns einige grundlegende Informationen zur Studie und den geplanten Messungen. Außerdem informieren wir Sie über den Umgang mit den erhobenen Daten und nennen Ausschlusskriterien für die Teilnahme an der Studie.</p>
@@ -218,10 +218,9 @@ function getInfoTrials() {
             <p>Zu diesem Zweck werden Ihnen verschiedene räumliche, akustische Reize vorgespielt, von denen Sie immer nur einen Reiz beachten sollen. Am Ende jedes Durchgangs beantworten Sie eine Frage zur Identität des relevanten akustischen Reizes.</p>
             <p>Vor dem eigentlichen Experiment findet eine Einführung statt, in der Sie sich mit dem Ablauf des Experiments vertraut machen können.</p>
             <p>Mit einer Teilnahme würden Sie einen wichtigen Beitrag zur kognitionspsychologischen Grundlagenforschung bezüglich Aufmerksamkeit beitragen.</p>
-            <br><p style="text-align: center; color: #888; font-size: 18px;">[Drücken Sie LEERTASTE, um weiterzublättern]</p>
         </div>`,
         
-        `<div style="text-align: left;">
+        `<div class="instruction-text" style="text-align: left;">
             <h3 style="color: #4da8da;">2. Studienumfang, geplanter Ablauf, Risiken und Vergütung</h3>
             <p>Die Studie umfasst einen einzigen Termin von circa <strong>60 Minuten</strong> Dauer. Die Teilnahme erfolgt online.</p>
             <p style="color: #ff6b6b;"><strong>Bitte beachten Sie, dass die Studie nicht über Handys oder Tablets abgespielt werden kann, da Sie eine Tastatur benötigen. Außerdem sind Kopfhörer zwingend erforderlich.</strong></p>
@@ -232,10 +231,9 @@ function getInfoTrials() {
                 <li>Die Durchführung der Aufmerksamkeitsaufgabe durch Sie.</li>
             </ol>
             <p>Für Sie bestehen keine erkennbaren Risiken. Sie erhalten eine Aufwandsentschädigung von <strong>12 Euro pro Stunde</strong>.</p>
-            <br><p style="text-align: center; color: #888; font-size: 18px;">[Drücken Sie LEERTASTE, um weiterzublättern]</p>
         </div>`,
         
-        `<div style="text-align: left;">
+        `<div class="instruction-text" style="text-align: left;">
             <h3 style="color: #4da8da;">3. Einschluss- und Ausschlusskriterien</h3>
             <p><strong>Einschlusskriterien:</strong></p>
             <ul style="margin-left: 20px;">
@@ -249,10 +247,9 @@ function getInfoTrials() {
                 <li>Unfähigkeit, die experimentellen Aufgaben entsprechend den Anweisungen auszuführen</li>
                 <li>Unfähigkeit, die Einverständniserklärung zu geben</li>
             </ul>
-            <br><p style="text-align: center; color: #888; font-size: 18px;">[Drücken Sie LEERTASTE, um weiterzublättern]</p>
         </div>`,
         
-        `<div style="text-align: left;">
+        `<div class="instruction-text" style="text-align: left;">
             <h3 style="color: #4da8da;">4. Datenschutzrechtliche Informationen</h3>
             <p>Die erhobenen Daten werden pseudonymisiert[1] und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.<br>Die personenbezogenen Daten (Adressen, Namen etc.) werden streng vertraulich und nach gesetzlichen Bestimmungen behandelt.<br>Die erhobenen Daten im Experiment werden in pseudonymisierter Form, d.h. ohne direkten Bezug zu Ihrem Namen, elektronisch gespeichert und ausgewertet.</p>
             <p>Für die spätere Auswertung werden die Daten aller Probanden vollständig anonymisiert[2] herangezogen.</p>
@@ -266,10 +263,9 @@ function getInfoTrials() {
                 E-Mail: max.schulz@uni-luebeck.de
             </div>
             <p style="margin-top: 15px;">Zugriff auf Ihre Daten haben nur Mitarbeitende der Studie. Sie haben das Recht auf Auskunft über die Sie betreffenden Daten, auch in Form einer unentgeltlichen Kopie. Bei Rücknahme Ihrer Einwilligung haben Sie das Recht, die Löschung der bis dahin gesammelten Daten zu verlangen. Dazu kontaktieren Sie bitte Max Schulz.</p>
-            <br><p style="text-align: center; color: #888; font-size: 18px;">[Drücken Sie LEERTASTE, um weiterzublättern]</p>
         </div>`,
         
-        `<div style="text-align: left;">
+        `<div class="instruction-text" style="text-align: left;">
             <h3 style="color: #4da8da;">5. Datenschutzrechtliche Informationen (Fortsetzung)</h3>
             <p>Im Falle einer Beschwerde wenden Sie sich bitte an den Datenschutzbeauftragte der Universität zu Lübeck:<br>
             <strong>x-tention Informationstechnologie GmbH</strong><br>
@@ -284,9 +280,19 @@ function getInfoTrials() {
             <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
             <p style="font-size: 14px; color: #aaa;">[1] <strong>Pseudonymisierung:</strong> "die Verarbeitung personenbezogener Daten in einer Weise, dass die personenbezogenen Daten ohne Hinzuziehung zusätzlicher Informationen nicht mehr einer spezifischen betroffenen Person zugeordnet werden können..." Artikel 4 Abs. 5 DSGVO</p>
             <p style="font-size: 14px; color: #aaa;">[2] <strong>Anonymisierung:</strong> "das Verändern personenbezogener Daten derart, dass Einzelangaben über persönliche oder sachliche Verhältnisse nicht mehr... einer bestimmten oder bestimmbaren natürlichen Person zugeordnet werden können." §3 Abs. 6 BDSG</p>
-            <br><p style="text-align: center; color: #888; font-size: 18px;">[Drücken Sie LEERTASTE, um weiterzublättern]</p>
         </div>`
-    ].map(createInstructionTrial);
+    ];
+
+    return [{
+        type: jsPsychInstructions,
+        pages: pages,
+        show_clickable_nav: true,
+        button_label_previous: "Zurück",
+        button_label_next: "Weiter",
+        allow_keys: true,
+        key_forward: "ArrowRight",
+        key_backward: "ArrowLeft"
+    }];
 }
 
 const consentTrial = {
