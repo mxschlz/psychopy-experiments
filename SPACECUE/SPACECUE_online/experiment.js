@@ -619,7 +619,7 @@ function buildAndRunExperiment(trial_data) {
                 // 9 choices for the digits 1 through 9
                 choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
                 button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
-                response_ends_trial: true,
+                response_ends_trial: false,
                 trial_duration: 1750, // response_duration = 1.75s
                 data: {
                     phase: 'response',
