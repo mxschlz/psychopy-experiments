@@ -32,6 +32,35 @@ function formatDataToCSV() {
     return Papa.unparse(export_data);
 }
 
+function formatMouseDataToCSV() {
+    let trials = jsPsych.data.get().filterCustom(function(trial) {
+        return ['cue', 'delay', 'response', 'iti'].includes(trial.phase);
+    }).values();
+
+    let export_data = [];
+
+    for (let trial of trials) {
+        if (!trial.mouse_tracking_data) continue;
+        
+        let mData = trial.mouse_tracking_data; 
+        
+        for (let pt of mData) {
+            export_data.push({
+                subject_id: subject,
+                block: block,
+                trial_nr: trial.trial_nr,
+                phase: trial.phase,
+                t: pt.t,
+                x: pt.x,
+                y: pt.y,
+                event: pt.event
+            });
+        }
+    }
+
+    return Papa.unparse(export_data);
+}
+
 function getFormattedDate() {
     const d = new Date();
     const month = d.toLocaleString('en-US', { month: 'long' });
@@ -45,6 +74,7 @@ function getFormattedDate() {
 
 const jsPsych = initJsPsych({
     display_element: 'jspsych-target',
+    extensions: [{type: jsPsychExtensionMouseTracking}],
     on_finish: function() {
         if (abort_experiment) {
             return;
@@ -602,7 +632,8 @@ function buildAndRunExperiment(trial_data) {
                 on_start: function() {
                     document.body.classList.remove('hide-cursor');
                 },
-                data: { phase: 'cue' }
+                extensions: [{type: jsPsychExtensionMouseTracking}],
+                data: { phase: 'cue', trial_nr: jsPsych.timelineVariable('original_index') }
             },
             
             // Phase 1: Delay (Fixation only)
@@ -613,7 +644,8 @@ function buildAndRunExperiment(trial_data) {
                 trial_duration: function() {
                     return jsPsych.timelineVariable('cue_stim_delay_jitter', true) * 1000; 
                 },
-                data: { phase: 'delay' }
+                extensions: [{type: jsPsychExtensionMouseTracking}],
+                data: { phase: 'delay', trial_nr: jsPsych.timelineVariable('original_index') }
             },
 
             // Phase 2/3: Audio Stimulus & Virtual Response Box (1-9 Numpad)
@@ -630,8 +662,10 @@ function buildAndRunExperiment(trial_data) {
                 trial_duration: 1750, // response_duration = 1.75s
                 data: {
                     phase: 'response',
-                    targetDigit: jsPsych.timelineVariable('TargetDigit') // This one is fine as timelineVariable because it's evaluated natively by jsPsych outside a function
+                    targetDigit: jsPsych.timelineVariable('TargetDigit'), // This one is fine as timelineVariable because it's evaluated natively by jsPsych outside a function
+                    trial_nr: jsPsych.timelineVariable('original_index')
                 },
+                extensions: [{type: jsPsychExtensionMouseTracking}],
                 on_start: function() {
                     window.responded_in_trial = false;
                     document.body.classList.remove('hide-cursor');
@@ -697,7 +731,8 @@ function buildAndRunExperiment(trial_data) {
                         });
                     });
                 },
-                data: { phase: 'iti' }
+                extensions: [{type: jsPsychExtensionMouseTracking}],
+                data: { phase: 'iti', trial_nr: jsPsych.timelineVariable('original_index') }
             }
         ],
         timeline_variables: trial_data.map((row, idx) => ({...row, original_index: idx}))
@@ -713,6 +748,15 @@ function buildAndRunExperiment(trial_data) {
         data_string: ()=>formatDataToCSV()
     };
     timeline.push(save_data);
+
+    const save_mouse_data = {
+        type: jsPsychPipe,
+        action: "save",
+        experiment_id: datapipe_id,
+        filename: `sce-${subject}_block_${block}_trajectories_${getFormattedDate()}.csv`,
+        data_string: ()=>formatMouseDataToCSV()
+    };
+    timeline.push(save_mouse_data);
 
     jsPsych.run(timeline);
 }
