@@ -90,8 +90,13 @@ body {
     border-left: 20px solid transparent;
     border-right: 20px solid transparent;
     border-bottom: 40px solid white; /* default color */
-    filter: drop-shadow(0 0 8px currentColor);
     transition: all 0.3s ease;
+}
+
+.error-glow {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.9) !important;
+    background-color: rgba(255, 0, 0, 0.1);
+    transition: all 0.1s ease;
 }
 
 /* 1: Left arrow on the left of fixation */

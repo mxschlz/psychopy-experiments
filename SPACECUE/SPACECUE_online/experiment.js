@@ -629,20 +629,57 @@ function buildAndRunExperiment(trial_data) {
                     phase: 'response',
                     targetDigit: jsPsych.timelineVariable('TargetDigit')
                 },
+                on_start: function() {
+                    window.responded_in_trial = false;
+                },
+                on_load: function() {
+                    // Hide buttons immediately when one is clicked
+                    const btns = document.querySelectorAll('.virtual-response-box');
+                    btns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const container = document.querySelector('#jspsych-audio-button-response-btngroup');
+                            if (container) container.style.display = 'none';
+                        });
+                    });
+                },
                 on_finish: function(data) {
+                    if (data.response !== null) {
+                        window.responded_in_trial = true;
+                    }
                     // Score the response (choice 0 = '1', choice 8 = '9')
-                    let selectedDigit = data.response + 1; 
+                    let selectedDigit = data.response !== null ? data.response + 1 : null; 
                     data.correct = (selectedDigit === data.targetDigit);
                 }
             },
 
-            // Phase 4: ITI (Blank screen)
+            // Phase 4: ITI (Blank screen, or remaining buttons if no response yet)
             {
-                type: jsPsychHtmlKeyboardResponse,
+                type: jsPsychHtmlButtonResponse,
                 stimulus: '',
-                choices: "NO_KEYS",
+                choices: function() {
+                    return window.responded_in_trial ? [] : ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                },
+                button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
+                response_ends_trial: false,
                 trial_duration: function() {
                     return jsPsych.timelineVariable('ITI-Jitter') * 1000;
+                },
+                on_load: function() {
+                    if (!window.responded_in_trial) {
+                        const btns = document.querySelectorAll('.virtual-response-box');
+                        btns.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const container = document.querySelector('#jspsych-html-button-response-btngroup');
+                                if (container) {
+                                    container.classList.add('error-glow');
+                                    // Briefly glow red, then disappear
+                                    setTimeout(() => {
+                                        container.style.display = 'none';
+                                    }, 200); 
+                                }
+                            });
+                        });
+                    }
                 },
                 data: { phase: 'iti' }
             }
