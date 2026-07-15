@@ -43,7 +43,7 @@ def main():
                 rendered_sound = spatialize(sound, azi=azi, ele=ele)
                 out_filename = f"{digit_name}_loc{loc_id}.wav"
                 out_path = os.path.join(output_dir, out_filename)
-                rendered_sound.write(out_path)
+                rendered_sound.write(out_path, normalise=False)
                 print(f"Saved {out_path}")
             except Exception as e:
                 print(f"Error rendering {digit_name} at loc {loc_id}: {e}")
