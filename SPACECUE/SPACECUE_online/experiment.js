@@ -45,27 +45,33 @@ const jsPsych = initJsPsych({
                 <h2 style="color: #4da8da;">Daten werden gespeichert...</h2>
             </div>`;
             
-            fetch("https://pipe.jspsych.org/api/data/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "*/*",
-                },
-                body: JSON.stringify({
-                    experimentID: datapipe_id,
-                    filename: `sub-${subject}_block_${block}_data_early_exit.csv`,
-                    data: formatDataToCSV(),
-                }),
-            }).then(() => {
-                document.body.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
-                    <div class="glass-container" style="text-align: center; max-width: 600px;">
-                        <h2 style="color: #ff6b6b;">Experiment abgebrochen</h2>
-                        <p>Ihre Daten bis zu diesem Punkt wurden erfolgreich gespeichert.</p>
-                        <p>Sie können dieses Fenster nun schließen.</p>
-                    </div>
-                </div>`;
+            jsPsychPipe.saveData(
+                datapipe_id, 
+                `sub-${subject}_block_${block}_data_early_exit.csv`, 
+                formatDataToCSV()
+            ).then((result) => {
+                if (result && !result.error) {
+                    document.body.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+                        <div class="glass-container" style="text-align: center; max-width: 600px;">
+                            <h2 style="color: #ff6b6b;">Experiment abgebrochen</h2>
+                            <p>Ihre Daten bis zu diesem Punkt wurden erfolgreich gespeichert.</p>
+                            <p>Sie können dieses Fenster nun schließen.</p>
+                        </div>
+                    </div>`;
+                } else {
+                    console.error("DataPipe Error:", result);
+                    document.body.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+                        <div class="glass-container" style="text-align: center; max-width: 600px;">
+                            <h2 style="color: #ff6b6b;">Fehler beim Speichern</h2>
+                            <p>Leider ist ein Fehler beim Speichern aufgetreten. Details finden Sie in der Konsole.</p>
+                            <p>Sie können dieses Fenster nun schließen.</p>
+                        </div>
+                    </div>`;
+                }
             }).catch((err) => {
+                console.error("Fetch Error:", err);
                 document.body.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                     <div class="glass-container" style="text-align: center; max-width: 600px;">
