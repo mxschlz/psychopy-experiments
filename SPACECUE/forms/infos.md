@@ -8,7 +8,7 @@ Bitte lesen Sie diese Studieninformation sorgfältig durch und kontaktieren Sie 
 
 **1. Studienziele**
 
-Mit dieser Studie erhoffen wir uns neue Erkenntnisse zu Verhaltensmechanismen, während Menschen ihre Aufmerksamkeit mit ihrem Gehör auf eine bestimmte richten.
+Mit dieser Studie erhoffen wir uns neue Erkenntnisse zu Verhaltensmechanismen, während Menschen ihre Aufmerksamkeit mit ihrem Gehör auf eine bestimmte Aufgabe richten.
 Zu diesem Zweck werden Ihnen verschiedene räumliche, akustische Reize vorgespielt, von denen Sie immer nur einen Reiz beachten sollen.
 Am Ende jedes Durchgangs beantworten Sie eine Frage zur Identität des relevanten akustischen Reizes. 
 Vor dem eigentlichen Experiment findet eine Einführung statt, in der Sie sich mit dem Ablauf des Experiments vertraut machen können. 
