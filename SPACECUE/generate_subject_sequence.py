@@ -4,7 +4,7 @@ import yaml
 import slab
 from SPACECUE.encoding import SPACE_ENCODER
 from utils.signal_processing import spatialize, snr_sound_mixture_two_ears
-from utils.utils import get_input_from_dict, generate_balanced_jitter
+from utils.utils import get_input_from_dict, generate_balanced_jitter, generate_fixed_levels_jitter
 from SPACECUE.trial_sequence_pygad import (make_pygad_trial_sequence, insert_singleton_present_trials,
                                            get_element_indices, print_final_traits)
 import os
@@ -96,7 +96,7 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
 
     df["CueInstruction"] = pd.NA
 
-    cue_target_label = "cue_target_location"
+    cue_nonsingleton_label = "cue_nonsingleton_location"
     cue_distractor_label = "cue_distractor_location"
     uninformative_cue_label = "cue_neutral"
 
@@ -111,16 +111,16 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
 
         n_informative_total = int(round(prop_informative * n_total_trials))
         n_uninformative_total = n_total_trials - n_informative_total
-        n_target_informative = n_informative_total // 2
-        n_distractor_informative = n_informative_total - n_target_informative
+        n_nonsingleton_informative = n_informative_total // 2
+        n_distractor_informative = n_informative_total - n_nonsingleton_informative
 
         logging.info(f"Block {block_num} (Trial-wise): Total trials: {n_total_trials}. "
                      f"Prop informative: {prop_informative*100:.0f}%. "
-                     f"Assigning {n_informative_total} informative ({n_target_informative} target, {n_distractor_informative} distractor) "
+                     f"Assigning {n_informative_total} informative ({n_nonsingleton_informative} nonsingleton, {n_distractor_informative} distractor) "
                      f"and {n_uninformative_total} neutral ('{uninformative_cue_label}'). "
                      f"Max consecutive ANY type: {max_consecutive_trial_cues}.")
 
-        cues_for_block_prototype = ([cue_target_label] * n_target_informative +
+        cues_for_block_prototype = ([cue_nonsingleton_label] * n_nonsingleton_informative +
                                     [cue_distractor_label] * n_distractor_informative +
                                     [uninformative_cue_label] * n_uninformative_total)
         cues_for_block_list = list(cues_for_block_prototype)
@@ -129,17 +129,17 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
             max_shuffling_attempts = 500
             found_valid_sequence = False
 
-            if (n_target_informative > max_consecutive_trial_cues or
+            if (n_nonsingleton_informative > max_consecutive_trial_cues or
                 n_distractor_informative > max_consecutive_trial_cues or
                 n_uninformative_total > max_consecutive_trial_cues):
-                min_other_needed_target = (n_target_informative - 1) // max_consecutive_trial_cues if n_target_informative > 0 else 0
+                min_other_needed_nonsingleton = (n_nonsingleton_informative - 1) // max_consecutive_trial_cues if n_nonsingleton_informative > 0 else 0
                 min_other_needed_distractor = (n_distractor_informative - 1) // max_consecutive_trial_cues if n_distractor_informative > 0 else 0
                 min_other_needed_neutral = (n_uninformative_total - 1) // max_consecutive_trial_cues if n_uninformative_total > 0 else 0
-                total_others_for_target = n_distractor_informative + n_uninformative_total
-                total_others_for_distractor = n_target_informative + n_uninformative_total
-                total_others_for_neutral = n_target_informative + n_distractor_informative
+                total_others_for_nonsingleton = n_distractor_informative + n_uninformative_total
+                total_others_for_distractor = n_nonsingleton_informative + n_uninformative_total
+                total_others_for_neutral = n_nonsingleton_informative + n_distractor_informative
 
-                if (n_target_informative > 0 and total_others_for_target < min_other_needed_target) or \
+                if (n_nonsingleton_informative > 0 and total_others_for_nonsingleton < min_other_needed_nonsingleton) or \
                    (n_distractor_informative > 0 and total_others_for_distractor < min_other_needed_distractor) or \
                    (n_uninformative_total > 0 and total_others_for_neutral < min_other_needed_neutral):
                      logging.warning(
@@ -150,7 +150,7 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
 
             for attempt in range(max_shuffling_attempts):
                 np.random.shuffle(cues_for_block_list)
-                if (_check_max_consecutive_items(cues_for_block_list, cue_target_label, max_consecutive_trial_cues) and
+                if (_check_max_consecutive_items(cues_for_block_list, cue_nonsingleton_label, max_consecutive_trial_cues) and
                     _check_max_consecutive_items(cues_for_block_list, cue_distractor_label, max_consecutive_trial_cues) and
                     _check_max_consecutive_items(cues_for_block_list, uninformative_cue_label, max_consecutive_trial_cues)):
                     logging.info(f"Block {block_num} (Trial-wise): Found cue sequence meeting max consecutive constraint "
@@ -175,28 +175,28 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
         # --- BLOCK-WISE CUEING LOGIC (Odd Subjects) ---
         logging.info(f"Block {block_num}: Applying BLOCK-WISE cueing strategy (Odd Subject).")
 
-        cue_target_stimulus_this_block: bool
+        cue_nonsingleton_stimulus_this_block: bool
         if block_num % 2 == 0:  # Even block number for an odd subject
-            cue_target_stimulus_this_block = False  # Distractor cueing
+            cue_nonsingleton_stimulus_this_block = False  # Distractor cueing
         else:  # Odd block number for an odd subject
-            cue_target_stimulus_this_block = True  # Target cueing
+            cue_nonsingleton_stimulus_this_block = True  # Non-Singleton cueing
 
-        # Define the specific informative cue label for this block type (target or distractor cueing)
+        # Define the specific informative cue label for this block type
         block_specific_informative_cue: str
-        if cue_target_stimulus_this_block:
-            block_specific_informative_cue = cue_target_label
+        if cue_nonsingleton_stimulus_this_block:
+            block_specific_informative_cue = cue_nonsingleton_label
         else:
             block_specific_informative_cue = cue_distractor_label
         # uninformative_cue_label is already defined globally within the function
 
         logging.info(
-            f"Block {block_num}: Cueing strategy set to {'TARGETS' if cue_target_stimulus_this_block else 'DISTRACTORS'}.")
+            f"Block {block_num}: Cueing strategy set to {'NONSINGLETONS' if cue_nonsingleton_stimulus_this_block else 'DISTRACTORS'}.")
         logging.info(
             f"Block {block_num}: Informative cue label for this block: '{block_specific_informative_cue}', Uninformative: '{uninformative_cue_label}'.")
         logging.info(f"Block {block_num}: Prop informative: {prop_informative*100:.0f}%. Max consecutive informative: {max_consecutive_block_cues}.")
 
-        if cue_target_stimulus_this_block:
-            # --- TARGET CUEING BLOCK LOGIC (for this block, odd subject) ---
+        if cue_nonsingleton_stimulus_this_block:
+            # --- NONSINGLETON CUEING BLOCK LOGIC (for this block, odd subject) ---
             n_total_trials = len(df)
             logging.info(
                 f"Block {block_num} (Target Cues - Odd Subject): Applying {prop_informative * 100:.0f}/{(1 - prop_informative) * 100:.0f} informative/neutral split to all {n_total_trials} trials.")
@@ -422,9 +422,9 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # Pair group index: (0,0), (1,1), (2,2), ... for subjects (1,2), (3,4), (5,6), ...
     pair_group_index = (subject_id_int - 1) // 2
     if pair_group_index % 2 == 0: # Even pair group (0, 2, 4...)
-        color_mapping_for_subject = "target-blue-distractor-yellow"
+        color_mapping_for_subject = "nonsingleton-blue-singleton-yellow"
     else: # Odd pair group (1, 3, 5...)
-        color_mapping_for_subject = "target-yellow-distractor-blue"
+        color_mapping_for_subject = "nonsingleton-yellow-singleton-blue"
 
     logging.info(f"Subject ID: {subject_id}, Integer: {subject_id_int}, Is Even: {subject_id_is_even}")
     logging.info(f"Cue Design Strategy for Subject: {cue_design_strategy_for_subject}")
@@ -567,13 +567,12 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         trial_sequence.reset_index(drop=True, inplace=True)
         print_final_traits(trial_sequence)
 
+        trial_sequence["cue_stim_delay_jitter"] = generate_fixed_levels_jitter(trial_sequence, levels=settings["session"]["cue_stim_delay_levels"])
+        trial_sequence["cue_stim_delay_jitter"] = round(trial_sequence["cue_stim_delay_jitter"], 3)
+
         trial_sequence["ITI-Jitter"] = generate_balanced_jitter(trial_sequence, iti=settings["session"]["iti"],
                                                                 mode="ITI")
         trial_sequence["ITI-Jitter"] = round(trial_sequence["ITI-Jitter"], 3)
-
-        trial_sequence["cue_stim_delay_jitter"] = generate_balanced_jitter(trial_sequence, iti=settings["session"]["cue_stim_delay"],
-                                                                           mode="cue_stim_delay")
-        trial_sequence["cue_stim_delay_jitter"] = round(trial_sequence["cue_stim_delay_jitter"], 3)
 
         trial_sequence["CueDesignStrategy"] = cue_design_strategy_for_subject
         trial_sequence["Color"] = color_mapping_for_subject

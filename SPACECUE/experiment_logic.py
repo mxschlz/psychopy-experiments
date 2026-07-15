@@ -189,17 +189,18 @@ class SpaceCueTrial(Trial):
         cued_index = None  # Index of the arrow to be cued (0=left, 1=up, 2=right)
         cue_type = 'neutral'  # Overall type of cueing for this trial
 
-        if "cue_target_location" in cue_instruction:
-            cue_type = 'target'
-            if target_loc_raw is not None:
+        if "cue_nonsingleton_location" in cue_instruction:
+            cue_type = 'nonsingleton'
+            nonsingleton_loc_raw = self.session.sequence.iloc[self.trial_nr].get("Non-Singleton2Loc")
+            if nonsingleton_loc_raw is not None:
                 try:
-                    cued_index = int(target_loc_raw) - 1  # Explicitly convert to int
+                    cued_index = int(nonsingleton_loc_raw) - 1  # Explicitly convert to int
                 except (ValueError, TypeError):
                     print(
-                        f"    WARNING: Could not convert TargetLoc '{target_loc_raw}' to int. Cueing might be incorrect.")
+                        f"    WARNING: Could not convert Non-Singleton2Loc '{nonsingleton_loc_raw}' to int. Cueing might be incorrect.")
                     cued_index = None  # Invalidate if conversion fails
             else:
-                print(f"    WARNING: TargetLoc is None for a 'cue_target_location' instruction.")
+                print(f"    WARNING: Non-Singleton2Loc is None for a 'cue_nonsingleton_location' instruction.")
         elif "cue_distractor_location" in cue_instruction:
             cue_type = 'distractor'
             if singleton_loc_raw is not None:
@@ -223,10 +224,10 @@ class SpaceCueTrial(Trial):
 
             if cue_type == 'neutral':
                 current_arrow_color = neutral_color
-            elif cue_type in ['target', 'distractor']:
+            elif cue_type in ['nonsingleton', 'distractor']:
                 # Only color if cued_index is valid and matches the current arrow's index
                 if cued_index is not None and i == cued_index:
-                    if cue_type == 'target':
+                    if cue_type == 'nonsingleton':
                         current_arrow_color = target_color
                     else:  # cue_type is 'distractor'
                         current_arrow_color = distractor_color
@@ -236,11 +237,12 @@ class SpaceCueTrial(Trial):
             arrow.draw()
 
 class SpaceCueSession(Session):
-    def __init__(self, output_str, output_dir=None, settings_file=None, starting_block=0, test=False):
+    def __init__(self, output_str, output_dir=None, settings_file=None, starting_block=0, test=False, demographics=None):
         if not isinstance(output_str, str):
             print(f"output_str must be of type str, got {type(output_str)}")
             output_str = str(output_str)
         super().__init__(output_str, output_dir=output_dir, settings_file=settings_file)
+        self.demographics = demographics if demographics is not None else {}
         self.blocks = range(starting_block, self.settings["session"]["n_blocks"])
         self.n_trials = self.settings["session"]["n_trials"]
         self.blockdir = str
@@ -279,13 +281,17 @@ class SpaceCueSession(Session):
     def create_trials(self, n_trials, durations, timing="seconds"):
         self.trials = []
         for trial_nr in range(n_trials):
+            trial_params = dict(self.sequence.iloc[trial_nr],
+                                block=self.this_block,
+                                subject_id=self.subject_id)
+            if self.demographics:
+                trial_params.update(self.demographics)
+                
             trial = SpaceCueTrial(session=self,
                                     trial_nr=trial_nr,
                                     phase_durations=durations,
                                     phase_names=["cue", "cue_stim_delay", "stim", "response", "iti"],
-                                    parameters=dict(self.sequence.iloc[trial_nr],
-                                                    block=self.this_block,
-                                                    subject_id=self.subject_id),
+                                    parameters=trial_params,
                                     verbose=True,
                                     timing=timing,
                                     draw_each_frame=True)
@@ -297,6 +303,151 @@ class SpaceCueSession(Session):
 
     def run(self, starting_block):
         # self.send_trigger("experiment_onset")  # We do not need this since this was not recorded in SPACEPRIME, anyway.
+        # --- STUDY INFO & CONSENT ---
+        if starting_block == 0:
+            from psychopy import event, core
+            from psychopy.visual import TextStim
+            
+            for page in prompts.info_pages:
+                self.display_text(text=page, keys="space", height=0.5)
+                
+            text_stim = TextStim(self.win, text=prompts.consent_form, height=0.5, wrapWidth=30)
+            text_stim.draw()
+            self.win.flip()
+            keys = event.waitKeys(keyList=["y", "n"])
+            if "n" in keys:
+                import glob
+                import os
+                
+                # If they say no, make sure we completely wipe any logs or data created so far for this run
+                log_dir = self.settings.get("filepaths", {}).get("logs", "logs")
+                data_dir = self.settings.get("filepaths", {}).get("data", "data")
+                
+                created_files = glob.glob(os.path.join(log_dir, f"*{self.output_str}*")) + \
+                                glob.glob(os.path.join(data_dir, f"*{self.output_str}*"))
+                                
+                for file_path in created_files:
+                    try:
+                        os.remove(file_path)
+                    except Exception:
+                        pass
+                
+                core.quit()
+                
+            # --- Headphone & Volume Check ---
+            test_sound_path = os.path.join(self.blockdir, "s_0.wav")
+            test_sound = Sound(filename=test_sound_path, device=self.settings["soundconfig"]["device"],
+                               mul=self.settings["soundconfig"]["mul"])
+            headphone_text = """
+Kopfhörer-Test & Lautstärke
+
+Dieses Experiment erfordert das Tragen von Kopfhörern. Bitte stellen Sie sicher, dass Sie diese jetzt aufgesetzt haben.
+
+Drücken Sie 'p', um einen Testton abzuspielen. Passen Sie die Systemlautstärke so an, dass Sie den Ton klar und deutlich hören können, er aber nicht unangenehm laut ist.
+
+WICHTIG: Bitte verändern Sie die Lautstärke nach diesem Test während des restlichen Experiments nicht mehr!
+
+Drücken Sie LEERTASTE, wenn die Lautstärke eingestellt ist und Sie fortfahren möchten.
+"""
+            hp_stim = TextStim(self.win, text=headphone_text, height=0.5, wrapWidth=30)
+            hp_stim.draw()
+            self.win.flip()
+            
+            while True:
+                hp_keys = event.waitKeys(keyList=["p", "space"])
+                if "p" in hp_keys:
+                    test_sound.play()
+                if "space" in hp_keys:
+                    break
+            # --------------------------------
+            
+            # --- Screening Test ---
+            loc_text = """
+Kopfhörer-Screening: Teil 1 (Ortung)
+
+Wir prüfen nun, ob Ihr System die räumlichen Klänge korrekt wiedergibt.
+Sie werden gleich ein einzelnes gesprochenes Zahlwort hören. Ihre Aufgabe ist es anzugeben, aus welcher Richtung das Wort kam.
+
+Wenn Sie einen Kopfhörer falsch herum aufhaben, werden Sie Fehler machen. Bitte prüfen Sie den Sitz (L/R) Ihrer Kopfhörer!
+
+Drücken Sie LEERTASTE, um zu beginnen.
+"""
+            self.display_text(text=loc_text, keys="space", height=0.5)
+            
+            screening_errors = 0
+
+            loc_trials = [("4_loc1.wav", "left"), ("7_loc3.wav", "right"), ("2_loc2.wav", "down")]
+            for file, correct_key in loc_trials:
+                snd = Sound(filename=os.path.join("screening_stimuli", file), device=self.settings["soundconfig"]["device"], mul=self.settings["soundconfig"]["mul"])
+                snd.play()
+                prompt_stim = TextStim(self.win, text="Woher kam der Ton?\n(Linke Pfeiltaste = Links, Pfeil runter = Mitte, Rechte Pfeiltaste = Rechts)\n\nDrücken Sie 'p' um den Ton erneut abzuspielen.", height=0.5, wrapWidth=30)
+                prompt_stim.draw()
+                self.win.flip()
+                while True:
+                    keys = event.waitKeys(keyList=["p", "left", "right", "down"])
+                    if "p" in keys:
+                        snd.play()
+                    else:
+                        if keys[0] != correct_key:
+                            screening_errors += 1
+                        break
+
+            id_text = """
+Kopfhörer-Screening: Teil 2 (Erkennung)
+
+Nun prüfen wir, ob Sie die Zahlwörter gut verstehen können.
+Sie werden wieder einzelne Zahlwörter hören. Ihre Aufgabe ist es nun anzugeben, welche Zahl (1-9) gesprochen wurde.
+
+Drücken Sie LEERTASTE, um zu beginnen.
+"""
+            self.display_text(text=id_text, keys="space", height=0.5)
+            
+            id_trials = [("8_loc2.wav", "8"), ("3_loc1.wav", "3"), ("5_loc3.wav", "5")]
+            for file, correct_id in id_trials:
+                snd = Sound(filename=os.path.join("screening_stimuli", file), device=self.settings["soundconfig"]["device"], mul=self.settings["soundconfig"]["mul"])
+                snd.play()
+                prompt_stim = TextStim(self.win, text="Welche Zahl haben Sie gehört? (Zifferntasten 1-9)\n\nDrücken Sie 'p' um den Ton erneut abzuspielen.", height=0.5, wrapWidth=30)
+                prompt_stim.draw()
+                self.win.flip()
+                while True:
+                    keys = event.waitKeys(keyList=["p", "1", "2", "3", "4", "5", "6", "7", "8", "9", "num_1", "num_2", "num_3", "num_4", "num_5", "num_6", "num_7", "num_8", "num_9"])
+                    if "p" in keys:
+                        snd.play()
+                    else:
+                        ans = keys[0].replace("num_", "")
+                        if ans != correct_id:
+                            screening_errors += 1
+                        break
+
+            if screening_errors > 0:
+                abort_text = """
+Screening nicht bestanden!
+
+Leider haben Sie einen oder mehrere Fehler im Screening gemacht.
+Dies deutet darauf hin, dass Sie entweder keine Kopfhörer tragen, diese falsch herum aufhaben (L/R vertauscht), oder die räumlichen Klänge nicht richtig wahrnehmen können.
+
+Das Experiment wird daher nun abgebrochen. Vielen Dank für Ihr Interesse.
+
+Drücken Sie eine beliebige Taste zum Beenden.
+"""
+                self.display_text(text=abort_text, keys=None, height=0.5)
+                
+                # Delete logs
+                import glob
+                log_dir = self.settings.get("filepaths", {}).get("logs", "logs")
+                data_dir = self.settings.get("filepaths", {}).get("data", "data")
+                created_files = glob.glob(os.path.join(log_dir, f"*{self.output_str}*")) + glob.glob(os.path.join(data_dir, f"*{self.output_str}*"))
+                for file_path in created_files:
+                    try:
+                        os.remove(file_path)
+                    except Exception:
+                        pass
+                core.quit()
+
+            self.display_text(text="Screening bestanden!\nVielen Dank. Das eigentliche Experiment beginnt nun mit einer ausführlichen Einführung.\n\nDrücken Sie LEERTASTE, um fortzufahren.", keys="space", height=0.5)
+            # --------------------------------
+        # ----------------------------
+
         # welcome the participant
         self.display_text(text=prompts.prompt1, keys="space", height=0.75)
         self.display_text(text=prompts.prompt2, keys="space", height=0.75)
@@ -357,8 +508,12 @@ class SpaceCueSession(Session):
                 self.send_trigger("block_offset")
                 self.save_data()
                 if not block == max(self.blocks):
-                    self.display_text(text=prompts.pause, duration=60, height=0.75)
-                    self.display_text(text=prompts.pause_finished, keys="space", height=0.75)
+                    from psychopy.visual import TextStim
+                    from psychopy import core
+                    pause_stim = TextStim(self.win, text=prompts.pause, height=0.75, wrapWidth=30)
+                    pause_stim.draw()
+                    self.win.flip()
+                    core.wait(60)
         self.display_text(text=prompts.end, keys="q", height=0.75)
         self.send_trigger("experiment_offset")
 
