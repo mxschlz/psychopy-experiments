@@ -1,5 +1,7 @@
 let global_trial_data = [];
 let abort_experiment = false;
+let exited_early = false;
+const datapipe_id = "p6rmFV5NMVaw";
 
 function formatDataToCSV() {
     let responses = jsPsych.data.get().filter({phase: 'response'}).values();
@@ -34,6 +36,44 @@ const jsPsych = initJsPsych({
     display_element: 'jspsych-target',
     on_finish: function() {
         if (abort_experiment) {
+            return;
+        }
+
+        if (exited_early) {
+            document.body.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+                <h2 style="color: #4da8da;">Daten werden gespeichert...</h2>
+            </div>`;
+            
+            fetch("https://pipe.jspsych.org/api/data/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "*/*",
+                },
+                body: JSON.stringify({
+                    experimentID: datapipe_id,
+                    filename: `sub-${subject}_block_${block}_data_early_exit.csv`,
+                    data: formatDataToCSV(),
+                }),
+            }).then(() => {
+                document.body.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+                    <div class="glass-container" style="text-align: center; max-width: 600px;">
+                        <h2 style="color: #ff6b6b;">Experiment abgebrochen</h2>
+                        <p>Ihre Daten bis zu diesem Punkt wurden erfolgreich gespeichert.</p>
+                        <p>Sie können dieses Fenster nun schließen.</p>
+                    </div>
+                </div>`;
+            }).catch((err) => {
+                document.body.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+                    <div class="glass-container" style="text-align: center; max-width: 600px;">
+                        <h2 style="color: #ff6b6b;">Fehler beim Speichern</h2>
+                        <p>Leider ist ein Fehler beim Speichern aufgetreten.</p>
+                    </div>
+                </div>`;
+            });
             return;
         }
 
@@ -88,7 +128,8 @@ const audio_folder = `${base_url}sequences/sub-${subject}_block_${block}/`;
 // Bind the exit button
 document.getElementById('exit-btn').addEventListener('click', function() {
     if (confirm("Are you sure you want to exit the experiment early? Your data up to this point will be saved.")) {
-        jsPsych.endExperiment('Experiment ended early by the participant.');
+        exited_early = true;
+        jsPsych.endExperiment();
     }
 });
 
@@ -583,7 +624,7 @@ function buildAndRunExperiment(trial_data) {
     const save_data = {
         type: jsPsychPipe,
         action: "save",
-        experiment_id: "p6rmFV5NMVaw",
+        experiment_id: datapipe_id,
         filename: `sub-${subject}_block_${block}_data.csv`,
         data_string: ()=>formatDataToCSV()
     };
