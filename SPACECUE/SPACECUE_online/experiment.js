@@ -32,6 +32,17 @@ function formatDataToCSV() {
     return Papa.unparse(export_data);
 }
 
+function getFormattedDate() {
+    const d = new Date();
+    const month = d.toLocaleString('en-US', { month: 'long' });
+    const day = String(d.getDate()).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${month}_${day}_${year}_${hours}_${minutes}_${seconds}`;
+}
+
 const jsPsych = initJsPsych({
     display_element: 'jspsych-target',
     on_finish: function() {
@@ -45,7 +56,7 @@ const jsPsych = initJsPsych({
                 <h2 style="color: #4da8da;">Daten werden gespeichert...</h2>
             </div>`;
             
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const timestamp = getFormattedDate();
             jsPsychPipe.saveData(
                 datapipe_id, 
                 `sub-${subject}_block_${block}_data_early_exit_${timestamp}.csv`, 
@@ -641,7 +652,7 @@ function buildAndRunExperiment(trial_data) {
         type: jsPsychPipe,
         action: "save",
         experiment_id: datapipe_id,
-        filename: `sub-${subject}_block_${block}_data_${new Date().toISOString().replace(/[:.]/g, '-')}.csv`,
+        filename: `sub-${subject}_block_${block}_data_${getFormattedDate()}.csv`,
         data_string: ()=>formatDataToCSV()
     };
     timeline.push(save_data);
