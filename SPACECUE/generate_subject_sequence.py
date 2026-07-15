@@ -109,10 +109,11 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
             logging.warning(f"Block {block_num} (Trial-wise): DataFrame is empty. No cues to assign.")
             return df
 
-        n_informative_total = int(round(prop_informative * n_total_trials))
-        n_uninformative_total = n_total_trials - n_informative_total
-        n_nonsingleton_informative = n_informative_total // 2
-        n_distractor_informative = n_informative_total - n_nonsingleton_informative
+        # Ensure equal weighting across the three classes: neutral, nonsingleton, and distractor
+        n_uninformative_total = n_total_trials // 3
+        n_nonsingleton_informative = n_total_trials // 3
+        n_distractor_informative = n_total_trials - n_uninformative_total - n_nonsingleton_informative
+        n_informative_total = n_nonsingleton_informative + n_distractor_informative
 
         logging.info(f"Block {block_num} (Trial-wise): Total trials: {n_total_trials}. "
                      f"Prop informative: {prop_informative*100:.0f}%. "
