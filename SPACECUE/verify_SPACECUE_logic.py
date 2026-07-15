@@ -29,7 +29,7 @@ except ImportError as e:
 # --- Configuration for the Test ---
 SETTINGS_FILE = "config.yaml"  # Assumed to be in the SPACECUE directory
 OUTPUT_DIR = "logs"  # Temporary directory for any logs this test session might create
-SUBJECT_ID_STR = "sub-01"  # Dummy subject ID for this test session
+SUBJECT_ID_STR = "sce-01"  # Dummy subject ID for this test session
 BLOCK_TO_TEST = 1  # Which block number to test (1-indexed)
 
 

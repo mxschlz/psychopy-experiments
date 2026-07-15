@@ -22,7 +22,7 @@ fp = os.path.join(os.getcwd(), "logs")
 fp_clean = os.path.join(fp, "clean")
 results_path = os.path.join("results")
 # get files in log dir
-fn = [x for x in os.listdir(fp) if f'sub-{info["subject_id"]}' in x]
+fn = [x for x in os.listdir(fp) if f'sce-{info["subject_id"]}' in x]
 file_format = "events.csv"
 fn = [x for x in fn if file_format in x]
 if len(fn) > 1:

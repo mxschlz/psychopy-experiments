@@ -624,7 +624,7 @@ Drücken Sie eine beliebige Taste zum Beenden.
 
 if __name__ == '__main__':
     os.chdir("C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE")
-    sess = SpaceCueSession(output_str='sub-01', output_dir="logs",
+    sess = SpaceCueSession(output_str='sce-01', output_dir="logs",
                            settings_file="config.yaml",
                            starting_block=0, test=True)
     sess.set_block(block=1)  # intentionally choose block within

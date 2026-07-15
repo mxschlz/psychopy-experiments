@@ -10,7 +10,7 @@ info = get_input_from_dict({"subject_id": 1,  # enter subject id
                             "gender": ["m", "w", "d"],
                             "handedness": ["r", "l"]})
 # 2. Instantiate the session
-sess = SpaceCueSession(output_str=f'sub-{info["subject_id"]}', output_dir="logs",
+sess = SpaceCueSession(output_str=f'sce-{info["subject_id"]}', output_dir="logs",
                          settings_file="config.yaml",
                          starting_block=info["block"], test=True if info["test"] == 1 else False,
                          demographics={"age": info["age"], "gender": info["gender"], "handedness": info["handedness"]})

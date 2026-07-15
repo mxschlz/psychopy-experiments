@@ -359,7 +359,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         # For now, we'll let basicConfig try, but it will likely fail to create the file.
 
     # Construct the full path to the log file
-    log_file_path = os.path.join(log_dir_path, f"sub-{subject_id}_trial_sequence_log.txt")
+    log_file_path = os.path.join(log_dir_path, f"sce-{subject_id}_trial_sequence_log.txt")
 
     # Remove any existing handlers from the root logger
     # This is important if this function could be called multiple times in the same Python session
@@ -436,14 +436,14 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         print(f"Running block {current_block_num}")
         logging.info(f"Processing block {current_block_num} for subject {subject_id}")
 
-        dirname = f"sequences/sub-{subject_id}_block_{current_block_num}"
+        dirname = f"sequences/sce-{subject_id}_block_{current_block_num}"
         try:
             os.mkdir(dirname)
         except FileExistsError:
             logging.warning(FileExistsError(f"Directory {dirname} already exists! Moving on ... "))
 
         sequence, sequence_labels, fitness = make_pygad_trial_sequence(
-            fig_path=settings["filepaths"]["sequences"] + "/logs" + f"/sub-{subject_id}_block-{current_block_num}_sequence_fitness.png",
+            fig_path=settings["filepaths"]["sequences"] + "/logs" + f"/sce-{subject_id}_block-{current_block_num}_sequence_fitness.png",
             num_trials=n_trials,
             conditions=settings["trial_sequence"]["conditions"],
             prop_c=settings["trial_sequence"]["prop_c"],
@@ -458,7 +458,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         )
         sequence_final = insert_singleton_present_trials(sequence_labels,
                                                          fig_path=settings["filepaths"]["sequences"] + "/logs" +
-                                                                  f"/sub-{subject_id}_sequence_block-{current_block_num}_hist_sp_trials.png",
+                                                                  f"/sce-{subject_id}_sequence_block-{current_block_num}_hist_sp_trials.png",
                                                          prop_distractor_present_trials=prop_distractor_present_trials)
         c_indices = get_element_indices(sequence_final, element="C")
         if len(c_indices) > 1:
@@ -466,7 +466,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
             sns.histplot(x=distances_c)
             plt.title("Histogram of distances between C trials")
             plt.savefig(
-                settings["filepaths"]["sequences"] + "/logs" + f"/sub-{subject_id}_sequence_hist_block{current_block_num}_"
+                settings["filepaths"]["sequences"] + "/logs" + f"/sce-{subject_id}_sequence_hist_block{current_block_num}_"
                                                                f"diff_control_trials.png")
             plt.close()
         else:
@@ -590,7 +590,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
             max_consecutive_trial_cues=max_consecutive_trial_cues
         )
 
-        file_name = f"sequences/sub-{subject_id}_block_{current_block_num}.csv"
+        file_name = f"sequences/sce-{subject_id}_block_{current_block_num}.csv"
         trial_sequence.to_csv(file_name, index=False)
 
         logging.info(f"Saved trial sequence to {file_name}")
@@ -753,7 +753,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
         if compute_snr and not freefield:
             df_snr = pd.DataFrame.from_dict(snr_container)
-            file_name_snr = os.path.join(dirname, f"sub-{subject_id}_block_{current_block_num}_snr.csv")
+            file_name_snr = os.path.join(dirname, f"sce-{subject_id}_block_{current_block_num}_snr.csv")
             df_snr.to_csv(file_name_snr, index=False)
             snr_container = dict(snr_left=[], snr_right=[], signal_loc=[]) # Reset for next block
 

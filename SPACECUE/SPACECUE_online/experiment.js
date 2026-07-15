@@ -59,7 +59,7 @@ const jsPsych = initJsPsych({
             const timestamp = getFormattedDate();
             jsPsychPipe.saveData(
                 datapipe_id, 
-                `sub-${subject}_block_${block}_data_early_exit_${timestamp}.csv`, 
+                `sce-${subject}_block_${block}_data_early_exit_${timestamp}.csv`, 
                 formatDataToCSV()
             ).then((result) => {
                 if (result && !result.error) {
@@ -140,8 +140,8 @@ let demo_handedness = urlParams.get('handedness') || null;
 // Example: const base_url = "https://pub-xxxxxx.r2.dev/";
 const base_url = "https://pub-65f7c7cdfbd94569a681f48c959ee559.r2.dev/";
 
-const csv_path = `${base_url}sequences/sub-${subject}_block_${block}.csv`;
-const audio_folder = `${base_url}sequences/sub-${subject}_block_${block}/`;
+const csv_path = `${base_url}sequences/sce-${subject}_block_${block}.csv`;
+const audio_folder = `${base_url}sequences/sce-${subject}_block_${block}/`;
 
 // Bind the exit button
 document.getElementById('exit-btn').addEventListener('click', function() {
@@ -354,7 +354,7 @@ const headphoneCheckTrial = createInstructionTrial(`
             <p>Dieses Experiment erfordert das Tragen von Kopfhörern. Bitte stellen Sie sicher, dass Sie diese jetzt aufgesetzt haben.</p>
             <p>Klicken Sie auf den Button unten, um einen Testton abzuspielen. Passen Sie die Systemlautstärke Ihres Computers so an, dass Sie den Ton klar und deutlich hören können, er aber nicht unangenehm laut ist.</p>
             <div style="text-align: center;">
-                <audio id="test-audio" src="${base_url}sequences/sub-${subject}_block_0/s_0.wav" preload="auto"></audio>
+                <audio id="test-audio" src="${base_url}sequences/sce-${subject}_block_0/s_0.wav" preload="auto"></audio>
                 <button class="jspsych-btn" style="margin: 20px 0; background-color: #4caf50;" onclick="document.getElementById('test-audio').play();">Testton abspielen</button>
             </div>
             <p style="color: #ff6b6b; font-weight: bold;">WICHTIG: Bitte verändern Sie die Lautstärke nach diesem Test während des restlichen Experiments nicht mehr!</p>
@@ -652,7 +652,7 @@ function buildAndRunExperiment(trial_data) {
         type: jsPsychPipe,
         action: "save",
         experiment_id: datapipe_id,
-        filename: `sub-${subject}_block_${block}_data_${getFormattedDate()}.csv`,
+        filename: `sce-${subject}_block_${block}_data_${getFormattedDate()}.csv`,
         data_string: ()=>formatDataToCSV()
     };
     timeline.push(save_data);
