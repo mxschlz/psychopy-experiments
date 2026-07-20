@@ -388,7 +388,7 @@ function getInfoTrials() {
 }
 
 const consentTrial = {
-    type: jsPsychHtmlKeyboardResponse,
+    type: jsPsychHtmlButtonResponse,
     stimulus: `<div class="instruction-text">
         <div style="text-align: left; padding: 0 20px;">
             <h2 style="color: white; margin-bottom: 20px; text-align: center;">EINVERSTÄNDNISERKLÄRUNG</h2>
@@ -398,14 +398,18 @@ const consentTrial = {
             <p>Ich erkläre mich bereit, an der verhaltenspsychologischen Untersuchung teilzunehmen. Ich erkläre mich dazu bereit, dass meine Verhaltensdaten aufgenommen und gespeichert werden.</p>
             <p>Ich erkläre mich damit einverstanden, dass meine erhobenen Daten in anonymisierter Form für Publikationszwecke verwendet werden können.</p>
             <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
-                Drücken Sie <strong style="color:#4caf50; font-size: 22px;">'J' (Ja)</strong>, wenn Sie zustimmen und teilnehmen möchten.<br><br>
-                Drücken Sie <strong style="color:#f44336; font-size: 22px;">'N' (Nein)</strong>, wenn Sie NICHT zustimmen und abbrechen möchten.
+                Wählen Sie unten eine Option aus.
             </div>
         </div>
     </div>`,
-    choices: ['j', 'n'],
+    choices: ['Zurück zu den Informationen', 'Nein, abbrechen', 'Ja, ich stimme zu'],
+    button_html: [
+        '<button class="jspsych-btn" style="margin: 10px; background-color: #555;">%choice%</button>',
+        '<button class="jspsych-btn" style="margin: 10px; background-color: #f44336;">%choice%</button>',
+        '<button class="jspsych-btn" style="margin: 10px; background-color: #4caf50;">%choice%</button>'
+    ],
     on_finish: function(data) {
-        if (jsPsych.pluginAPI.compareKeys(data.response, 'n')) {
+        if (data.response === 1) {
             abort_experiment = true;
             jsPsych.endExperiment(`<div class="instruction-text">Sie haben nicht zugestimmt. Das Experiment wird abgebrochen. Vielen Dank für Ihr Interesse.</div>`);
         }
@@ -590,8 +594,22 @@ function buildAndRunExperiment(trial_data) {
 
     // 2. Instructions (Block 0 gets all prompts, other blocks get just the cue instruction)
     if (parseInt(block) === 0) {
-        timeline = timeline.concat(getInfoTrials());
-        timeline.push(consentTrial);
+        let infoAndConsentLoop = {
+            timeline: [
+                ...getInfoTrials(),
+                consentTrial
+            ],
+            loop_function: function(data) {
+                // The last trial is the consentTrial
+                let consent_response = data.values()[data.values().length - 1].response;
+                if (consent_response === 0) { // 'Zurück'
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+        timeline.push(infoAndConsentLoop);
         timeline.push(demoTrial);
         timeline.push(headphoneCheckTrial);
         timeline = timeline.concat(getScreeningTrials());
