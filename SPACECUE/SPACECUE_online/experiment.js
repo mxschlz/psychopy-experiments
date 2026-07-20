@@ -320,50 +320,56 @@ function getInfoTrials() {
 
 `<div class="instruction-text" style="text-align: left; overflow-y: auto; max-height: 70vh; padding-right: 15px;">
     <h3 style="color: #4da8da; margin-top: 25px; border-bottom: 1px solid rgba(77, 168, 218, 0.3); padding-bottom: 5px;"><strong>4. Datenschutzrechtliche Informationen</strong></h3>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Die erhobenen Daten werden pseudonymisiert [^1] und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Die erhobenen Daten werden pseudonymisiert <sup style="color: #4da8da; font-weight: bold; margin-left: 2px;">1</sup> und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Die Datenbank befindet sich auf einem Server des IT-Service Center der Universität zu Lübeck (ITSC, https://www.itsc.uni-luebeck.de/dienstleistungen/it-sicherheit/firewall-und-idp.html),</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">der durch eine Firewall sowie ein Intrusion-Detection- und Intrusion-Prevention-System (IDS) geschützt ist.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Studienrelevante Daten werden in einem RAID-basierten Archivsystem vor Ort gesichert.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Die Daten werden nur innerhalb des geschützten LANs oder über verschlüsselte Drahtlosnetzwerke der Universität Lübeck transferiert.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Alle Mitarbeiter der Arbeitsgruppe "Auditive Kognition" unterschreiben an ihrem ersten Arbeitstag eine Datenschutz- und Vertraulichkeitsvereinbarung.</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Für die Datenverarbeitung verantwortlich ist:</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Max Schulz, M.Sc..</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Maria-Goeppert-Straße 9a</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">23562 Lübeck</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Gebäude MFC 8, 1. OG., Raum 2</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Tel.: +49 451 3101 3647</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">E-Mail: (<a href="mailto:max.schulz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">max.schulz@uni-luebeck.de</a>)</p>
+    <p style="color: #f1f5f9; margin-bottom: 8px;">Für die Datenverarbeitung verantwortlich ist:</p>
+    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; margin: 10px 0 20px 0;">
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Max Schulz, M.Sc..</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Maria-Goeppert-Straße 9a</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">23562 Lübeck</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Gebäude MFC 8, 1. OG., Raum 2</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Tel.: +49 451 3101 3647</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">E-Mail: (<a href="mailto:max.schulz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">max.schulz@uni-luebeck.de</a>)</p>
+    </div>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Die Datenerhebung erfolgt zum Zweck des oben genannten Studienziels.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Die personenbezogenen Daten (Adressen, Namen etc.) werden streng vertraulich und nach gesetzlichen Bestimmungen behandelt.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Die erhobenen Daten im Experiment werden in pseudonymisierter Form, d.h. ohne direkten Bezug zu Ihrem Namen, elektronisch gespeichert und ausgewertet.</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Für die spätere Auswertung werden die Daten aller Probanden vollständig anonymisiert[^2] herangezogen.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Für die spätere Auswertung werden die Daten aller Probanden vollständig anonymisiert<sup style="color: #4da8da; font-weight: bold; margin-left: 2px;">2</sup> herangezogen.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Die Bestimmungen des Datenschutzgesetzes werden eingehalten.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Zugriff auf Ihre Daten haben nur Mitarbeitende der Studie.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Diese Personen sind zur Verschwiegenheit verpflichtet. Die Daten sind vor fremden Zugriff geschützt.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Sie haben das Recht auf Auskunft über die Sie betreffenden Daten, auch in Form einer unentgeltlichen Kopie.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Bei Rücknahme Ihrer Einwilligung haben Sie das Recht, die Löschung der bis dahin gesammelten Daten zu verlangen.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Dazu kontaktieren Sie bitte Max Schulz (<a href="mailto:max.schulz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">max.schulz@uni-luebeck.de</a>).</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Im Falle einer Beschwerde wenden Sie sich bitte an den Datenschutzbeauftragte der Universität zu Lübeck:</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">x-tention Informationstechnologie GmbH</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Margot-Becke-Ring 37, 69124 Heidelberg</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Telefon: 0451 3101 1903</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">E-Mail: <a href="mailto:datentschutz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">datenschutz@uni-luebeck.de</a></p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Sie können sich mit einer Beschwerde auch an die zuständige Datenschutzbehörde wenden:</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Unabhängiges Landeszentrum für Datenschutz Schleswig-Holstein</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Holstenstraße 98, 24103 Kiel</p>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">E-Mail: <a href="mailto:mail@datenschutzzentrum.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">mail@datenschutzzentrum.de</a></p>
+    <p style="color: #f1f5f9; margin-bottom: 8px;">Im Falle einer Beschwerde wenden Sie sich bitte an den Datenschutzbeauftragte der Universität zu Lübeck:</p>
+    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; margin: 10px 0 20px 0;">
+    <p style="color: #f1f5f9; margin-bottom: 4px;">x-tention Informationstechnologie GmbH</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Margot-Becke-Ring 37, 69124 Heidelberg</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Telefon: 0451 3101 1903</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">E-Mail: <a href="mailto:datentschutz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">datenschutz@uni-luebeck.de</a></p>
+    </div>
+    <p style="color: #f1f5f9; margin-bottom: 8px;">Sie können sich mit einer Beschwerde auch an die zuständige Datenschutzbehörde wenden:</p>
+    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; margin: 10px 0 20px 0;">
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Unabhängiges Landeszentrum für Datenschutz Schleswig-Holstein</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Holstenstraße 98, 24103 Kiel</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">E-Mail: <a href="mailto:mail@datenschutzzentrum.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">mail@datenschutzzentrum.de</a></p>
+    </div>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Herzlichen Dank!</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Max Schulz</p>
     <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 20px 0;">
     <div style="font-size: 14px; color: #94a3b8; margin-top: 12px; padding-left: 12px; border-left: 3px solid #3b82f6; font-style: italic; background: rgba(59, 130, 246, 0.05); padding-top: 8px; padding-bottom: 8px; border-radius: 0 8px 8px 0;">
-        <p style="margin: 0 0 5px 0;">[^1] <strong>Pseudonymisierung:</strong> _"die Verarbeitung personenbezogener Daten in einer Weise,</p>
+        <p style="margin: 0 0 5px 0;"><strong style="color: #4da8da; font-size: 16px; margin-right: 5px;">1</strong> <strong>Pseudonymisierung:</strong> _"die Verarbeitung personenbezogener Daten in einer Weise,</p>
         <p style="margin: 0 0 5px 0;">dass die personenbezogenen Daten ohne Hinzuziehung zusätzlicher Informationen nicht mehr einer spezifischen betroffenen Person zugeordnet werden können,</p>
         <p style="margin: 0 0 5px 0;">sofern diese zusätzlichen Informationen gesondert aufbewahrt werden und technischen und organisatorischen Maßnahmen unterliegen,</p>
         <p style="margin: 0 0 5px 0;">die gewährleisten, dass die personen Daten nicht einer identifizierten oder identifizierbaren natürlichen Person zugewiesen werden;"_</p>
         <p style="margin: 0 0 5px 0;">Artikel 4 Abs. 5 DSGVO</p>
     </div>
     <div style="font-size: 14px; color: #94a3b8; margin-top: 12px; padding-left: 12px; border-left: 3px solid #3b82f6; font-style: italic; background: rgba(59, 130, 246, 0.05); padding-top: 8px; padding-bottom: 8px; border-radius: 0 8px 8px 0;">
-        <p style="margin: 0 0 5px 0;">[^2] <strong>Anonymisierung:</strong> _"das Verändern personenbezogener Daten derart, dass Einzelangaben über persönliche oder sachliche Verhältnisse nicht mehr oder nur mit einem unverhältnismäßig</p>
+        <p style="margin: 0 0 5px 0;"><strong style="color: #4da8da; font-size: 16px; margin-right: 5px;">2</strong> <strong>Anonymisierung:</strong> _"das Verändern personenbezogener Daten derart, dass Einzelangaben über persönliche oder sachliche Verhältnisse nicht mehr oder nur mit einem unverhältnismäßig</p>
         <p style="margin: 0 0 5px 0;">großen Aufwand an Zeit, Kosten und Arbeitskraft einer bestimmten oder bestimmbaren natürlichen Person zugeordnet werden können."_ §3 Abs. 6 BDSG</p>
     </div>
 </div>`
