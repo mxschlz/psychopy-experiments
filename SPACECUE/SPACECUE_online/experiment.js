@@ -362,15 +362,15 @@ function getInfoTrials() {
     <p style="color: #f1f5f9; margin-bottom: 12px;">Max Schulz</p>
     <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 20px 0;">
     <div style="font-size: 14px; color: #94a3b8; margin-top: 12px; padding-left: 12px; border-left: 3px solid #3b82f6; font-style: italic; background: rgba(59, 130, 246, 0.05); padding-top: 8px; padding-bottom: 8px; border-radius: 0 8px 8px 0;">
-        <p style="margin: 0 0 5px 0;"><strong style="color: #4da8da; font-size: 16px; margin-right: 5px;">1</strong> <strong>Pseudonymisierung:</strong> _"die Verarbeitung personenbezogener Daten in einer Weise,</p>
+        <p style="margin: 0 0 5px 0;"><strong style="color: #4da8da; font-size: 16px; margin-right: 5px;">1</strong> <strong>Pseudonymisierung:</strong> "die Verarbeitung personenbezogener Daten in einer Weise,</p>
         <p style="margin: 0 0 5px 0;">dass die personenbezogenen Daten ohne Hinzuziehung zusätzlicher Informationen nicht mehr einer spezifischen betroffenen Person zugeordnet werden können,</p>
         <p style="margin: 0 0 5px 0;">sofern diese zusätzlichen Informationen gesondert aufbewahrt werden und technischen und organisatorischen Maßnahmen unterliegen,</p>
-        <p style="margin: 0 0 5px 0;">die gewährleisten, dass die personen Daten nicht einer identifizierten oder identifizierbaren natürlichen Person zugewiesen werden;"_</p>
+        <p style="margin: 0 0 5px 0;">die gewährleisten, dass die personen Daten nicht einer identifizierten oder identifizierbaren natürlichen Person zugewiesen werden;"</p>
         <p style="margin: 0 0 5px 0;">Artikel 4 Abs. 5 DSGVO</p>
     </div>
     <div style="font-size: 14px; color: #94a3b8; margin-top: 12px; padding-left: 12px; border-left: 3px solid #3b82f6; font-style: italic; background: rgba(59, 130, 246, 0.05); padding-top: 8px; padding-bottom: 8px; border-radius: 0 8px 8px 0;">
-        <p style="margin: 0 0 5px 0;"><strong style="color: #4da8da; font-size: 16px; margin-right: 5px;">2</strong> <strong>Anonymisierung:</strong> _"das Verändern personenbezogener Daten derart, dass Einzelangaben über persönliche oder sachliche Verhältnisse nicht mehr oder nur mit einem unverhältnismäßig</p>
-        <p style="margin: 0 0 5px 0;">großen Aufwand an Zeit, Kosten und Arbeitskraft einer bestimmten oder bestimmbaren natürlichen Person zugeordnet werden können."_ §3 Abs. 6 BDSG</p>
+        <p style="margin: 0 0 5px 0;"><strong style="color: #4da8da; font-size: 16px; margin-right: 5px;">2</strong> <strong>Anonymisierung:</strong> "das Verändern personenbezogener Daten derart, dass Einzelangaben über persönliche oder sachliche Verhältnisse nicht mehr oder nur mit einem unverhältnismäßig</p>
+        <p style="margin: 0 0 5px 0;">großen Aufwand an Zeit, Kosten und Arbeitskraft einer bestimmten oder bestimmbaren natürlichen Person zugeordnet werden können." §3 Abs. 6 BDSG</p>
     </div>
 </div>`
     ];
