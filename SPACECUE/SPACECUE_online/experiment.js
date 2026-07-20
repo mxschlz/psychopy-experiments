@@ -220,6 +220,8 @@ Drücken Sie LEERTASTE, um weiterzublättern.`
 function getCueInstruction(colorStr) {
     let t_ger = "weiß";
     let d_ger = "weiß";
+    let t_col = "#ffffff";
+    let d_col = "#ffffff";
     
     if (colorStr) {
         let info = colorStr.split("-");
@@ -228,19 +230,27 @@ function getCueInstruction(colorStr) {
             let distractorColor = info[3].toLowerCase();
             
             const colorMap = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß" };
+            // Using slightly muted/brightened hex codes so they look good on a dark background
+            const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
+            
             t_ger = colorMap[targetColor] || targetColor;
             d_ger = colorMap[distractorColor] || distractorColor;
+            t_col = hexMap[targetColor] || targetColor;
+            d_col = hexMap[distractorColor] || distractorColor;
         }
     }
     
-    let colored_arrow_description = `In anderen Durchgängen besitzt ein Pfeil entweder die Farbe ${t_ger} oder ${d_ger}.`;
+    let t_highlight = `<span style="color: ${t_col}; font-weight: bold; text-transform: uppercase;">${t_ger}</span>`;
+    let d_highlight = `<span style="color: ${d_col}; font-weight: bold; text-transform: uppercase;">${d_ger}</span>`;
+    
+    let colored_arrow_description = `In anderen Durchgängen besitzt ein Pfeil entweder die Farbe ${t_highlight} oder ${d_highlight}.`;
     
     return `In jedem Durchgang werden Ihnen drei Pfeile angezeigt, welche in drei Richtungen zeigen.<br>
 In einigen Durchgängen sind alle Pfeile farblos. ${colored_arrow_description}<br>
 Dieser Pfeil ist nützlich, denn er zeigt, welche Art von Zahlwort aus dieser Richtung kommen wird.<br>
 Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt.<br>
-Ist der Pfeil ${t_ger}, handelt es sich um einen irrelevanten Störreiz mit normaler Stimme.<br>
-Ist der Pfeil ${d_ger}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört.<br><br>
+Ist der Pfeil ${t_highlight}, handelt es sich um einen irrelevanten Störreiz mit normaler Stimme.<br>
+Ist der Pfeil ${d_highlight}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört.<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`;
 }
 
