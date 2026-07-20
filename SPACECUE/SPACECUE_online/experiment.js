@@ -332,7 +332,7 @@ function getInfoTrials() {
     <p>23562 Lübeck</p>
     <p>Gebäude MFC 8, 1. OG., Raum 2</p>
     <p>Tel.: +49 451 3101 3647</p>
-    <p>E-Mail: (max.schulz@uni-luebeck.de)</p>
+    <p>E-Mail: (<a href="mailto:max.schulz@uni-luebeck.de" style="color: #4da8da;">max.schulz@uni-luebeck.de</a>)</p>
     <p>Die Datenerhebung erfolgt zum Zweck des oben genannten Studienziels.</p>
     <p>Die personenbezogenen Daten (Adressen, Namen etc.) werden streng vertraulich und nach gesetzlichen Bestimmungen behandelt.</p>
     <p>Die erhobenen Daten im Experiment werden in pseudonymisierter Form, d.h. ohne direkten Bezug zu Ihrem Namen, elektronisch gespeichert und ausgewertet.</p>
@@ -342,16 +342,16 @@ function getInfoTrials() {
     <p>Diese Personen sind zur Verschwiegenheit verpflichtet. Die Daten sind vor fremden Zugriff geschützt.</p>
     <p>Sie haben das Recht auf Auskunft über die Sie betreffenden Daten, auch in Form einer unentgeltlichen Kopie.</p>
     <p>Bei Rücknahme Ihrer Einwilligung haben Sie das Recht, die Löschung der bis dahin gesammelten Daten zu verlangen.</p>
-    <p>Dazu kontaktieren Sie bitte Max Schulz (max.schulz@uni-luebeck.de).</p>
+    <p>Dazu kontaktieren Sie bitte Max Schulz (<a href="mailto:max.schulz@uni-luebeck.de" style="color: #4da8da;">max.schulz@uni-luebeck.de</a>).</p>
     <p>Im Falle einer Beschwerde wenden Sie sich bitte an den Datenschutzbeauftragte der Universität zu Lübeck:</p>
     <p>x-tention Informationstechnologie GmbH</p>
     <p>Margot-Becke-Ring 37, 69124 Heidelberg</p>
     <p>Telefon: 0451 3101 1903</p>
-    <p>E-Mail: datenschutz@uni-luebeck.de</p>
+    <p>E-Mail: <a href="mailto:datentschutz@uni-luebeck.de" style="color: #4da8da;">datenschutz@uni-luebeck.de</a></p>
     <p>Sie können sich mit einer Beschwerde auch an die zuständige Datenschutzbehörde wenden:</p>
     <p>Unabhängiges Landeszentrum für Datenschutz Schleswig-Holstein</p>
     <p>Holstenstraße 98, 24103 Kiel</p>
-    <p>E-Mail: mail@datenschutzzentrum.de</p>
+    <p>E-Mail: <a href="mailto:mail@datenschutzzentrum.de" style="color: #4da8da;">mail@datenschutzzentrum.de</a></p>
     <p>Herzlichen Dank!</p>
     <p>Max Schulz</p>
     <p>---</p>
