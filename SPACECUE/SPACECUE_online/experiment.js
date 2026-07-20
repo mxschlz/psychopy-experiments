@@ -205,7 +205,7 @@ Lassen Sie sich davon nicht irritieren: Ihre Aufgabe bleibt es, stets das raue, 
 Drücken Sie LEERTASTE, um weiterzublättern.`,
 
     prompt5: `Während des Experiments erscheint eine Antwort-Box in der Mitte des Bildschirms.<br>
-Diese enthält die Ziffern von 1 bis 9 und ist durch einen schwarzen Rahmen begrenzt.<br>
+Diese enthält die Ziffern von 1 bis 9 und ist durch einen Rahmen begrenzt.<br>
 Mit der Maus können Sie auf eine Zahl pro Durchgang klicken, um das raue, kratzige Zahlwort anzugeben.<br>
 ACHTUNG: die Antwort ist nur gültig, wenn der Mauszeiger nach dem Klicken verschwindet!<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`,
@@ -213,8 +213,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.`,
     prompt6: `Sollten Sie zu langsam antworten, färbt sich der Rahmen der Box für eine kurze Zeit rot.<br>
 Das ist dann der Hinweis, dass Sie in den kommenden Durchgängen etwas schneller antworten sollen.<br>
 Bitte halten Sie Ihren Blick während der Aufgabe stets auf die Antwort-Box gerichtet.<br>
-Die Zahlen färben sich dunkel, wenn Sie den Mauszeiger über sie bewegen.<br>
-Der Mauszeiger erscheint in der Mitte der Box am Anfang jedes Durchgangs und verschwindet, sobald Sie eine Zahl ausgewählt haben.<br><br>
+Die Zahlenfelder treten etwas hervor, wenn Sie den Mauszeiger über sie bewegen.<br>
 Drücken Sie LEERTASTE, um weiterzublättern.`
 };
 
