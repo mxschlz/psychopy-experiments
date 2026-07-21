@@ -189,7 +189,7 @@ Versuchen Sie dabei stets, so korrekt und so schnell wie möglich zu antworten!<
 Das Experiment ist in 4 Blöcke aufgeteilt, zwischen denen Sie kurze Pausen einlegen können.<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`,
 
-    prompt2: `In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter aus drei verschiedenen Richtungen abgespielt (links, geradeaus, rechts).<br>
+    prompt2: `In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter aus drei verschiedenen Richtungen abgespielt (links, mitte, rechts).<br>
 Alle Zahlwörter werden von derselben Stimme gesprochen. Bei den Zahlwörtern handelt es sich um eine Auswahl der Zahlen zwischen 1 und 9.<br>
 In einem Durchgang sind alle Ziffern einzigartig, z.B. kann die Zahl 9 nicht sowohl aus dem linken als auch dem rechten Lautsprecher gleichzeitig ertönen.<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`,
