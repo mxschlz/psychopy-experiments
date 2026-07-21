@@ -249,7 +249,7 @@ function getCueInstruction(colorStr) {
 In einigen Durchgängen sind alle Pfeile farblos. ${colored_arrow_description}<br>
 Dieser Pfeil ist nützlich, denn er zeigt, welche Art von Zahlwort aus dieser Richtung kommen wird.<br>
 Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt.<br>
-Ist der Pfeil ${t_highlight}, handelt es sich um einen irrelevanten Störreiz mit normaler Stimme.<br>
+Ist der Pfeil ${t_highlight}, handelt es sich um das Zahlwort mit normaler Stimme.<br>
 Ist der Pfeil ${d_highlight}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört.<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`;
 }
