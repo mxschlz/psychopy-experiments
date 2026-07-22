@@ -593,6 +593,10 @@ function buildAndRunExperiment(trial_data) {
         ['4_loc1.wav', '7_loc3.wav', '2_loc2.wav', '8_loc2.wav', '3_loc1.wav', '5_loc3.wav'].forEach(f => {
             audio_files.push(`${base_url}screening_stimuli/${f}`);
         });
+        ['1','2','3','4','5','6','7','8','9'].forEach(d => {
+            audio_files.push(`${base_url}stimuli/targets_low_30_Hz/${d}_amplitude_modulated_30.wav`);
+            audio_files.push(`${base_url}stimuli/digits_all_250ms/${d}.wav`);
+        });
     }
     
     timeline.push({
@@ -636,6 +640,152 @@ function buildAndRunExperiment(trial_data) {
         main_instructions.push(cue_instruction_html);
         
         timeline.push(createInstructionTrial(main_instructions));
+
+        // DEMO BLOCK
+        let demo_instruction_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4da8da;">Zielreize</h2>
+                    <p>Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören.</p>
+                    <p>Es werden nur die relevanten Zahlwörter abgespielt, auf die Sie achten sollen.</p>
+                    <p>Dabei ertönen sie zufällig aus einem der drei Lautsprecher, so wie es auch im Hauptexperiment sein wird.</p>
+                    <p>ACHTUNG: erschrecken Sie bitte nicht.</p>
+                    <p><br>Drücken Sie LEERTASTE, um die Zielziffern zwischen 1 und 9 anzuhören.</p>
+                </div>
+            `,
+            choices: [' ']
+        };
+
+        let demo_audio_trials = [];
+        let demo_digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        for (let d of demo_digits) {
+            demo_audio_trials.push({
+                type: jsPsychAudioKeyboardResponse,
+                stimulus: `${base_url}stimuli/targets_low_30_Hz/${d}_amplitude_modulated_30.wav`,
+                choices: "NO_KEYS",
+                trial_duration: 1500,
+                prompt: '<div style="margin-top:20px; font-size: 40px; color: white;">...</div>'
+            });
+        }
+        timeline.push(demo_instruction_trial);
+        for (let dt of demo_audio_trials) { timeline.push(dt); }
+
+        // ACCURACY TEST BLOCK
+        let acc_sequence = [];
+        let acc_idx = 0;
+        let acc_correct_count = 0;
+
+        function regenerateAccSequence() {
+            acc_sequence = [];
+            let available_digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            available_digits.sort(() => Math.random() - 0.5);
+            let seq = available_digits.slice(0, 9);
+            seq.push(Math.floor(Math.random() * 9) + 1);
+            seq.sort(() => Math.random() - 0.5);
+            
+            for (let digit of seq) {
+                let isTarget = Math.random() < 0.5;
+                let file = isTarget ? `${base_url}stimuli/targets_low_30_Hz/${digit}_amplitude_modulated_30.wav` : `${base_url}stimuli/digits_all_250ms/${digit}.wav`;
+                let correct_key = isTarget ? 'l' : 'm';
+                acc_sequence.push({file: file, correct_key: correct_key});
+            }
+            acc_idx = 0;
+            acc_correct_count = 0;
+        }
+
+        let accuracy_instruction_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: `
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4da8da;">Genauigkeitstest</h2>
+                    <p>Nun werden Ihnen nacheinander 10 Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.</p>
+                    <p>Drücken sie die Taste <strong style="color: #4caf50;">L</strong> für das raue, kratzige Zahlwort, und die Taste <strong style="color: #ff6b6b;">M</strong> für das reguläre Zahlwort.</p>
+                    <p>Sie müssen alle 10 Wörter korrekt identifizieren, um mit dem Experiment beginnen zu können.</p>
+                    <p>Erreichen Sie weniger als 100%, wiederholt sich dieser Test automatisch.</p>
+                    <p><br>Drücken Sie LEERTASTE, um zu beginnen.</p>
+                </div>
+            `,
+            choices: [' '],
+            on_start: function() {
+                regenerateAccSequence();
+            }
+        };
+
+        let accuracy_audio_trial = {
+            type: jsPsychAudioKeyboardResponse,
+            stimulus: function() {
+                return acc_sequence[acc_idx].file;
+            },
+            choices: ['l', 'm'],
+            prompt: '<div style="margin-top:20px; font-size: 40px; color: white; display: flex; justify-content: center; gap: 50px;"><div><span style="color: #4caf50;">L</span></div><div>oder</div><div><span style="color: #ff6b6b;">M</span></div></div>',
+            on_finish: function(data) {
+                data.correct = (data.response === acc_sequence[acc_idx].correct_key);
+                if (data.correct) {
+                    acc_correct_count++;
+                }
+            }
+        };
+
+        let accuracy_feedback_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: function() {
+                let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
+                if (last_trial_correct) {
+                    return '<div style="font-size: 30px; color: #4caf50;">Korrekt!</div>';
+                } else {
+                    return '<div style="font-size: 30px; color: #ff6b6b;">Falsch!</div>';
+                }
+            },
+            choices: "NO_KEYS",
+            trial_duration: 500,
+            on_finish: function() {
+                acc_idx++;
+            }
+        };
+
+        let accuracy_10_trials = {
+            timeline: [accuracy_audio_trial, accuracy_feedback_trial],
+            repetitions: 10
+        };
+
+        let accuracy_result_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: function() {
+                let accuracy = (acc_correct_count / 10) * 100;
+                let msg = accuracy === 100 ? 'weiterzublättern' : 'den Test zu wiederholen';
+                return `
+                    <div style="text-align: center; color: white;">
+                        <h2>Sie haben ${accuracy.toFixed(2)}% der Zahlwörter korrekt identifiziert.</h2>
+                        <p>Drücken Sie auf die Rechte Pfeiltaste, um ${msg}.</p>
+                    </div>
+                `;
+            },
+            choices: ['ArrowRight']
+        };
+
+        let accuracy_loop = {
+            timeline: [accuracy_instruction_trial, accuracy_10_trials, accuracy_result_trial],
+            loop_function: function() {
+                if (acc_correct_count === 10) {
+                    return false; // Stop repeating
+                } else {
+                    return true; // Repeat the whole block
+                }
+            }
+        };
+
+        timeline.push(accuracy_loop);
+        
+        timeline.push(createInstructionTrial(`
+            <div style="text-align: center; color: white;">
+                <h2 style="color: #4caf50;">Bereit für das Hauptexperiment</h2>
+                <p>Im Kommenden werden Ihnen einige Probe-Durchläufe präsentiert. Diese sollen Sie mit der Aufgabe vertraut machen.</p>
+                <p>Sie können üben und Antworten geben, diese werden natürlich nicht gespeichert.</p>
+                <p>Bitte nutzen Sie diese Phase, um so gut wie möglich mit dem Experiment vertraut zu werden.</p>
+                <p>Nach diesem Testblock können Sie Fragen an die Versuchsleitung stellen. Nach diesem Testblock startet das Hauptexperiment.</p>
+            </div>
+        `));
     } else {
         // The cue instruction needs the color configuration from the first row of CSV
         let cue_instruction_html = getCueInstruction(trial_data[0].Color);
