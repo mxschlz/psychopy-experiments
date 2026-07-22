@@ -642,20 +642,15 @@ function buildAndRunExperiment(trial_data) {
         timeline.push(createInstructionTrial(main_instructions));
 
         // DEMO BLOCK
-        let demo_instruction_trial = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: `
-                <div style="text-align: center; color: white;">
-                    <h2 style="color: #4da8da;">Zielreize</h2>
-                    <p>Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören.</p>
-                    <p>Es werden nur die relevanten Zahlwörter abgespielt, auf die Sie achten sollen.</p>
-                    <p>Dabei ertönen sie zufällig aus einem der drei Lautsprecher, so wie es auch im Hauptexperiment sein wird.</p>
-                    <p>ACHTUNG: erschrecken Sie bitte nicht.</p>
-                    <p><br>Drücken Sie LEERTASTE, um die Zielziffern zwischen 1 und 9 anzuhören.</p>
-                </div>
-            `,
-            choices: [' ']
-        };
+        let demo_instruction_trial = createInstructionTrial(`
+            <div style="text-align: center; color: white;">
+                <h2 style="color: #4da8da;">Zielreize</h2>
+                <p>Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören.</p>
+                <p>Es werden nur die relevanten Zahlwörter abgespielt, auf die Sie achten sollen.</p>
+                <p>Dabei ertönen sie zufällig aus einem der drei Lautsprecher, so wie es auch im Hauptexperiment sein wird.</p>
+                <p>ACHTUNG: erschrecken Sie bitte nicht.</p>
+            </div>
+        `);
 
         let demo_audio_trials = [];
         let demo_digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -694,22 +689,17 @@ function buildAndRunExperiment(trial_data) {
             acc_correct_count = 0;
         }
 
-        let accuracy_instruction_trial = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: `
-                <div style="text-align: center; color: white;">
-                    <h2 style="color: #4da8da;">Genauigkeitstest</h2>
-                    <p>Nun werden Ihnen nacheinander 10 Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.</p>
-                    <p>Drücken sie die Taste <strong style="color: #4caf50;">L</strong> für das raue, kratzige Zahlwort, und die Taste <strong style="color: #ff6b6b;">M</strong> für das reguläre Zahlwort.</p>
-                    <p>Sie müssen alle 10 Wörter korrekt identifizieren, um mit dem Experiment beginnen zu können.</p>
-                    <p>Erreichen Sie weniger als 100%, wiederholt sich dieser Test automatisch.</p>
-                    <p><br>Drücken Sie LEERTASTE, um zu beginnen.</p>
-                </div>
-            `,
-            choices: [' '],
-            on_start: function() {
-                regenerateAccSequence();
-            }
+        let accuracy_instruction_trial = createInstructionTrial(`
+            <div style="text-align: center; color: white;">
+                <h2 style="color: #4da8da;">Genauigkeitstest</h2>
+                <p>Nun werden Ihnen nacheinander 10 Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.</p>
+                <p>Drücken sie die Taste <strong style="color: #4caf50;">L</strong> für das raue, kratzige Zahlwort, und die Taste <strong style="color: #ff6b6b;">M</strong> für das reguläre Zahlwort.</p>
+                <p>Sie müssen alle 10 Wörter korrekt identifizieren, um mit dem Experiment beginnen zu können.</p>
+                <p>Erreichen Sie weniger als 100%, wiederholt sich dieser Test automatisch.</p>
+            </div>
+        `);
+        accuracy_instruction_trial.on_start = function() {
+            regenerateAccSequence();
         };
 
         let accuracy_audio_trial = {
