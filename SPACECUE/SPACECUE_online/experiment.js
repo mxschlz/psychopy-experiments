@@ -906,18 +906,22 @@ function buildAndRunExperiment(trial_data) {
                     let colorStr = jsPsych.timelineVariable('Color', true); 
                     let cueInstruction = jsPsych.timelineVariable('CueInstruction', true);
 
-                    let nonsingletonColor = colorStr.includes('nonsingleton-blue') ? 'blue' : (colorStr.includes('nonsingleton-yellow') ? 'yellow' : 'white');
-                    let distractorColor = colorStr.includes('distractor-blue') ? 'blue' : (colorStr.includes('distractor-yellow') ? 'yellow' : 'white');
+                    let colorParts = colorStr.split('-');
+                    let nonsingletonColor = colorParts[1];
+                    let distractorColor = colorParts[3];
+                    const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
+                    let nonsingletonColorHex = hexMap[nonsingletonColor] || nonsingletonColor;
+                    let distractorColorHex = hexMap[distractorColor] || distractorColor;
                     
                     let cuedIndex = -1; // 1=L, 2=U, 3=R
                     let activeColor = 'white';
                     
                     if (cueInstruction.includes('nonsingleton_location')) {
                         cuedIndex = nonsingletonLoc;
-                        activeColor = nonsingletonColor;
+                        activeColor = nonsingletonColorHex;
                     } else if (cueInstruction.includes('distractor_location')) {
                         cuedIndex = singletonLoc;
-                        activeColor = distractorColor;
+                        activeColor = distractorColorHex;
                     }
 
                     // Build arrows HTML inside the cue-screen wrapper
