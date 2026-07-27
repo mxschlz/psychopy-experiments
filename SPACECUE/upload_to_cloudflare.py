@@ -45,6 +45,11 @@ def main():
                 local_path = os.path.join(root, file)
                 # Ensure forward slashes for URL paths on Cloudflare
                 s3_key = local_path.replace(os.sep, "/")
+                
+                # Skip logs
+                if s3_key.startswith("sequences/logs/"):
+                    continue
+                    
                 files_to_upload.append((local_path, s3_key))
                 
     print(f"Found {len(files_to_upload)} files to upload to bucket '{BUCKET_NAME}'.")
