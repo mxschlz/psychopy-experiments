@@ -332,7 +332,7 @@ function getInfoTrials() {
 
 `<div class="instruction-text" style="text-align: left; overflow-y: auto; max-height: 70vh; padding-right: 15px;">
     <h3 style="color: #4da8da; margin-top: 25px; border-bottom: 1px solid rgba(77, 168, 218, 0.3); padding-bottom: 5px;"><strong>4. Datenschutzrechtliche Informationen</strong></h3>
-    <p style="color: #f1f5f9; margin-bottom: 12px;">Die erhobenen Daten werden pseudonymisiert <sup style="color: #4da8da; font-weight: bold; margin-left: 2px;">1</sup> und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Die erhobenen Daten werden pseudonymisiert<sup style="color: #4da8da; font-weight: bold; margin-left: 2px;">1</sup> und sind über einen Code in der Projektdatenbank auf den einzelnen Probanden zurückführbar.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Die Datenbank befindet sich auf einem Server des IT-Service Center der Universität zu Lübeck (ITSC, https://www.itsc.uni-luebeck.de/dienstleistungen/it-sicherheit/firewall-und-idp.html),</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">der durch eine Firewall sowie ein Intrusion-Detection- und Intrusion-Prevention-System (IDS) geschützt ist.</p>
     <p style="color: #f1f5f9; margin-bottom: 12px;">Studienrelevante Daten werden in einem RAID-basierten Archivsystem vor Ort gesichert.</p>
@@ -343,7 +343,7 @@ function getInfoTrials() {
     <p style="color: #f1f5f9; margin-bottom: 4px;">Max Schulz, M.Sc..</p>
     <p style="color: #f1f5f9; margin-bottom: 4px;">Maria-Goeppert-Straße 9a</p>
     <p style="color: #f1f5f9; margin-bottom: 4px;">23562 Lübeck</p>
-    <p style="color: #f1f5f9; margin-bottom: 4px;">Gebäude MFC 8, 1. OG., Raum 2</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Gebäude MFC 8, 1. OG., Raum 5</p>
     <p style="color: #f1f5f9; margin-bottom: 4px;">Tel.: +49 451 3101 3647</p>
     <p style="color: #f1f5f9; margin-bottom: 4px;">E-Mail: (<a href="mailto:max.schulz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">max.schulz@uni-luebeck.de</a>)</p>
     </div>
