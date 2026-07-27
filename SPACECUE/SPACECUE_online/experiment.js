@@ -919,10 +919,6 @@ function buildAndRunExperiment(trial_data) {
                 <p>Nach diesem Testblock können Sie Fragen an die Versuchsleitung stellen. Nach diesem Testblock startet das Hauptexperiment.</p>
             </div>
         `));
-    } else {
-        // The cue instruction needs the color configuration from the first row of CSV
-        let cue_instruction_html = getCueInstruction(trial_data[0].Color);
-        timeline.push(createInstructionTrial(cue_instruction_html));
     }
 
     // 3. Main Trial Loop
