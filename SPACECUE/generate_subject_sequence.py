@@ -443,21 +443,8 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         except FileExistsError:
             logging.warning(FileExistsError(f"Directory {dirname} already exists! Moving on ... "))
 
-        sequence, sequence_labels, fitness = make_pygad_trial_sequence(
-            fig_path=settings["filepaths"]["sequences"] + "/logs" + f"/sce-{subject_id}_block-{current_block_num}_sequence_fitness.png",
-            num_trials=n_trials,
-            conditions=settings["trial_sequence"]["conditions"],
-            prop_c=settings["trial_sequence"]["prop_c"],
-            prop_np=settings["trial_sequence"]["prop_np"],
-            prop_pp=settings["trial_sequence"]["prop_pp"],
-            rule_violation_factor=settings["trial_sequence"]["rule_violation_factor"],
-            num_generations=settings["trial_sequence"]["num_generations"],
-            num_parents_mating=settings["trial_sequence"]["num_parents_mating"],
-            sol_per_pop=settings["trial_sequence"]["sol_per_pop"],
-            keep_parents=settings["trial_sequence"]["keep_parents"],
-            mutation_percent_genes=settings["trial_sequence"]["mutation_percent_genes"],
-            fitness_threshold=settings["trial_sequence"].get("fitness_threshold", 0.9999)
-        )
+        # The sequence is now completely random (no explicit priming trials generation)
+        sequence_labels = ["C"] * n_trials
         sequence_final = insert_singleton_present_trials(sequence_labels,
                                                          fig_path=settings["filepaths"]["sequences"] + "/logs" +
                                                                   f"/sce-{subject_id}_sequence_block-{current_block_num}_hist_sp_trials.png",
@@ -481,77 +468,34 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         prev_singleton_loc = None
 
         for i, element in enumerate(sequence_final):
-            if i == 0:
-                if "C" not in element:
-                    logging.warning(
-                        f"First trial is not a control trial. Old: {element}. New: C_SP (or C_SA if SP not possible).")
-                    if df_conditions[df_conditions["SingletonPresent"] == True].empty:
-                        element = "C_SA"
-                    else:
-                        element = "C_SP"
-
-            previous_element = sequence_final[i - 1] if i > 0 else None
-
-            while True:
-                select_singleton_present = True if "SP" in element else False
+            select_singleton_present = True if "SP" in element else False
+            possible_samples = df_conditions[df_conditions["SingletonPresent"] == select_singleton_present]
+            
+            if possible_samples.empty:
+                logging.error(f"No conditions found for SingletonPresent={select_singleton_present} (element: {element}). This should not happen if conditions file is complete.")
+                original_element = element
+                if select_singleton_present:
+                    element = element.replace("SP", "SA")
+                    select_singleton_present = False
+                else:
+                    element = element.replace("SA", "SP")
+                    select_singleton_present = True
                 possible_samples = df_conditions[df_conditions["SingletonPresent"] == select_singleton_present]
                 if possible_samples.empty:
-                    logging.error(
-                        f"No conditions found for SingletonPresent={select_singleton_present} (element: {element}). This should not happen if conditions file is complete.")
-                    original_element = element
-                    if select_singleton_present:
-                        element = element.replace("SP", "SA")
-                        select_singleton_present = False
-                    else:
-                        element = element.replace("SA", "SP")
-                        select_singleton_present = True
-                    possible_samples = df_conditions[df_conditions["SingletonPresent"] == select_singleton_present]
-                    if possible_samples.empty:
-                        raise ValueError(
-                            f"Critial: No conditions for SP or SA. Element: {original_element}. Check conditions file.")
-                    logging.warning(
-                        f"Switched element from {original_element} to {element} due to no matching conditions.")
+                    raise ValueError(f"Critical: No conditions for SP or SA. Element: {original_element}. Check conditions file.")
+                logging.warning(f"Switched element from {original_element} to {element} due to no matching conditions.")
 
-                sample = possible_samples.sample()
-
-                if i > 0:
-                    if "SP" not in element and (previous_element and "SP" not in previous_element):
-                        prev_singleton_loc = None
-                        prev_singleton_digit = None
-                    if "NP" in element and (previous_element and "NP" in previous_element):
-                        logging.debug(f"Consecutive NP elements. Changing {element} to C-equivalent.")
-                        element = "C_SP" if "SP" in element else "C_SA"
-
-                valid_choice = False
-                if "C" in element:
-                    if (sample["TargetDigit"].values[0] != prev_target_digit and
-                            (select_singleton_present is False or sample["SingletonDigit"].values[
-                                0] != prev_singleton_digit) and
-                            sample["TargetLoc"].values[0] != prev_target_loc and
-                            (select_singleton_present is False or sample["SingletonLoc"].values[
-                                0] != prev_singleton_loc)):
-                        sample["Priming"] = 0
-                        valid_choice = True
-                elif "NP" in element:
-                    if select_singleton_present is False or prev_singleton_digit is None or prev_singleton_loc is None:
-                        logging.debug(
-                            f"Cannot make NP trial (no prev singleton or current is SA). Element: {element}. Trying C.")
-                        continue
-                    if (sample["TargetDigit"].values[0] == prev_singleton_digit and
-                            sample["TargetLoc"].values[0] == prev_singleton_loc):
-                        sample["Priming"] = -1
-                        valid_choice = True
-                elif "PP" in element:
-                    if prev_target_digit is None or prev_target_loc is None:
-                        logging.debug(f"Cannot make PP trial (no prev target). Element: {element}. Trying C.")
-                        continue
-                    if (sample["TargetDigit"].values[0] == prev_target_digit and
-                            sample["TargetLoc"].values[0] == prev_target_loc):
-                        sample["Priming"] = 1
-                        valid_choice = True
-
-                if valid_choice:
-                    break
+            sample = possible_samples.sample()
+            
+            # Determine Priming type purely for logging/record-keeping
+            if i > 0 and prev_singleton_digit is not None and prev_singleton_loc is not None and \
+               (sample["TargetDigit"].values[0] == prev_singleton_digit and sample["TargetLoc"].values[0] == prev_singleton_loc):
+                sample["Priming"] = -1
+            elif i > 0 and prev_target_digit is not None and prev_target_loc is not None and \
+                 (sample["TargetDigit"].values[0] == prev_target_digit and sample["TargetLoc"].values[0] == prev_target_loc):
+                sample["Priming"] = 1
+            else:
+                sample["Priming"] = 0
 
             logging.debug(
                 f"Block {current_block_num}, Trial {i}: Selected condition for {element} (Priming: {sample['Priming'].values[0]})")
