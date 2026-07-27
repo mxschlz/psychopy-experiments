@@ -12,6 +12,9 @@ function formatDataToCSV() {
         
         new_row.trial_nr = idx;
         new_row.subject_id = subject;
+        new_row.prolific_pid = prolific_pid;
+        new_row.study_id = study_id;
+        new_row.session_id = session_id;
         new_row.block = block;
         new_row.age = demo_age;
         new_row.gender = demo_gender;
@@ -47,6 +50,9 @@ function formatMouseDataToCSV() {
         for (let pt of mData) {
             export_data.push({
                 subject_id: subject,
+                prolific_pid: prolific_pid,
+                study_id: study_id,
+                session_id: session_id,
                 block: block,
                 trial_nr: trial.trial_nr,
                 phase: trial.phase,
@@ -143,35 +149,32 @@ const jsPsych = initJsPsych({
                 document.getElementById('countdown').innerText = timeLeft;
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    window.location.href = `?subject=${subject}&block=${current_block + 1}&age=${demo_age}&gender=${demo_gender}&handedness=${demo_handedness}`;
+                    window.location.href = `?subject=${subject}&block=${current_block + 1}&age=${demo_age}&gender=${demo_gender}&handedness=${demo_handedness}&PROLIFIC_PID=${prolific_pid}&STUDY_ID=${study_id}&SESSION_ID=${session_id}`;
                 }
             }, 1000);
         } else {
-            document.body.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
-                <div class="glass-container" style="text-align: center; max-width: 600px;">
-                    <h2 style="color: #4caf50;">Das Experiment ist beendet.</h2>
-                    <p>Vielen Dank für Ihre Teilnahme!</p>
-                    <p>Ihre Daten wurden erfolgreich auf dem Server gespeichert. Sie können dieses Fenster nun schließen.</p>
-                </div>
-            </div>`;
+            if (prolific_pid && prolific_pid !== "null") {
+                // REDIRECT TO PROLIFIC
+                // Important: Replace "YOUR_COMPLETION_CODE" with the actual code from Prolific!
+                window.location.href = "https://app.prolific.com/submissions/complete?cc=YOUR_COMPLETION_CODE";
+            } else {
+                document.body.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+                    <div class="glass-container" style="text-align: center; max-width: 600px;">
+                        <h2 style="color: #4caf50;">Das Experiment ist beendet.</h2>
+                        <p>Vielen Dank für Ihre Teilnahme!</p>
+                        <p>Ihre Daten wurden erfolgreich auf dem Server gespeichert. Sie können dieses Fenster nun schließen.</p>
+                    </div>
+                </div>`;
+            }
         }
     }
 });
 
-const urlParams = new URLSearchParams(window.location.search);
-const subject = urlParams.get('subject') || "1";
-const block = urlParams.get('block') || "0";
-let demo_age = urlParams.get('age') || null;
-let demo_gender = urlParams.get('gender') || null;
-let demo_handedness = urlParams.get('handedness') || null;
+let subject, prolific_pid, study_id, session_id, block, demo_age, demo_gender, demo_handedness, csv_path, audio_folder;
 
 // Configure this to point to your Cloudflare R2 or OSF storage bucket link when deploying
-// Example: const base_url = "https://pub-xxxxxx.r2.dev/";
 const base_url = "https://pub-65f7c7cdfbd94569a681f48c959ee559.r2.dev/";
-
-const csv_path = `${base_url}sequences/sce-${subject}_block_${block}.csv`;
-const audio_folder = `${base_url}sequences/sce-${subject}_block_${block}/`;
 
 // Bind the exit button
 document.getElementById('exit-btn').addEventListener('click', function() {
@@ -425,7 +428,8 @@ const consentTrial = {
     }
 };
 
-const headphoneCheckTrial = createInstructionTrial(`
+function getHeadphoneCheckTrial() {
+    return createInstructionTrial(`
         <div style="text-align: left;">
             <h2 style="color: #4da8da; margin-bottom: 20px;">Kopfhörer-Test & Lautstärke</h2>
             <p>Dieses Experiment erfordert das Tragen von Kopfhörern. Bitte stellen Sie sicher, dass Sie diese jetzt aufgesetzt haben.</p>
@@ -436,6 +440,7 @@ const headphoneCheckTrial = createInstructionTrial(`
             </div>
             <p style="color: #ff6b6b; font-weight: bold;">WICHTIG: Bitte verändern Sie die Lautstärke nach diesem Test während des restlichen Experiments nicht mehr!</p>
         </div>`);
+}
 
 function getScreeningTrials() {
     let screeningTimeline = [];
@@ -523,12 +528,38 @@ function getScreeningTrials() {
     return screeningTimeline;
 }
 
-fetch(csv_path)
-    .then(response => {
+(async function initializeExperiment() {
+    const urlParams = new URLSearchParams(window.location.search);
+    subject = urlParams.get('subject');
+    prolific_pid = urlParams.get('PROLIFIC_PID') || null;
+    study_id = urlParams.get('STUDY_ID') || null;
+    session_id = urlParams.get('SESSION_ID') || null;
+
+    if (!subject) {
+        try {
+            // DataPipe automatically assigns a unique, non-repeating condition ID sequentially
+            // It distributes from 0 to N-1 based on your OSF/DataPipe settings.
+            let condition = await jsPsychPipe.getCondition(datapipe_id);
+            subject = condition + 1; // Maps 0 to 1, 1 to 2, etc.
+        } catch (e) {
+            console.error("DataPipe condition assignment failed", e);
+            const NUM_PREGENERATED_SEQUENCES = 200; // Only used as a fallback now!
+            subject = Math.floor(Math.random() * NUM_PREGENERATED_SEQUENCES) + 1;
+        }
+    }
+
+    block = urlParams.get('block') || "0";
+    demo_age = urlParams.get('age') || null;
+    demo_gender = urlParams.get('gender') || null;
+    demo_handedness = urlParams.get('handedness') || null;
+
+    csv_path = `${base_url}sequences/sce-${subject}_block_${block}.csv`;
+    audio_folder = `${base_url}sequences/sce-${subject}_block_${block}/`;
+
+    try {
+        const response = await fetch(csv_path);
         if (!response.ok) throw new Error("CSV konnte nicht geladen werden: " + csv_path);
-        return response.text();
-    })
-    .then(csvText => {
+        const csvText = await response.text();
         Papa.parse(csvText, {
             header: true,
             dynamicTyping: true,
@@ -538,12 +569,12 @@ fetch(csv_path)
                 buildAndRunExperiment(trial_data);
             }
         });
-    })
-    .catch(error => {
+    } catch (error) {
         console.error(error);
         document.body.innerHTML = `<h1>Fehler beim Laden der Sequenz!</h1>
         <p style="color:red;">${error.message}</p>`;
-    });
+    }
+})();
 
 const demoTrial = {
     type: jsPsychSurveyHtmlForm,
@@ -624,7 +655,7 @@ function buildAndRunExperiment(trial_data) {
         };
         timeline.push(infoAndConsentLoop);
         timeline.push(demoTrial);
-        timeline.push(headphoneCheckTrial);
+        timeline.push(getHeadphoneCheckTrial());
         timeline = timeline.concat(getScreeningTrials());
         
         let main_instructions = [
