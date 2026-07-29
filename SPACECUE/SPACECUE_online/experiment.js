@@ -80,6 +80,7 @@ function getFormattedDate() {
 
 const jsPsych = initJsPsych({
     display_element: 'jspsych-target',
+    use_webaudio: false, // Fixes intermittent audio dropouts in Firefox/Safari
     extensions: [{type: jsPsychExtensionMouseTracking}],
     on_finish: function() {
         if (abort_experiment) {
@@ -698,53 +699,48 @@ function buildAndRunExperiment(trial_data) {
         for (let dt of demo_audio_trials) { timeline.push(dt); }
 
         // ACCURACY TEST BLOCK
-        let acc_sequence = [];
-        let acc_idx = 0;
         let acc_correct_count = 0;
-
-        function regenerateAccSequence() {
-            acc_sequence = [];
-            let available_digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-            available_digits.sort(() => Math.random() - 0.5);
-            let seq = available_digits.slice(0, 9);
-            seq.push(Math.floor(Math.random() * 9) + 1);
-            seq.sort(() => Math.random() - 0.5);
-            
-            for (let digit of seq) {
-                let isTarget = Math.random() < 0.5;
-                let file = isTarget ? `${base_url}stimuli/targets_low_30_Hz/${digit}_amplitude_modulated_30.wav` : `${base_url}stimuli/digits_all_250ms/${digit}.wav`;
-                let correct_key = isTarget ? 'l' : 'm';
-                acc_sequence.push({file: file, correct_key: correct_key});
-            }
-            acc_idx = 0;
-            acc_correct_count = 0;
-        }
+        let current_acc_trial = {};
 
         let accuracy_instruction_trial = createInstructionTrial(`
             <div style="text-align: center; color: white;">
                 <h2 style="color: #4da8da;">Genauigkeitstest</h2>
-                <p>Nun werden Ihnen nacheinander 10 Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.</p>
+                <p>Nun werden Ihnen nacheinander Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.</p>
                 <p>Drücken sie die Taste <strong style="color: #4caf50;">L</strong> für das raue, kratzige Zahlwort, und die Taste <strong style="color: #ff6b6b;">M</strong> für das reguläre Zahlwort.</p>
-                <p>Sie müssen alle 10 Wörter korrekt identifizieren, um mit dem Experiment beginnen zu können.</p>
-                <p>Erreichen Sie weniger als 100%, wiederholt sich dieser Test automatisch.</p>
+                <p>Sie müssen 10 Wörter <strong>hintereinander</strong> korrekt identifizieren, um mit dem Experiment beginnen zu können.</p>
+                <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
             </div>
         `);
         accuracy_instruction_trial.on_start = function() {
-            regenerateAccSequence();
+            acc_correct_count = 0;
         };
 
         let accuracy_audio_trial = {
             type: jsPsychAudioKeyboardResponse,
             stimulus: function() {
-                return acc_sequence[acc_idx].file;
+                let digit = Math.floor(Math.random() * 9) + 1;
+                let isTarget = Math.random() < 0.5;
+                current_acc_trial.file = isTarget ? `${base_url}stimuli/targets_low_30_Hz/${digit}_amplitude_modulated_30.wav` : `${base_url}stimuli/digits_all_250ms/${digit}.wav`;
+                current_acc_trial.correct_key = isTarget ? 'l' : 'm';
+                return current_acc_trial.file;
             },
             choices: ['l', 'm'],
-            prompt: '<div style="margin-top:20px; font-size: 40px; color: white; display: flex; justify-content: center; gap: 50px;"><div><span style="color: #4caf50;">L</span></div><div>oder</div><div><span style="color: #ff6b6b;">M</span></div></div>',
+            prompt: function() {
+                return `
+                    <div style="margin-top:20px; font-size: 40px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                        <div style="display: flex; justify-content: center; gap: 50px;">
+                            <div><span style="color: #4caf50;">L</span></div>
+                            <div>oder</div>
+                            <div><span style="color: #ff6b6b;">M</span></div>
+                        </div>
+                        <div style="font-size: 24px; color: #aaa;">
+                            Bisher korrekt: ${acc_correct_count} / 10
+                        </div>
+                    </div>
+                `;
+            },
             on_finish: function(data) {
-                data.correct = (data.response === acc_sequence[acc_idx].correct_key);
-                if (data.correct) {
-                    acc_correct_count++;
-                }
+                data.correct = (data.response === current_acc_trial.correct_key);
             }
         };
 
@@ -753,110 +749,94 @@ function buildAndRunExperiment(trial_data) {
             stimulus: function() {
                 let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
                 if (last_trial_correct) {
-                    return '<div style="font-size: 30px; color: #4caf50;">Korrekt!</div>';
+                    acc_correct_count++;
+                    return `<div style="font-size: 30px; color: #4caf50;">Korrekt! (${acc_correct_count}/10)</div>`;
                 } else {
-                    return '<div style="font-size: 30px; color: #ff6b6b;">Falsch!</div>';
+                    acc_correct_count = 0;
+                    return '<div style="font-size: 30px; color: #ff6b6b;">Falsch! Zähler zurückgesetzt.</div>';
                 }
             },
             choices: "NO_KEYS",
-            trial_duration: 500,
-            on_finish: function() {
-                acc_idx++;
-            }
+            trial_duration: 1000,
         };
 
-        let accuracy_10_trials = {
+        let accuracy_dynamic_loop = {
             timeline: [accuracy_audio_trial, accuracy_feedback_trial],
-            repetitions: 10
+            loop_function: function() {
+                if (acc_correct_count >= 10) {
+                    return false;
+                }
+                return true;
+            }
         };
 
         let accuracy_result_trial = {
             type: jsPsychHtmlKeyboardResponse,
-            stimulus: function() {
-                let accuracy = (acc_correct_count / 10) * 100;
-                let msg = accuracy === 100 ? 'weiterzublättern' : 'den Test zu wiederholen';
-                return `
-                    <div style="text-align: center; color: white;">
-                        <h2>Sie haben ${accuracy.toFixed(2)}% der Zahlwörter korrekt identifiziert.</h2>
-                        <p>Drücken Sie auf die Rechte Pfeiltaste, um ${msg}.</p>
-                    </div>
-                `;
-            },
+            stimulus: `
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4caf50;">Geschafft!</h2>
+                    <p>Sie haben 10 Zahlwörter hintereinander korrekt identifiziert.</p>
+                    <p>Drücken Sie auf die Rechte Pfeiltaste, um weiterzublättern.</p>
+                </div>
+            `,
             choices: ['ArrowRight']
         };
 
-        let accuracy_loop = {
-            timeline: [accuracy_instruction_trial, accuracy_10_trials, accuracy_result_trial],
-            loop_function: function() {
-                if (acc_correct_count === 10) {
-                    return false; // Stop repeating
-                } else {
-                    return true; // Repeat the whole block
-                }
-            }
-        };
-
-        timeline.push(accuracy_loop);
+        timeline.push(accuracy_instruction_trial);
+        timeline.push(accuracy_dynamic_loop);
+        timeline.push(accuracy_result_trial);
 
         // CUE TEST BLOCK
+        let cue_correct_count = 0;
+        let current_cue_trial = {};
+
         let cue_test_instruction_trial = createInstructionTrial(`
             <div style="text-align: center; color: white;">
                 <h2 style="color: #4da8da;">Pfeil-Test</h2>
                 <p>Nun prüfen wir, ob Sie sich die Bedeutung der farbigen Pfeile gemerkt haben.</p>
-                <p>Ihnen wird nacheinander 10-mal ein farbiger Pfeil präsentiert.</p>
+                <p>Ihnen wird nacheinander ein farbiger Pfeil präsentiert.</p>
                 <p>Drücken Sie die Taste <strong style="color: #4caf50;">N</strong>, wenn der Pfeil die <strong>Normale Stimme</strong> ankündigt.</p>
                 <p>Drücken Sie die Taste <strong style="color: #ff6b6b;">K</strong>, wenn der Pfeil die <strong>Kinderstimme</strong> (Störreiz) ankündigt.</p>
-                <p>Wie zuvor müssen Sie 10 von 10 Pfeilen korrekt zuordnen.</p>
+                <p>Sie müssen 10 Pfeile <strong>hintereinander</strong> korrekt zuordnen.</p>
+                <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
             </div>
         `);
-
-        let cue_sequence = [];
-        let cue_idx = 0;
-        let cue_correct_count = 0;
-
-        function regenerateCueSequence() {
-            cue_sequence = [];
-            let t_color_name = trial_data[0].Color.split("-")[1].toLowerCase();
-            let d_color_name = trial_data[0].Color.split("-")[3].toLowerCase();
-            const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
-            let t_col_hex = hexMap[t_color_name] || t_color_name;
-            let d_col_hex = hexMap[d_color_name] || d_color_name;
-
-            for (let i = 0; i < 10; i++) {
-                let isTarget = Math.random() < 0.5;
-                let color_hex = isTarget ? t_col_hex : d_col_hex;
-                let correct_key = isTarget ? 'n' : 'k';
-                cue_sequence.push({color: color_hex, correct_key: correct_key});
-            }
-            cue_idx = 0;
-            cue_correct_count = 0;
-        }
-
         cue_test_instruction_trial.on_start = function() {
-            regenerateCueSequence();
+            cue_correct_count = 0;
         };
 
         let cue_test_trial = {
             type: jsPsychHtmlKeyboardResponse,
             stimulus: function() {
-                let clr = cue_sequence[cue_idx].color;
+                let t_color_name = trial_data[0].Color.split("-")[1].toLowerCase();
+                let d_color_name = trial_data[0].Color.split("-")[3].toLowerCase();
+                const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
+                let t_col_hex = hexMap[t_color_name] || t_color_name;
+                let d_col_hex = hexMap[d_color_name] || d_color_name;
+                
+                let isTarget = Math.random() < 0.5;
+                current_cue_trial.color_hex = isTarget ? t_col_hex : d_col_hex;
+                current_cue_trial.correct_key = isTarget ? 'n' : 'k';
+                
                 return `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-                        <div class="arrow arrow-up" style="border-bottom-color: ${clr}; transform: translate(0, 0) scale(3); position: relative; margin-bottom: 60px; top: 0; left: 0;"></div>
-                        <div style="font-size: 30px; color: white; display: flex; gap: 50px; margin-top: 40px;">
-                            <div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>
-                            <div>oder</div>
-                            <div><span style="color: #ff6b6b; font-weight: bold;">K</span> (Kinderstimme)</div>
+                        <div class="arrow arrow-up" style="border-bottom-color: ${current_cue_trial.color_hex}; transform: translate(0, 0) scale(3); position: relative; margin-bottom: 60px; top: 0; left: 0;"></div>
+                        <div style="font-size: 30px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
+                            <div style="display: flex; gap: 50px;">
+                                <div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>
+                                <div>oder</div>
+                                <div><span style="color: #ff6b6b; font-weight: bold;">K</span> (Kinderstimme)</div>
+                            </div>
+                            <div style="font-size: 24px; color: #aaa;">
+                                Bisher korrekt: ${cue_correct_count} / 10
+                            </div>
                         </div>
                     </div>
                 `;
             },
             choices: ['n', 'k'],
             on_finish: function(data) {
-                data.correct = (data.response === cue_sequence[cue_idx].correct_key);
-                if (data.correct) {
-                    cue_correct_count++;
-                }
+                data.correct = (data.response === current_cue_trial.correct_key);
             }
         };
 
@@ -865,50 +845,42 @@ function buildAndRunExperiment(trial_data) {
             stimulus: function() {
                 let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
                 if (last_trial_correct) {
-                    return '<div style="font-size: 30px; color: #4caf50;">Korrekt!</div>';
+                    cue_correct_count++;
+                    return `<div style="font-size: 30px; color: #4caf50;">Korrekt! (${cue_correct_count}/10)</div>`;
                 } else {
-                    return '<div style="font-size: 30px; color: #ff6b6b;">Falsch!</div>';
+                    cue_correct_count = 0;
+                    return '<div style="font-size: 30px; color: #ff6b6b;">Falsch! Zähler zurückgesetzt.</div>';
                 }
             },
             choices: "NO_KEYS",
-            trial_duration: 500,
-            on_finish: function() {
-                cue_idx++;
-            }
+            trial_duration: 1000,
         };
 
-        let cue_10_trials = {
+        let cue_dynamic_loop = {
             timeline: [cue_test_trial, cue_test_feedback],
-            repetitions: 10
+            loop_function: function() {
+                if (cue_correct_count >= 10) {
+                    return false;
+                }
+                return true;
+            }
         };
 
         let cue_result_trial = {
             type: jsPsychHtmlKeyboardResponse,
-            stimulus: function() {
-                let accuracy = (cue_correct_count / 10) * 100;
-                let msg = accuracy === 100 ? 'weiterzublättern' : 'den Test zu wiederholen';
-                return `
-                    <div style="text-align: center; color: white;">
-                        <h2>Sie haben ${accuracy.toFixed(2)}% der Pfeile korrekt identifiziert.</h2>
-                        <p>Drücken Sie auf die Rechte Pfeiltaste, um ${msg}.</p>
-                    </div>
-                `;
-            },
+            stimulus: `
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4caf50;">Geschafft!</h2>
+                    <p>Sie haben 10 Pfeile hintereinander korrekt identifiziert.</p>
+                    <p>Drücken Sie auf die Rechte Pfeiltaste, um weiterzublättern.</p>
+                </div>
+            `,
             choices: ['ArrowRight']
         };
 
-        let cue_test_loop = {
-            timeline: [cue_test_instruction_trial, cue_10_trials, cue_result_trial],
-            loop_function: function() {
-                if (cue_correct_count === 10) {
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        };
-
-        timeline.push(cue_test_loop);
+        timeline.push(cue_test_instruction_trial);
+        timeline.push(cue_dynamic_loop);
+        timeline.push(cue_result_trial);
         
         timeline.push(createInstructionTrial(`
             <div style="text-align: center; color: white;">
