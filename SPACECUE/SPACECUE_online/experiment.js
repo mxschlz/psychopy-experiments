@@ -194,7 +194,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.`,
 
     prompt2: `In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter aus drei verschiedenen Richtungen abgespielt (links, mitte, rechts).<br>
 Alle Zahlwörter werden von derselben Stimme gesprochen. Bei den Zahlwörtern handelt es sich um eine Auswahl der Zahlen zwischen 1 und 9.<br>
-In einem Durchgang sind alle Ziffern einzigartig, z.B. kann die Zahl 9 nicht sowohl aus dem linken als auch dem rechten Lautsprecher gleichzeitig ertönen.<br><br>
+In einem Durchgang sind alle Ziffern einzigartig, z.B. kann die Zahl 9 nicht sowohl von links als auch von rechts gleichzeitig ertönen.<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`,
 
     prompt3: `Das Zahlwort, welches Sie identifizieren sollen, unterscheidet sich von den anderen beiden in der folgenden Eigenschaft:<br>
@@ -210,7 +210,7 @@ Drücken Sie LEERTASTE, um weiterzublättern.`,
     prompt5: `Während des Experiments erscheint eine Antwort-Box in der Mitte des Bildschirms.<br>
 Diese enthält die Ziffern von 1 bis 9 und ist durch einen Rahmen begrenzt.<br>
 Mit der Maus können Sie auf eine Zahl pro Durchgang klicken, um das raue, kratzige Zahlwort anzugeben.<br>
-ACHTUNG: die Antwort ist nur gültig, wenn der Mauszeiger nach dem Klicken verschwindet!<br><br>
+ACHTUNG: die Antwort ist nur gültig, wenn der Mauszeiger nach dem Klicken verschwindet! Bitte stellen Sie sicher, dass Sie in jedem Durchgang eine Antwort geben, da ansonsten Ihre Daten unvollständig sind und nicht gewertet werden können.<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`,
 
     prompt6: `Sollten Sie zu langsam antworten, färbt sich der Rahmen der Box für eine kurze Zeit rot.<br>
@@ -678,7 +678,7 @@ function buildAndRunExperiment(trial_data) {
                 <h2 style="color: #4da8da;">Zielreize</h2>
                 <p>Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören.</p>
                 <p>Es werden nur die relevanten Zahlwörter abgespielt, auf die Sie achten sollen.</p>
-                <p>Dabei ertönen sie zufällig aus einem der drei Lautsprecher, so wie es auch im Hauptexperiment sein wird.</p>
+                <p>Dabei ertönen sie zufällig aus einer der drei Richtungen, so wie es auch im Hauptexperiment sein wird.</p>
                 <p>ACHTUNG: erschrecken Sie bitte nicht.</p>
             </div>
         `);
@@ -916,7 +916,7 @@ function buildAndRunExperiment(trial_data) {
                 <p>Im Kommenden werden Ihnen einige Probe-Durchläufe präsentiert. Diese sollen Sie mit der Aufgabe vertraut machen.</p>
                 <p>Sie können üben und Antworten geben, diese werden natürlich nicht gespeichert.</p>
                 <p>Bitte nutzen Sie diese Phase, um so gut wie möglich mit dem Experiment vertraut zu werden.</p>
-                <p>Nach diesem Testblock können Sie Fragen an die Versuchsleitung stellen. Nach diesem Testblock startet das Hauptexperiment.</p>
+                <p>Nach diesem Testblock startet das Hauptexperiment.</p>
             </div>
         `));
     }
