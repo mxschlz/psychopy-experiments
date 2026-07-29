@@ -52,7 +52,27 @@ def main():
                     
                 files_to_upload.append((local_path, s3_key))
                 
-    print(f"Found {len(files_to_upload)} files to upload to bucket '{BUCKET_NAME}'.")
+    print(f"Found {len(files_to_upload)} local files.")
+    
+    print("Fetching list of existing files in the bucket...")
+    existing_keys = set()
+    try:
+        paginator = s3.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=BUCKET_NAME):
+            if 'Contents' in page:
+                for obj in page['Contents']:
+                    existing_keys.add(obj['Key'])
+    except Exception as e:
+        print(f"Could not list existing objects: {e}")
+        
+    files_to_upload = [(local_path, s3_key) for local_path, s3_key in files_to_upload if s3_key not in existing_keys]
+    
+    print(f"{len(files_to_upload)} files remain to be uploaded.")
+    
+    if not files_to_upload:
+        print("Everything is up to date!")
+        return
+
     print("Starting concurrent upload...")
     
     # Upload concurrently with 30 threads for maximum speed
