@@ -9,7 +9,7 @@ function formatDataToCSV(b) {
     let responses = jsPsych.data.get().filter({phase: 'response', is_practice: false, block: b}).values();
     
     let export_data = current_trial_data.map(function(row, idx) {
-        let resp_trial = responses[idx];
+        let resp_trial = responses.find(r => r.trial_nr === idx);
         let new_row = { ...row }; // copy original csv row
         
         new_row.trial_nr = idx;
@@ -1073,7 +1073,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             type: jsPsychPipe,
             action: "save",
             experiment_id: datapipe_id,
-            filename: `sce-${subject}_block_${current_block_num}_data_${getFormattedDate()}.csv`,
+            filename: ()=>`sce-${subject}_block_${current_block_num}_data_${getFormattedDate()}.csv`,
             data_string: ()=>formatDataToCSV(current_block_num)
         };
         timeline.push(save_data);
@@ -1082,7 +1082,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             type: jsPsychPipe,
             action: "save",
             experiment_id: datapipe_id,
-            filename: `sce-${subject}_block_${current_block_num}_trajectories_${getFormattedDate()}.csv`,
+            filename: ()=>`sce-${subject}_block_${current_block_num}_trajectories_${getFormattedDate()}.csv`,
             data_string: ()=>formatMouseDataToCSV(current_block_num)
         };
         timeline.push(save_mouse_data);
