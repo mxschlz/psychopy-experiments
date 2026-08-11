@@ -13,8 +13,8 @@ from SPACECUE import upload_to_cloudflare
 
 def main():
     parser = argparse.ArgumentParser(description="Generate sequences for multiple subjects and upload to Cloudflare.")
-    parser.add_argument("subjects", metavar="N", type=int, nargs="+",
-                        help="List of subject IDs (e.g., 8 9 10)")
+    parser.add_argument("subjects", metavar="N", type=str, nargs="+",
+                        help="List of subject IDs (e.g., 08 09 10)")
     parser.add_argument("--skip-sounds", action="store_true",
                         help="Skip sound generation (CSV only)")
     

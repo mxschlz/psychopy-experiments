@@ -340,6 +340,7 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
 
 
 def precompute_sequence(subject_id, block, settings, logging_level="INFO", compute_snr=False, skip_sound_generation=False):
+    subject_id = str(subject_id).zfill(2)
     # get relevant params from settings
     samplerate = settings["session"]["samplerate"]
     freefield = settings["mode"]['freefield']
