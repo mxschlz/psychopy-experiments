@@ -14,7 +14,7 @@ session:  # these params are relevant for the generation of the possible combina
   n_trials: 120  # number of trials per block
   arrow_size: 1.5  # size of arrow
   arrow_offset: 1.0  # offset of arrow
-  cue_prop_informative: 0.5  # proportion of informative cues
+  cue_prop_informative: 0.6666667  # proportion of informative cues
   max_consecutive_informative: 5  # max consecutive informative cues in a row
   prop_distractor_present_trials: 1.0  # proportion of distractor-present trials
   cue_duration: 0.2  # duration of cue
