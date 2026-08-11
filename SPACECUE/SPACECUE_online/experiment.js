@@ -1,12 +1,14 @@
-let global_trial_data = [];
+let global_all_blocks_data = {};
+let current_block_global = 0;
 let abort_experiment = false;
 let exited_early = false;
 const datapipe_id = "p6rmFV5NMVaw";
 
-function formatDataToCSV() {
-    let responses = jsPsych.data.get().filter({phase: 'response', is_practice: false}).values();
+function formatDataToCSV(b) {
+    let current_trial_data = global_all_blocks_data[b];
+    let responses = jsPsych.data.get().filter({phase: 'response', is_practice: false, block: b}).values();
     
-    let export_data = global_trial_data.map(function(row, idx) {
+    let export_data = current_trial_data.map(function(row, idx) {
         let resp_trial = responses[idx];
         let new_row = { ...row }; // copy original csv row
         
@@ -15,7 +17,7 @@ function formatDataToCSV() {
         new_row.prolific_pid = prolific_pid;
         new_row.study_id = study_id;
         new_row.session_id = session_id;
-        new_row.block = block;
+        new_row.block = b;
         new_row.age = demo_age;
         new_row.gender = demo_gender;
         new_row.handedness = demo_handedness;
@@ -35,9 +37,9 @@ function formatDataToCSV() {
     return Papa.unparse(export_data);
 }
 
-function formatMouseDataToCSV() {
+function formatMouseDataToCSV(b) {
     let trials = jsPsych.data.get().filterCustom(function(trial) {
-        return ['cue', 'delay', 'response', 'iti'].includes(trial.phase) && trial.is_practice === false;
+        return ['cue', 'delay', 'response', 'iti'].includes(trial.phase) && trial.is_practice === false && trial.block === b;
     }).values();
 
     let export_data = [];
@@ -53,7 +55,7 @@ function formatMouseDataToCSV() {
                 prolific_pid: prolific_pid,
                 study_id: study_id,
                 session_id: session_id,
-                block: block,
+                block: b,
                 trial_nr: trial.trial_nr,
                 phase: trial.phase,
                 t: pt.t,
@@ -80,7 +82,6 @@ function getFormattedDate() {
 
 const jsPsych = initJsPsych({
     display_element: 'jspsych-target',
-    use_webaudio: false, // Fixes intermittent audio dropouts in Firefox/Safari
     extensions: [{type: jsPsychExtensionMouseTracking}],
     on_finish: function() {
         if (abort_experiment) {
@@ -96,8 +97,8 @@ const jsPsych = initJsPsych({
             const timestamp = getFormattedDate();
             jsPsychPipe.saveData(
                 datapipe_id, 
-                `sce-${subject}_block_${block}_data_early_exit_${timestamp}.csv`, 
-                formatDataToCSV()
+                `sce-${subject}_block_${current_block_global}_data_early_exit_${timestamp}.csv`, 
+                formatDataToCSV(current_block_global)
             ).then((result) => {
                 if (result && !result.error) {
                     document.body.innerHTML = `
@@ -132,42 +133,19 @@ const jsPsych = initJsPsych({
             return;
         }
 
-        // Block Chaining and Forced Pause Logic
-        let current_block = parseInt(block);
-        if (current_block < 3) {
+        if (prolific_pid && prolific_pid !== "null") {
+            // REDIRECT TO PROLIFIC
+            // Important: Replace "YOUR_COMPLETION_CODE" with the actual code from Prolific!
+            window.location.href = "https://app.prolific.com/submissions/complete?cc=YOUR_COMPLETION_CODE";
+        } else {
             document.body.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                 <div class="glass-container" style="text-align: center; max-width: 600px;">
-                    <h2 style="color: #4da8da;">Dieser Block ist zu Ende.</h2>
-                    <p>Bitte machen Sie eine kurze Pause von 60 Sekunden.</p>
-                    <p>Der nächste Block startet automatisch in <strong style="font-size: 24px; color: #ff6b6b;" id="countdown">60</strong> Sekunden.</p>
+                    <h2 style="color: #4caf50;">Das Experiment ist beendet.</h2>
+                    <p>Vielen Dank für Ihre Teilnahme!</p>
+                    <p>Ihre Daten wurden erfolgreich auf dem Server gespeichert. Sie können dieses Fenster nun schließen.</p>
                 </div>
             </div>`;
-            
-            let timeLeft = 60;
-            let timer = setInterval(function() {
-                timeLeft--;
-                document.getElementById('countdown').innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    window.location.href = `?subject=${subject}&block=${current_block + 1}&age=${demo_age}&gender=${demo_gender}&handedness=${demo_handedness}&PROLIFIC_PID=${prolific_pid}&STUDY_ID=${study_id}&SESSION_ID=${session_id}`;
-                }
-            }, 1000);
-        } else {
-            if (prolific_pid && prolific_pid !== "null") {
-                // REDIRECT TO PROLIFIC
-                // Important: Replace "YOUR_COMPLETION_CODE" with the actual code from Prolific!
-                window.location.href = "https://app.prolific.com/submissions/complete?cc=YOUR_COMPLETION_CODE";
-            } else {
-                document.body.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
-                    <div class="glass-container" style="text-align: center; max-width: 600px;">
-                        <h2 style="color: #4caf50;">Das Experiment ist beendet.</h2>
-                        <p>Vielen Dank für Ihre Teilnahme!</p>
-                        <p>Ihre Daten wurden erfolgreich auf dem Server gespeichert. Sie können dieses Fenster nun schließen.</p>
-                    </div>
-                </div>`;
-            }
         }
     }
 });
@@ -554,22 +532,28 @@ function getScreeningTrials() {
     demo_gender = urlParams.get('gender') || null;
     demo_handedness = urlParams.get('handedness') || null;
 
-    csv_path = `${base_url}sequences/sce-${subject}_block_${block}.csv`;
-    audio_folder = `${base_url}sequences/sce-${subject}_block_${block}/`;
+    let start_block = parseInt(block);
+    let all_blocks_data = [];
 
     try {
-        const response = await fetch(csv_path);
-        if (!response.ok) throw new Error("CSV konnte nicht geladen werden: " + csv_path);
-        const csvText = await response.text();
-        Papa.parse(csvText, {
-            header: true,
-            dynamicTyping: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                const trial_data = results.data;
-                buildAndRunExperiment(trial_data);
-            }
-        });
+        for (let b = start_block; b < 4; b++) {
+            let b_csv_path = `${base_url}sequences/sce-${subject}_block_${b}.csv`;
+            const response = await fetch(b_csv_path);
+            if (!response.ok) throw new Error("CSV konnte nicht geladen werden: " + b_csv_path);
+            const csvText = await response.text();
+            await new Promise(resolve => {
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        all_blocks_data.push({ block: b, data: results.data });
+                        resolve();
+                    }
+                });
+            });
+        }
+        buildAndRunExperiment(all_blocks_data, start_block);
     } catch (error) {
         console.error(error);
         document.body.innerHTML = `<h1>Fehler beim Laden der Sequenz!</h1>
@@ -610,501 +594,532 @@ const demoTrial = {
     }
 };
 
-function buildAndRunExperiment(trial_data) {
-    global_trial_data = trial_data;
+function buildAndRunExperiment(all_blocks_data, start_block) {
+    for (let item of all_blocks_data) { global_all_blocks_data[item.block] = item.data; }
     let timeline = [];
     
-    // 1. Preload Audio Files
-    let audio_files = [];
-    for (let i = 0; i < trial_data.length; i++) {
-        audio_files.push(`${audio_folder}s_${i}.wav`);
-    }
-    
-    // Add screening stimuli to preload if block 0
-    if (parseInt(block) === 0) {
-        ['4_loc1.wav', '7_loc3.wav', '2_loc2.wav', '8_loc2.wav', '3_loc1.wav', '5_loc3.wav'].forEach(f => {
-            audio_files.push(`${base_url}screening_stimuli/${f}`);
+    for (let b_idx = 0; b_idx < all_blocks_data.length; b_idx++) {
+        let current_block_data = all_blocks_data[b_idx];
+        let current_block_num = current_block_data.block;
+        let trial_data = current_block_data.data;
+        let b_audio_folder = `${base_url}sequences/sce-${subject}_block_${current_block_num}/`;
+        
+        timeline.push({
+            type: jsPsychCallFunction,
+            func: function() { current_block_global = current_block_num; }
         });
-        ['1','2','3','4','5','6','7','8','9'].forEach(d => {
-            audio_files.push(`${base_url}stimuli/targets_low_30_Hz/${d}_amplitude_modulated_30.wav`);
-            audio_files.push(`${base_url}stimuli/digits_all_250ms/${d}.wav`);
-        });
-    }
-    
-    timeline.push({
-        type: jsPsychPreload,
-        audio: audio_files,
-        message: "Lade akustische Stimuli, bitte warten..."
-    });
-
-    // 2. Instructions (Block 0 gets all prompts, other blocks get just the cue instruction)
-    if (parseInt(block) === 0) {
-        let infoAndConsentLoop = {
-            timeline: [
-                ...getInfoTrials(),
-                consentTrial
-            ],
-            loop_function: function(data) {
-                // The last trial is the consentTrial
-                let consent_response = data.values()[data.values().length - 1].response;
-                if (consent_response === 0) { // 'Zurück'
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        };
-        timeline.push(infoAndConsentLoop);
-        timeline.push(demoTrial);
-        timeline.push(getHeadphoneCheckTrial());
-        timeline = timeline.concat(getScreeningTrials());
         
-        let main_instructions = [
-            prompts.prompt1,
-            prompts.prompt2,
-            prompts.prompt3,
-            prompts.prompt4,
-            prompts.prompt5,
-            prompts.prompt6
-        ];
+        // 1. Preload Audio Files
+        let audio_files = [];
+        for (let i = 0; i < trial_data.length; i++) {
+            audio_files.push(`${b_audio_folder}s_${i}.wav`);
+        }
         
-        let cue_instruction_html = getCueInstruction(trial_data[0].Color);
-        main_instructions.push(cue_instruction_html);
-        
-        timeline.push(createInstructionTrial(main_instructions));
-
-        // DEMO BLOCK
-        let demo_instruction_trial = createInstructionTrial(`
-            <div style="text-align: center; color: white;">
-                <h2 style="color: #4da8da;">Zielreize</h2>
-                <p>Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören.</p>
-                <p>Es werden nur die relevanten Zahlwörter abgespielt, auf die Sie achten sollen.</p>
-                <p>Dabei ertönen sie zufällig aus einer der drei Richtungen, so wie es auch im Hauptexperiment sein wird.</p>
-                <p>ACHTUNG: erschrecken Sie bitte nicht.</p>
-            </div>
-        `);
-
-        let demo_audio_trials = [];
-        let demo_digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        for (let d of demo_digits) {
-            demo_audio_trials.push({
-                type: jsPsychAudioKeyboardResponse,
-                stimulus: `${base_url}stimuli/targets_low_30_Hz/${d}_amplitude_modulated_30.wav`,
-                choices: "NO_KEYS",
-                trial_duration: 1500,
-                prompt: '<div style="margin-top:20px; font-size: 40px; color: white;">...</div>'
+        if (current_block_num === 0) {
+            ['4_loc1.wav', '7_loc3.wav', '2_loc2.wav', '8_loc2.wav', '3_loc1.wav', '5_loc3.wav'].forEach(f => {
+                audio_files.push(`${base_url}screening_stimuli/${f}`);
+            });
+            ['1','2','3','4','5','6','7','8','9'].forEach(d => {
+                audio_files.push(`${base_url}stimuli/targets_low_30_Hz/${d}_amplitude_modulated_30.wav`);
+                audio_files.push(`${base_url}stimuli/digits_all_250ms/${d}.wav`);
             });
         }
-        timeline.push(demo_instruction_trial);
-        for (let dt of demo_audio_trials) { timeline.push(dt); }
+        
+        timeline.push({
+            type: jsPsychPreload,
+            audio: audio_files,
+            message: `Lade akustische Stimuli (Block ${current_block_num + 1} von 4), bitte warten...`
+        });
 
-        // ACCURACY TEST BLOCK
-        let acc_correct_count = 0;
-        let current_acc_trial = {};
-
-        let accuracy_instruction_trial = createInstructionTrial(`
-            <div style="text-align: center; color: white;">
-                <h2 style="color: #4da8da;">Genauigkeitstest</h2>
-                <p>Nun werden Ihnen nacheinander Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.</p>
-                <p>Drücken sie die Taste <strong style="color: #4caf50;">L</strong> für das raue, kratzige Zahlwort, und die Taste <strong style="color: #ff6b6b;">M</strong> für das reguläre Zahlwort.</p>
-                <p>Sie müssen 10 Wörter <strong>hintereinander</strong> korrekt identifizieren, um mit dem Experiment beginnen zu können.</p>
-                <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
-            </div>
-        `);
-        accuracy_instruction_trial.on_start = function() {
-            acc_correct_count = 0;
-        };
-
-        let accuracy_audio_trial = {
-            type: jsPsychAudioKeyboardResponse,
-            stimulus: function() {
-                let digit = Math.floor(Math.random() * 9) + 1;
-                let isTarget = Math.random() < 0.5;
-                current_acc_trial.file = isTarget ? `${base_url}stimuli/targets_low_30_Hz/${digit}_amplitude_modulated_30.wav` : `${base_url}stimuli/digits_all_250ms/${digit}.wav`;
-                current_acc_trial.correct_key = isTarget ? 'l' : 'm';
-                return current_acc_trial.file;
-            },
-            choices: ['l', 'm'],
-            prompt: function() {
-                return `
-                    <div style="margin-top:20px; font-size: 40px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px;">
-                        <div style="display: flex; justify-content: center; gap: 50px;">
-                            <div><span style="color: #4caf50;">L</span></div>
-                            <div>oder</div>
-                            <div><span style="color: #ff6b6b;">M</span></div>
-                        </div>
-                        <div style="font-size: 24px; color: #aaa;">
-                            Bisher korrekt: ${acc_correct_count} / 10
-                        </div>
-                    </div>
-                `;
-            },
-            on_finish: function(data) {
-                data.correct = (data.response === current_acc_trial.correct_key);
-            }
-        };
-
-        let accuracy_feedback_trial = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: function() {
-                let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
-                if (last_trial_correct) {
-                    acc_correct_count++;
-                    return `<div style="font-size: 30px; color: #4caf50;">Korrekt! (${acc_correct_count}/10)</div>`;
-                } else {
-                    acc_correct_count = 0;
-                    return '<div style="font-size: 30px; color: #ff6b6b;">Falsch! Zähler zurückgesetzt.</div>';
+        // 2. Instructions
+        if (current_block_num === 0) {
+            let infoAndConsentLoop = {
+                timeline: [
+                    ...getInfoTrials(),
+                    consentTrial
+                ],
+                loop_function: function(data) {
+                    let consent_response = data.values()[data.values().length - 1].response;
+                    if (consent_response === 0) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
-            },
-            choices: "NO_KEYS",
-            trial_duration: 1000,
-        };
+            };
+            timeline.push(infoAndConsentLoop);
+            timeline.push(demoTrial);
+            timeline.push(getHeadphoneCheckTrial());
+            timeline = timeline.concat(getScreeningTrials());
+            
+            let main_instructions = [
+                prompts.prompt1,
+                prompts.prompt2,
+                prompts.prompt3,
+                prompts.prompt4,
+                prompts.prompt5,
+                prompts.prompt6
+            ];
+            
+            let cue_instruction_html = getCueInstruction(trial_data[0].Color);
+            main_instructions.push(cue_instruction_html);
+            
+            timeline.push(createInstructionTrial(main_instructions));
 
-        let accuracy_dynamic_loop = {
-            timeline: [accuracy_audio_trial, accuracy_feedback_trial],
-            loop_function: function() {
-                if (acc_correct_count >= 10) {
-                    return false;
-                }
-                return true;
-            }
-        };
-
-        let accuracy_result_trial = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: `
+            // DEMO BLOCK
+            let demo_instruction_trial = createInstructionTrial(`
                 <div style="text-align: center; color: white;">
-                    <h2 style="color: #4caf50;">Geschafft!</h2>
-                    <p>Sie haben 10 Zahlwörter hintereinander korrekt identifiziert.</p>
-                    <p>Drücken Sie auf die Rechte Pfeiltaste, um weiterzublättern.</p>
+                    <h2 style="color: #4da8da;">Zielreize</h2>
+                    <p>Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören.</p>
+                    <p>Es werden nur die relevanten Zahlwörter abgespielt, auf die Sie achten sollen.</p>
+                    <p>Dabei ertönen sie zufällig aus einer der drei Richtungen, so wie es auch im Hauptexperiment sein wird.</p>
+                    <p>ACHTUNG: erschrecken Sie bitte nicht.</p>
                 </div>
-            `,
-            choices: ['ArrowRight']
-        };
+            `);
 
-        timeline.push(accuracy_instruction_trial);
-        timeline.push(accuracy_dynamic_loop);
-        timeline.push(accuracy_result_trial);
+            let demo_audio_trials = [];
+            let demo_digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            for (let d of demo_digits) {
+                demo_audio_trials.push({
+                    type: jsPsychAudioKeyboardResponse,
+                    stimulus: `${base_url}stimuli/targets_low_30_Hz/${d}_amplitude_modulated_30.wav`,
+                    choices: "NO_KEYS",
+                    trial_duration: 1500,
+                    prompt: '<div style="margin-top:20px; font-size: 40px; color: white;">...</div>'
+                });
+            }
+            timeline.push(demo_instruction_trial);
+            for (let dt of demo_audio_trials) { timeline.push(dt); }
 
-        // CUE TEST BLOCK
-        let cue_correct_count = 0;
-        let current_cue_trial = {};
+            // ACCURACY TEST BLOCK
+            let acc_correct_count = 0;
+            let current_acc_trial = {};
 
-        let cue_test_instruction_trial = createInstructionTrial(`
-            <div style="text-align: center; color: white;">
-                <h2 style="color: #4da8da;">Pfeil-Test</h2>
-                <p>Nun prüfen wir, ob Sie sich die Bedeutung der farbigen Pfeile gemerkt haben.</p>
-                <p>Ihnen wird nacheinander ein farbiger Pfeil präsentiert.</p>
-                <p>Drücken Sie die Taste <strong style="color: #4caf50;">N</strong>, wenn der Pfeil die <strong>Normale Stimme</strong> ankündigt.</p>
-                <p>Drücken Sie die Taste <strong style="color: #ff6b6b;">K</strong>, wenn der Pfeil die <strong>Kinderstimme</strong> (Störreiz) ankündigt.</p>
-                <p>Sie müssen 10 Pfeile <strong>hintereinander</strong> korrekt zuordnen.</p>
-                <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
-            </div>
-        `);
-        cue_test_instruction_trial.on_start = function() {
-            cue_correct_count = 0;
-        };
+            let accuracy_instruction_trial = createInstructionTrial(`
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4da8da;">Genauigkeitstest</h2>
+                    <p>Nun werden Ihnen nacheinander Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.</p>
+                    <p>Drücken sie die Taste <strong style="color: #4caf50;">L</strong> für das raue, kratzige Zahlwort, und die Taste <strong style="color: #ff6b6b;">M</strong> für das reguläre Zahlwort.</p>
+                    <p>Sie müssen 10 Wörter <strong>hintereinander</strong> korrekt identifizieren, um mit dem Experiment beginnen zu können.</p>
+                    <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
+                </div>
+            `);
+            accuracy_instruction_trial.on_start = function() {
+                acc_correct_count = 0;
+            };
 
-        let cue_test_trial = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: function() {
-                let t_color_name = trial_data[0].Color.split("-")[1].toLowerCase();
-                let d_color_name = trial_data[0].Color.split("-")[3].toLowerCase();
-                const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
-                let t_col_hex = hexMap[t_color_name] || t_color_name;
-                let d_col_hex = hexMap[d_color_name] || d_color_name;
-                
-                let isTarget = Math.random() < 0.5;
-                current_cue_trial.color_hex = isTarget ? t_col_hex : d_col_hex;
-                current_cue_trial.correct_key = isTarget ? 'n' : 'k';
-                
-                return `
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-                        <div class="arrow arrow-up" style="border-bottom-color: ${current_cue_trial.color_hex}; transform: translate(0, 0) scale(3); position: relative; margin-bottom: 60px; top: 0; left: 0;"></div>
-                        <div style="font-size: 30px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
-                            <div style="display: flex; gap: 50px;">
-                                <div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>
+            let accuracy_audio_trial = {
+                type: jsPsychAudioKeyboardResponse,
+                stimulus: function() {
+                    let digit = Math.floor(Math.random() * 9) + 1;
+                    let isTarget = Math.random() < 0.5;
+                    current_acc_trial.file = isTarget ? `${base_url}stimuli/targets_low_30_Hz/${digit}_amplitude_modulated_30.wav` : `${base_url}stimuli/digits_all_250ms/${digit}.wav`;
+                    current_acc_trial.correct_key = isTarget ? 'l' : 'm';
+                    return current_acc_trial.file;
+                },
+                choices: ['l', 'm'],
+                prompt: function() {
+                    return `
+                        <div style="margin-top:20px; font-size: 40px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                            <div style="display: flex; justify-content: center; gap: 50px;">
+                                <div><span style="color: #4caf50;">L</span></div>
                                 <div>oder</div>
-                                <div><span style="color: #ff6b6b; font-weight: bold;">K</span> (Kinderstimme)</div>
+                                <div><span style="color: #ff6b6b;">M</span></div>
                             </div>
                             <div style="font-size: 24px; color: #aaa;">
-                                Bisher korrekt: ${cue_correct_count} / 10
+                                Bisher korrekt: ${acc_correct_count} / 10
                             </div>
                         </div>
-                    </div>
-                `;
-            },
-            choices: ['n', 'k'],
-            on_finish: function(data) {
-                data.correct = (data.response === current_cue_trial.correct_key);
-            }
-        };
-
-        let cue_test_feedback = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: function() {
-                let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
-                if (last_trial_correct) {
-                    cue_correct_count++;
-                    return `<div style="font-size: 30px; color: #4caf50;">Korrekt! (${cue_correct_count}/10)</div>`;
-                } else {
-                    cue_correct_count = 0;
-                    return '<div style="font-size: 30px; color: #ff6b6b;">Falsch! Zähler zurückgesetzt.</div>';
+                    `;
+                },
+                on_finish: function(data) {
+                    data.correct = (data.response === current_acc_trial.correct_key);
                 }
-            },
-            choices: "NO_KEYS",
-            trial_duration: 1000,
-        };
+            };
 
-        let cue_dynamic_loop = {
-            timeline: [cue_test_trial, cue_test_feedback],
-            loop_function: function() {
-                if (cue_correct_count >= 10) {
-                    return false;
-                }
-                return true;
-            }
-        };
-
-        let cue_result_trial = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: `
-                <div style="text-align: center; color: white;">
-                    <h2 style="color: #4caf50;">Geschafft!</h2>
-                    <p>Sie haben 10 Pfeile hintereinander korrekt identifiziert.</p>
-                    <p>Drücken Sie auf die Rechte Pfeiltaste, um weiterzublättern.</p>
-                </div>
-            `,
-            choices: ['ArrowRight']
-        };
-
-        timeline.push(cue_test_instruction_trial);
-        timeline.push(cue_dynamic_loop);
-        timeline.push(cue_result_trial);
-        
-        timeline.push(createInstructionTrial(`
-            <div style="text-align: center; color: white;">
-                <h2 style="color: #4caf50;">Bereit für das Hauptexperiment</h2>
-                <p>Im Kommenden werden Ihnen einige Probe-Durchläufe präsentiert. Diese sollen Sie mit der Aufgabe vertraut machen.</p>
-                <p>Sie können üben und Antworten geben, diese werden natürlich nicht gespeichert.</p>
-                <p>Bitte nutzen Sie diese Phase, um so gut wie möglich mit dem Experiment vertraut zu werden.</p>
-                <p>Nach diesem Testblock startet das Hauptexperiment.</p>
-            </div>
-        `));
-    }
-
-    // 3. Main Trial Loop
-    let trial_timeline = {
-        timeline: [
-            // Phase 0: Cue Presentation (with Fixation Cross and Arrows around it)
-            {
+            let accuracy_feedback_trial = {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: function() {
-                    let nonsingletonLoc = jsPsych.timelineVariable('Non-Singleton2Loc', true); 
-                    let singletonLoc = jsPsych.timelineVariable('SingletonLoc', true);
-                    let colorStr = jsPsych.timelineVariable('Color', true); 
-                    let cueInstruction = jsPsych.timelineVariable('CueInstruction', true);
-
-                    let colorParts = colorStr.split('-');
-                    let nonsingletonColor = colorParts[1];
-                    let distractorColor = colorParts[3];
-                    const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
-                    let nonsingletonColorHex = hexMap[nonsingletonColor] || nonsingletonColor;
-                    let distractorColorHex = hexMap[distractorColor] || distractorColor;
-                    
-                    let cuedIndex = -1; // 1=L, 2=U, 3=R
-                    let activeColor = 'white';
-                    
-                    if (cueInstruction.includes('nonsingleton_location')) {
-                        cuedIndex = nonsingletonLoc;
-                        activeColor = nonsingletonColorHex;
-                    } else if (cueInstruction.includes('distractor_location')) {
-                        cuedIndex = singletonLoc;
-                        activeColor = distractorColorHex;
+                    let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
+                    if (last_trial_correct) {
+                        acc_correct_count++;
+                        return `<div style="font-size: 30px; color: #4caf50;">Korrekt! (${acc_correct_count}/10)</div>`;
+                    } else {
+                        acc_correct_count = 0;
+                        return '<div style="font-size: 30px; color: #ff6b6b;">Falsch! Zähler zurückgesetzt.</div>';
                     }
+                },
+                choices: "NO_KEYS",
+                trial_duration: 1000,
+            };
 
-                    // Build arrows HTML inside the cue-screen wrapper
-                    const arrowsHTML = [1, 2, 3].map(pos => {
-                        let clr = (pos === cuedIndex) ? activeColor : 'white';
-                        let cls = pos === 1 ? 'arrow-left' : (pos === 2 ? 'arrow-up' : 'arrow-right');
-                        return `<div class="arrow ${cls}" style="border-bottom-color: ${clr};"></div>`;
-                    }).join('');
+            let accuracy_dynamic_loop = {
+                timeline: [accuracy_audio_trial, accuracy_feedback_trial],
+                loop_function: function() {
+                    if (acc_correct_count >= 10) {
+                        return false;
+                    }
+                    return true;
+                }
+            };
 
+            let accuracy_result_trial = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: `
+                    <div style="text-align: center; color: white;">
+                        <h2 style="color: #4caf50;">Geschafft!</h2>
+                        <p>Sie haben 10 Zahlwörter hintereinander korrekt identifiziert.</p>
+                        <p>Drücken Sie auf die Rechte Pfeiltaste, um weiterzublättern.</p>
+                    </div>
+                `,
+                choices: ['ArrowRight']
+            };
+
+            timeline.push(accuracy_instruction_trial);
+            timeline.push(accuracy_dynamic_loop);
+            timeline.push(accuracy_result_trial);
+
+            // CUE TEST BLOCK
+            let cue_correct_count = 0;
+            let current_cue_trial = {};
+
+            let cue_test_instruction_trial = createInstructionTrial(`
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4da8da;">Pfeil-Test</h2>
+                    <p>Nun prüfen wir, ob Sie sich die Bedeutung der farbigen Pfeile gemerkt haben.</p>
+                    <p>Ihnen wird nacheinander ein farbiger Pfeil präsentiert.</p>
+                    <p>Drücken Sie die Taste <strong style="color: #4caf50;">N</strong>, wenn der Pfeil die <strong>Normale Stimme</strong> ankündigt.</p>
+                    <p>Drücken Sie die Taste <strong style="color: #ff6b6b;">K</strong>, wenn der Pfeil die <strong>Kinderstimme</strong> (Störreiz) ankündigt.</p>
+                    <p>Sie müssen 10 Pfeile <strong>hintereinander</strong> korrekt zuordnen.</p>
+                    <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
+                </div>
+            `);
+            cue_test_instruction_trial.on_start = function() {
+                cue_correct_count = 0;
+            };
+
+            let cue_test_trial = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: function() {
+                    let t_color_name = trial_data[0].Color.split("-")[1].toLowerCase();
+                    let d_color_name = trial_data[0].Color.split("-")[3].toLowerCase();
+                    const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
+                    let t_col_hex = hexMap[t_color_name] || t_color_name;
+                    let d_col_hex = hexMap[d_color_name] || d_color_name;
+                    
+                    let isTarget = Math.random() < 0.5;
+                    current_cue_trial.color_hex = isTarget ? t_col_hex : d_col_hex;
+                    current_cue_trial.correct_key = isTarget ? 'n' : 'k';
+                    
                     return `
-                    <div class="cue-screen">
-                        <div class="fixation">+</div>
-                        ${arrowsHTML}
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+                            <div class="arrow arrow-up" style="border-bottom-color: ${current_cue_trial.color_hex}; transform: translate(0, 0) scale(3); position: relative; margin-bottom: 60px; top: 0; left: 0;"></div>
+                            <div style="font-size: 30px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
+                                <div style="display: flex; gap: 50px;">
+                                    <div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>
+                                    <div>oder</div>
+                                    <div><span style="color: #ff6b6b; font-weight: bold;">K</span> (Kinderstimme)</div>
+                                </div>
+                                <div style="font-size: 24px; color: #aaa;">
+                                    Bisher korrekt: ${cue_correct_count} / 10
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                },
+                choices: ['n', 'k'],
+                on_finish: function(data) {
+                    data.correct = (data.response === current_cue_trial.correct_key);
+                }
+            };
+
+            let cue_test_feedback = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: function() {
+                    let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
+                    if (last_trial_correct) {
+                        cue_correct_count++;
+                        return `<div style="font-size: 30px; color: #4caf50;">Korrekt! (${cue_correct_count}/10)</div>`;
+                    } else {
+                        cue_correct_count = 0;
+                        return '<div style="font-size: 30px; color: #ff6b6b;">Falsch! Zähler zurückgesetzt.</div>';
+                    }
+                },
+                choices: "NO_KEYS",
+                trial_duration: 1000,
+            };
+
+            let cue_dynamic_loop = {
+                timeline: [cue_test_trial, cue_test_feedback],
+                loop_function: function() {
+                    if (cue_correct_count >= 10) {
+                        return false;
+                    }
+                    return true;
+                }
+            };
+
+            let cue_result_trial = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: `
+                    <div style="text-align: center; color: white;">
+                        <h2 style="color: #4caf50;">Geschafft!</h2>
+                        <p>Sie haben 10 Pfeile hintereinander korrekt identifiziert.</p>
+                        <p>Drücken Sie auf die Rechte Pfeiltaste, um weiterzublättern.</p>
+                    </div>
+                `,
+                choices: ['ArrowRight']
+            };
+
+            timeline.push(cue_test_instruction_trial);
+            timeline.push(cue_dynamic_loop);
+            timeline.push(cue_result_trial);
+            
+            timeline.push(createInstructionTrial(`
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4caf50;">Bereit für das Hauptexperiment</h2>
+                    <p>Im Kommenden werden Ihnen einige Probe-Durchläufe präsentiert. Diese sollen Sie mit der Aufgabe vertraut machen.</p>
+                    <p>Sie können üben und Antworten geben, diese werden natürlich nicht gespeichert.</p>
+                    <p>Bitte nutzen Sie diese Phase, um so gut wie möglich mit dem Experiment vertraut zu werden.</p>
+                    <p>Nach diesem Testblock startet das Hauptexperiment.</p>
+                </div>
+            `));
+        }
+
+        // 3. Main Trial Loop
+        let trial_timeline = {
+            timeline: [
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function() {
+                        let nonsingletonLoc = jsPsych.timelineVariable('Non-Singleton2Loc', true); 
+                        let singletonLoc = jsPsych.timelineVariable('SingletonLoc', true);
+                        let colorStr = jsPsych.timelineVariable('Color', true); 
+                        let cueInstruction = jsPsych.timelineVariable('CueInstruction', true);
+
+                        let colorParts = colorStr.split('-');
+                        let nonsingletonColor = colorParts[1];
+                        let distractorColor = colorParts[3];
+                        const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
+                        let nonsingletonColorHex = hexMap[nonsingletonColor] || nonsingletonColor;
+                        let distractorColorHex = hexMap[distractorColor] || distractorColor;
+                        
+                        let cuedIndex = -1; // 1=L, 2=U, 3=R
+                        let activeColor = 'white';
+                        
+                        if (cueInstruction.includes('nonsingleton_location')) {
+                            cuedIndex = nonsingletonLoc;
+                            activeColor = nonsingletonColorHex;
+                        } else if (cueInstruction.includes('distractor_location')) {
+                            cuedIndex = singletonLoc;
+                            activeColor = distractorColorHex;
+                        }
+
+                        const arrowsHTML = [1, 2, 3].map(pos => {
+                            let clr = (pos === cuedIndex) ? activeColor : 'white';
+                            let cls = pos === 1 ? 'arrow-left' : (pos === 2 ? 'arrow-up' : 'arrow-right');
+                            return `<div class="arrow ${cls}" style="border-bottom-color: ${clr};"></div>`;
+                        }).join('');
+
+                        return `
+                        <div class="cue-screen">
+                            <div class="fixation">+</div>
+                            ${arrowsHTML}
+                        </div>`;
+                    },
+                    choices: "NO_KEYS",
+                    trial_duration: 200, 
+                    on_start: function() {
+                        const logo = document.getElementById('uzl-logo');
+                        if (logo) logo.style.display = 'none';
+                        document.body.classList.add('hide-cursor');
+                    },
+                    extensions: [{type: jsPsychExtensionMouseTracking}],
+                    data: { phase: 'cue', trial_nr: jsPsych.timelineVariable('original_index'), is_practice: jsPsych.timelineVariable('is_practice'), block: current_block_num }
+                },
+                {
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: '<div class="cue-screen"><div class="fixation">+</div></div>',
+                    choices: "NO_KEYS",
+                    trial_duration: function() {
+                        return jsPsych.timelineVariable('cue_stim_delay_jitter', true) * 1000; 
+                    },
+                    on_start: function() {
+                        document.body.classList.add('hide-cursor');
+                    },
+                    extensions: [{type: jsPsychExtensionMouseTracking}],
+                    data: { phase: 'delay', trial_nr: jsPsych.timelineVariable('original_index'), is_practice: jsPsych.timelineVariable('is_practice'), block: current_block_num }
+                },
+                {
+                    type: jsPsychAudioButtonResponse,
+                    stimulus: function() {
+                        let i = jsPsych.timelineVariable('original_index', true);
+                        return `${b_audio_folder}s_${i}.wav`;
+                    },
+                    choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                    button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
+                    response_ends_trial: false,
+                    trial_duration: 1750,
+                    data: {
+                        phase: 'response',
+                        targetDigit: jsPsych.timelineVariable('TargetDigit'),
+                        trial_nr: jsPsych.timelineVariable('original_index'),
+                        is_practice: jsPsych.timelineVariable('is_practice'),
+                        block: current_block_num
+                    },
+                    extensions: [{type: jsPsychExtensionMouseTracking}],
+                    on_start: function() {
+                        window.responded_in_trial = false;
+                        document.body.classList.remove('hide-cursor');
+                    },
+                    on_load: function() {
+                        const btns = document.querySelectorAll('.virtual-response-box');
+                        btns.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                document.body.classList.add('hide-cursor');
+                            });
+                        });
+                    },
+                    on_finish: function(data) {
+                        if (data.response !== null) {
+                            window.responded_in_trial = true;
+                        }
+                        let selectedDigit = data.response !== null ? data.response + 1 : null; 
+                        data.correct = (selectedDigit === data.targetDigit);
+                    }
+                },
+                {
+                    type: jsPsychHtmlButtonResponse,
+                    stimulus: '',
+                    choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                    button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
+                    response_ends_trial: false,
+                    trial_duration: function() {
+                        return jsPsych.timelineVariable('ITI-Jitter', true) * 1000;
+                    },
+                    on_load: function() {
+                        const btns = document.querySelectorAll('.virtual-response-box');
+                        
+                        btns.forEach(btn => {
+                            btn.style.transition = 'none';
+                            setTimeout(() => {
+                                btn.style.transition = '';
+                            }, 50);
+                        });
+
+                        if (window.responded_in_trial) {
+                            btns.forEach(btn => btn.setAttribute('disabled', 'disabled'));
+                            document.body.classList.add('hide-cursor');
+                        } else {
+                            document.body.classList.remove('hide-cursor');
+                        }
+
+                        btns.forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                document.body.classList.add('hide-cursor');
+                                const container = document.querySelector('#jspsych-html-button-response-btngroup');
+                                if (container && !window.responded_in_trial) {
+                                    container.classList.add('error-glow');
+                                    setTimeout(() => {
+                                        container.classList.remove('error-glow');
+                                    }, 500); 
+                                }
+                            });
+                        });
+                    },
+                    extensions: [{type: jsPsychExtensionMouseTracking}],
+                    data: { phase: 'iti', trial_nr: jsPsych.timelineVariable('original_index'), is_practice: jsPsych.timelineVariable('is_practice'), block: current_block_num }
+                }
+            ],
+            timeline_variables: trial_data.map((row, idx) => ({...row, original_index: idx, is_practice: false}))
+        };
+
+        if (current_block_num === 0) {
+            let practice_intro = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: `<div class="instruction-text">
+                    <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge</h2>
+                    <p>Bevor das eigentliche Experiment beginnt, haben Sie nun die Möglichkeit, 15 Übungsdurchgänge zu absolvieren.</p>
+                    <p>Nutzen Sie diese Durchgänge, um sich an die Aufgabe und die Steuerung zu gewöhnen. Diese Durchgänge gehen nicht in die Wertung ein.</p>
+                    <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit den Übungsdurchgängen zu beginnen.</p>
+                </div>`,
+                choices: [" "]
+            };
+            timeline.push(practice_intro);
+            
+            let practice_vars = jsPsych.randomization.sampleWithoutReplacement(trial_data, 15).map((row, idx) => ({...row, original_index: idx, is_practice: true}));
+            let practice_timeline = {
+                timeline: trial_timeline.timeline,
+                timeline_variables: practice_vars
+            };
+            timeline.push(practice_timeline);
+            
+            let main_start = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: `<div class="instruction-text">
+                    <h2 style="color: #4caf50; margin-bottom: 20px;">Start des Hauptexperiments</h2>
+                    <p>Die Übungsdurchgänge sind nun beendet.</p>
+                    <p>Das eigentliche Experiment beginnt jetzt. Bitte konzentrieren Sie sich auf die Aufgabe.</p>
+                    <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um zu starten.</p>
+                </div>`,
+                choices: [" "]
+            };
+            timeline.push(main_start);
+        }
+
+        timeline.push(trial_timeline);
+
+        const save_data = {
+            type: jsPsychPipe,
+            action: "save",
+            experiment_id: datapipe_id,
+            filename: `sce-${subject}_block_${current_block_num}_data_${getFormattedDate()}.csv`,
+            data_string: ()=>formatDataToCSV(current_block_num)
+        };
+        timeline.push(save_data);
+
+        const save_mouse_data = {
+            type: jsPsychPipe,
+            action: "save",
+            experiment_id: datapipe_id,
+            filename: `sce-${subject}_block_${current_block_num}_trajectories_${getFormattedDate()}.csv`,
+            data_string: ()=>formatMouseDataToCSV(current_block_num)
+        };
+        timeline.push(save_mouse_data);
+
+        if (current_block_num < 3) {
+            timeline.push({
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: function() {
+                    return `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+                        <div class="glass-container" style="text-align: center; max-width: 600px;">
+                            <h2 style="color: #4da8da;">Dieser Block ist zu Ende.</h2>
+                            <p>Bitte machen Sie eine kurze Pause von 60 Sekunden.</p>
+                            <p>Der nächste Block startet automatisch in <strong style="font-size: 24px; color: #ff6b6b;" id="countdown">60</strong> Sekunden.</p>
+                        </div>
                     </div>`;
                 },
                 choices: "NO_KEYS",
-                trial_duration: 200, 
-                on_start: function() {
-                    const logo = document.getElementById('uzl-logo');
-                    if (logo) logo.style.display = 'none';
-                    document.body.classList.add('hide-cursor');
-                },
-                extensions: [{type: jsPsychExtensionMouseTracking}],
-                data: { phase: 'cue', trial_nr: jsPsych.timelineVariable('original_index'), is_practice: jsPsych.timelineVariable('is_practice') }
-            },
-            
-            // Phase 1: Delay (Fixation only)
-            {
-                type: jsPsychHtmlKeyboardResponse,
-                stimulus: '<div class="cue-screen"><div class="fixation">+</div></div>',
-                choices: "NO_KEYS",
-                trial_duration: function() {
-                    return jsPsych.timelineVariable('cue_stim_delay_jitter', true) * 1000; 
-                },
-                on_start: function() {
-                    document.body.classList.add('hide-cursor');
-                },
-                extensions: [{type: jsPsychExtensionMouseTracking}],
-                data: { phase: 'delay', trial_nr: jsPsych.timelineVariable('original_index'), is_practice: jsPsych.timelineVariable('is_practice') }
-            },
-
-            // Phase 2/3: Audio Stimulus & Virtual Response Box (1-9 Numpad)
-            {
-                type: jsPsychAudioButtonResponse,
-                stimulus: function() {
-                    let i = jsPsych.timelineVariable('original_index', true);
-                    return `${audio_folder}s_${i}.wav`;
-                },
-                // 9 choices for the digits 1 through 9
-                choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
-                response_ends_trial: false,
-                trial_duration: 1750, // response_duration = 1.75s
-                data: {
-                    phase: 'response',
-                    targetDigit: jsPsych.timelineVariable('TargetDigit'), // This one is fine as timelineVariable because it's evaluated natively by jsPsych outside a function
-                    trial_nr: jsPsych.timelineVariable('original_index'),
-                    is_practice: jsPsych.timelineVariable('is_practice')
-                },
-                extensions: [{type: jsPsychExtensionMouseTracking}],
-                on_start: function() {
-                    window.responded_in_trial = false;
-                    document.body.classList.remove('hide-cursor');
-                },
+                trial_duration: 60000,
                 on_load: function() {
-                    const btns = document.querySelectorAll('.virtual-response-box');
-                    btns.forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            document.body.classList.add('hide-cursor');
-                        });
-                    });
+                    let timeLeft = 60;
+                    let timer = setInterval(function() {
+                        timeLeft--;
+                        let el = document.getElementById('countdown');
+                        if(el) el.innerText = timeLeft;
+                        if (timeLeft <= 0) {
+                            clearInterval(timer);
+                        }
+                    }, 1000);
+                    window.blockTimer = timer;
                 },
-                on_finish: function(data) {
-                    if (data.response !== null) {
-                        window.responded_in_trial = true;
-                    }
-                    // Score the response (choice 0 = '1', choice 8 = '9')
-                    let selectedDigit = data.response !== null ? data.response + 1 : null; 
-                    data.correct = (selectedDigit === data.targetDigit);
+                on_finish: function() {
+                    if (window.blockTimer) clearInterval(window.blockTimer);
                 }
-            },
-
-            // Phase 4: ITI (Blank screen, or remaining buttons if no response yet)
-            {
-                type: jsPsychHtmlButtonResponse,
-                stimulus: '',
-                choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
-                response_ends_trial: false,
-                trial_duration: function() {
-                    return jsPsych.timelineVariable('ITI-Jitter', true) * 1000;
-                },
-                on_load: function() {
-                    const btns = document.querySelectorAll('.virtual-response-box');
-                    
-                    // Prevent initial hover transition bump
-                    btns.forEach(btn => {
-                        btn.style.transition = 'none';
-                        setTimeout(() => {
-                            btn.style.transition = '';
-                        }, 50);
-                    });
-
-                    if (window.responded_in_trial) {
-                        // Already responded: disable buttons and hide cursor
-                        btns.forEach(btn => btn.setAttribute('disabled', 'disabled'));
-                        document.body.classList.add('hide-cursor');
-                    } else {
-                        document.body.classList.remove('hide-cursor');
-                    }
-
-                    btns.forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            document.body.classList.add('hide-cursor');
-                            const container = document.querySelector('#jspsych-html-button-response-btngroup');
-                            if (container && !window.responded_in_trial) {
-                                container.classList.add('error-glow');
-                                // Briefly glow red, then remove glow
-                                setTimeout(() => {
-                                    container.classList.remove('error-glow');
-                                }, 500); 
-                            }
-                        });
-                    });
-                },
-                extensions: [{type: jsPsychExtensionMouseTracking}],
-                data: { phase: 'iti', trial_nr: jsPsych.timelineVariable('original_index'), is_practice: jsPsych.timelineVariable('is_practice') }
-            }
-        ],
-        timeline_variables: trial_data.map((row, idx) => ({...row, original_index: idx, is_practice: false}))
-    };
-    
-    if (parseInt(block) === 0) {
-        let practice_intro = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: `<div class="instruction-text">
-                <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge</h2>
-                <p>Bevor das eigentliche Experiment beginnt, haben Sie nun die Möglichkeit, 15 Übungsdurchgänge zu absolvieren.</p>
-                <p>Nutzen Sie diese Durchgänge, um sich an die Aufgabe und die Steuerung zu gewöhnen. Diese Durchgänge gehen nicht in die Wertung ein.</p>
-                <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit den Übungsdurchgängen zu beginnen.</p>
-            </div>`,
-            choices: [" "]
-        };
-        timeline.push(practice_intro);
-        
-        let practice_vars = jsPsych.randomization.sampleWithoutReplacement(trial_data, 15).map((row, idx) => ({...row, original_index: idx, is_practice: true}));
-        let practice_timeline = {
-            timeline: trial_timeline.timeline,
-            timeline_variables: practice_vars
-        };
-        timeline.push(practice_timeline);
-        
-        let main_start = {
-            type: jsPsychHtmlKeyboardResponse,
-            stimulus: `<div class="instruction-text">
-                <h2 style="color: #4caf50; margin-bottom: 20px;">Start des Hauptexperiments</h2>
-                <p>Die Übungsdurchgänge sind nun beendet.</p>
-                <p>Das eigentliche Experiment beginnt jetzt. Bitte konzentrieren Sie sich auf die Aufgabe.</p>
-                <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um zu starten.</p>
-            </div>`,
-            choices: [" "]
-        };
-        timeline.push(main_start);
+            });
+        }
     }
-
-    timeline.push(trial_timeline);
-
-    const save_data = {
-        type: jsPsychPipe,
-        action: "save",
-        experiment_id: datapipe_id,
-        filename: `sce-${subject}_block_${block}_data_${getFormattedDate()}.csv`,
-        data_string: ()=>formatDataToCSV()
-    };
-    timeline.push(save_data);
-
-    const save_mouse_data = {
-        type: jsPsychPipe,
-        action: "save",
-        experiment_id: datapipe_id,
-        filename: `sce-${subject}_block_${block}_trajectories_${getFormattedDate()}.csv`,
-        data_string: ()=>formatMouseDataToCSV()
-    };
-    timeline.push(save_mouse_data);
-
+    
     jsPsych.run(timeline);
 }
