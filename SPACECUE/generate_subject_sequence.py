@@ -109,11 +109,11 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
             logging.warning(f"Block {block_num} (Trial-wise): DataFrame is empty. No cues to assign.")
             return df
 
-        # Ensure equal weighting across the three classes: neutral, nonsingleton, and distractor
-        n_uninformative_total = n_total_trials // 3
-        n_nonsingleton_informative = n_total_trials // 3
-        n_distractor_informative = n_total_trials - n_uninformative_total - n_nonsingleton_informative
-        n_informative_total = n_nonsingleton_informative + n_distractor_informative
+        # Use prop_informative to determine the overall split
+        n_informative_total = int(round(prop_informative * n_total_trials))
+        n_uninformative_total = n_total_trials - n_informative_total
+        n_nonsingleton_informative = n_informative_total // 2
+        n_distractor_informative = n_informative_total - n_nonsingleton_informative
 
         logging.info(f"Block {block_num} (Trial-wise): Total trials: {n_total_trials}. "
                      f"Prop informative: {prop_informative*100:.0f}%. "
@@ -339,7 +339,7 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
     return df
 
 
-def precompute_sequence(subject_id, block, settings, logging_level="INFO", compute_snr=False):
+def precompute_sequence(subject_id, block, settings, logging_level="INFO", compute_snr=False, skip_sound_generation=False):
     # get relevant params from settings
     samplerate = settings["session"]["samplerate"]
     freefield = settings["mode"]['freefield']
@@ -540,6 +540,8 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         trial_sequence.to_csv(file_name, index=False)
 
         logging.info(f"Saved trial sequence to {file_name}")
+        if skip_sound_generation:
+            continue
         logging.info(f"Precomputing trial sounds for subject {subject_id}, block {current_block_num} ... ")
 
         sound_sequence = []
