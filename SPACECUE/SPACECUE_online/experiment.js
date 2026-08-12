@@ -7,9 +7,11 @@ const datapipe_id = "p6rmFV5NMVaw";
 function formatDataToCSV(b) {
     let current_trial_data = global_all_blocks_data[b];
     let responses = jsPsych.data.get().filter({phase: 'response', is_practice: false, block: b}).values();
+    let itis = jsPsych.data.get().filter({phase: 'iti', is_practice: false, block: b}).values();
     
     let export_data = current_trial_data.map(function(row, idx) {
         let resp_trial = responses.find(r => r.trial_nr === idx);
+        let iti_trial = itis.find(r => r.trial_nr === idx);
         let new_row = { ...row }; // copy original csv row
         
         new_row.trial_nr = idx;
@@ -22,9 +24,12 @@ function formatDataToCSV(b) {
         new_row.gender = demo_gender;
         new_row.handedness = demo_handedness;
         
-        if (resp_trial) {
+        if (resp_trial && resp_trial.response !== null) {
             new_row.rt = resp_trial.rt ? resp_trial.rt / 1000 : null; // match python format (seconds)
-            new_row.response = resp_trial.response !== null ? parseInt(resp_trial.response) + 1 : null;
+            new_row.response = parseInt(resp_trial.response) + 1;
+        } else if (iti_trial && iti_trial.response !== null) {
+            new_row.rt = (iti_trial.rt + 1750) / 1000;
+            new_row.response = parseInt(iti_trial.response) + 1;
         } else {
             new_row.rt = null;
             new_row.response = null;
