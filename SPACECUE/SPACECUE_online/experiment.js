@@ -204,6 +204,50 @@ Die Zahlenfelder treten etwas hervor, wenn Sie den Mauszeiger über sie bewegen.
 Drücken Sie LEERTASTE, um weiterzublättern.`
 };
 
+function getBlockReminderTrial(trial_data) {
+    let n_cue_inst = trial_data[0].CueInstruction;
+    let n_colorStr = trial_data[0].Color;
+    let info = n_colorStr.split("-");
+    let targetColor = info[1].toLowerCase();
+    let distractorColor = info[3].toLowerCase();
+    let controlColor = info[5].toLowerCase();
+    
+    const colorMap = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß", "violet": "violett" };
+    const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff", "violet": "#b388ff" };
+    
+    let active_color_eng = "";
+    let cue_desc = "";
+    
+    if (n_cue_inst.includes('target_location')) {
+        active_color_eng = targetColor;
+        cue_desc = "den <strong>Zielreiz</strong> (raue Stimme)";
+    } else if (n_cue_inst.includes('distractor_location')) {
+        active_color_eng = distractorColor;
+        cue_desc = "den <strong>Störreiz</strong> (Kinderstimme)";
+    } else if (n_cue_inst.includes('nonsingleton_location')) {
+        active_color_eng = controlColor;
+        cue_desc = "die <strong>Normale Stimme</strong>";
+    }
+    
+    let active_ger = colorMap[active_color_eng] || active_color_eng;
+    let active_hex = hexMap[active_color_eng] || active_color_eng;
+    let highlight = `<span style="color: ${active_hex}; font-weight: bold; text-transform: uppercase;">${active_ger}</span>`;
+    
+    return {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+            <div class="glass-container" style="text-align: center; max-width: 600px;">
+                <h2 style="color: #4da8da;">Wichtige Information zum aktuellen Block</h2>
+                <p style="font-size: 18px; margin-top: 20px;">In diesem Block gibt Ihnen der farbige Pfeil einen Hinweis auf ${cue_desc}.</p>
+                <p style="font-size: 18px;">Achten Sie also auf den Pfeil mit der Farbe ${highlight}!</p>
+                <p style="margin-top: 40px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um fortzufahren.</p>
+            </div>
+        </div>`,
+        choices: [" "]
+    };
+}
+
 function getCueInstruction(colorStr) {
     let trg_ger = "weiß";
     let d_ger = "weiß";
@@ -244,6 +288,8 @@ Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt.<br>
 Ist der Pfeil ${trg_highlight}, handelt es sich um das raue Zahlwort, auf das Sie reagieren sollen (Zielreiz).<br>
 Ist der Pfeil ${d_highlight}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört (Störreiz).<br>
 Ist der Pfeil ${c_highlight}, handelt es sich um das Zahlwort mit normaler Stimme.<br><br>
+<b>Wichtig:</b> In einem bestimmten Block wird immer nur <b>eine</b> dieser drei Hinweis-Farben (zusammen mit den farblosen Pfeilen) verwendet.<br>
+Sie werden vor jedem Block darüber informiert, auf welche Farbe Sie in diesem Block achten müssen!<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`;
 }
 
@@ -838,11 +884,26 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                             <div class="arrow arrow-up" style="border-bottom-color: ${current_cue_trial.color_hex}; transform: translate(0, 0) scale(3); position: relative; margin-bottom: 60px; top: 0; left: 0;"></div>
                             <div style="font-size: 30px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
                                 <div style="display: flex; gap: 40px;">
-                                    <div><span style="color: #4da8da; font-weight: bold;">Z</span> (Zielreiz)</div>
-                                    <div>oder</div>
-                                    <div><span style="color: #ff6b6b; font-weight: bold;">K</span> (Kinderstimme)</div>
-                                    <div>oder</div>
-                                    <div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>
+                                    ${(function(){
+                                        let possible_wrongs = [];
+                                        if (current_cue_trial.correct_key === 'z') possible_wrongs = ['k', 'n'];
+                                        else if (current_cue_trial.correct_key === 'k') possible_wrongs = ['z', 'n'];
+                                        else possible_wrongs = ['z', 'k'];
+                                        
+                                        let wrong_key = possible_wrongs[Math.floor(Math.random() * 2)];
+                                        let display_options = [current_cue_trial.correct_key, wrong_key];
+                                        
+                                        let html_z = `<div><span style="color: #4da8da; font-weight: bold;">Z</span> (Zielreiz)</div>`;
+                                        let html_k = `<div><span style="color: #ff6b6b; font-weight: bold;">K</span> (Kinderstimme)</div>`;
+                                        let html_n = `<div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>`;
+                                        
+                                        let final_parts = [];
+                                        if (display_options.includes('z')) final_parts.push(html_z);
+                                        if (display_options.includes('k')) final_parts.push(html_k);
+                                        if (display_options.includes('n')) final_parts.push(html_n);
+                                        
+                                        return final_parts.join(' <div>oder</div> ');
+                                    })()}
                                 </div>
                                 <div style="font-size: 24px; color: #aaa;">
                                     Bisher korrekt: ${cue_correct_count} / 10
@@ -1082,6 +1143,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                 timeline: trial_timeline.timeline,
                 timeline_variables: practice_vars
             };
+            timeline.push(getBlockReminderTrial(trial_data));
             timeline.push(practice_timeline);
             
             let main_start = {
@@ -1097,6 +1159,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             timeline.push(main_start);
         }
 
+        timeline.push(getBlockReminderTrial(trial_data));
         timeline.push(trial_timeline);
 
         const save_data = {
