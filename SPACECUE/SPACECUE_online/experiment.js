@@ -846,9 +846,9 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     <h2 style="color: #4da8da;">Pfeil-Test</h2>
                     <p>Nun prüfen wir, ob Sie sich die Bedeutung der farbigen Pfeile gemerkt haben.</p>
                     <p>Ihnen wird nacheinander ein farbiger Pfeil präsentiert.</p>
-                    <p>Drücken Sie die Taste <strong style="color: #4da8da;">Z</strong>, wenn der Pfeil den <strong>Zielreiz</strong> (raue Stimme) ankündigt.</p>
-                    <p>Drücken Sie die Taste <strong style="color: #ff6b6b;">K</strong>, wenn der Pfeil die <strong>Kinderstimme</strong> (Störreiz) ankündigt.</p>
-                    <p>Drücken Sie die Taste <strong style="color: #4caf50;">N</strong>, wenn der Pfeil die <strong>Normale Stimme</strong> ankündigt.</p>
+                    <p>Drücken Sie die Taste <strong>Z</strong>, wenn der Pfeil den <strong>Zielreiz</strong> (raue Stimme) ankündigt.</p>
+                    <p>Drücken Sie die Taste <strong>K</strong>, wenn der Pfeil die <strong>Kinderstimme</strong> (Störreiz) ankündigt.</p>
+                    <p>Drücken Sie die Taste <strong>N</strong>, wenn der Pfeil die <strong>Normale Stimme</strong> ankündigt.</p>
                     <p>Sie müssen 10 Pfeile <strong>hintereinander</strong> korrekt zuordnen.</p>
                     <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
                 </div>
@@ -894,9 +894,9 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                                         let wrong_key = possible_wrongs[Math.floor(Math.random() * 2)];
                                         let display_options = [current_cue_trial.correct_key, wrong_key];
                                         
-                                        let html_z = `<div><span style="color: #4da8da; font-weight: bold;">Z</span> (Zielreiz)</div>`;
-                                        let html_k = `<div><span style="color: #ff6b6b; font-weight: bold;">K</span> (Kinderstimme)</div>`;
-                                        let html_n = `<div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>`;
+                                        let html_z = `<div><span style="font-weight: bold;">Z</span> (Zielreiz)</div>`;
+                                        let html_k = `<div><span style="font-weight: bold;">K</span> (Kinderstimme)</div>`;
+                                        let html_n = `<div><span style="font-weight: bold;">N</span> (Normale Stimme)</div>`;
                                         
                                         let final_parts = [];
                                         if (display_options.includes('z')) final_parts.push(html_z);
