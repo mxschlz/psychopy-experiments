@@ -205,7 +205,8 @@ Drücken Sie LEERTASTE, um weiterzublättern.`
 };
 
 function getBlockReminderTrial(trial_data) {
-    let n_cue_inst = trial_data[0].CueInstruction;
+    let informative_trial = trial_data.find(t => t.CueInstruction !== 'cue_neutral');
+    let n_cue_inst = informative_trial ? informative_trial.CueInstruction : 'cue_neutral';
     let n_colorStr = trial_data[0].Color;
     let info = n_colorStr.split("-");
     let targetColor = info[1].toLowerCase();
@@ -236,15 +237,15 @@ function getBlockReminderTrial(trial_data) {
     return {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
-            <div class="glass-container" style="text-align: center; max-width: 600px;">
-                <h2 style="color: #4da8da;">Wichtige Information zum aktuellen Block</h2>
-                <p style="font-size: 18px; margin-top: 20px;">In diesem Block gibt Ihnen der farbige Pfeil einen Hinweis auf ${cue_desc}.</p>
-                <p style="font-size: 18px;">Achten Sie also auf den Pfeil mit der Farbe ${highlight}!</p>
-                <p style="margin-top: 40px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um fortzufahren.</p>
-            </div>
+        <div class="instruction-text">
+            <h2 style="color: #4da8da; margin-bottom: 20px;">Wichtige Information zum aktuellen Block</h2>
+            <p style="font-size: 18px;">In diesem Block gibt Ihnen der farbige Pfeil einen Hinweis auf ${cue_desc}.</p>
+            <p style="font-size: 18px;">Achten Sie also auf den Pfeil mit der Farbe ${highlight}!</p>
+            <p style="margin-top: 40px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um sofort fortzufahren.<br>
+            (Dieses Fenster schließt sich automatisch nach 15 Sekunden)</p>
         </div>`,
-        choices: [" "]
+        choices: [" "],
+        trial_duration: 15000
     };
 }
 
@@ -1187,9 +1188,9 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     let next_msg = "";
                     let next_block_obj = all_blocks_data.find(b => b.block === current_block_num + 1);
                     if (next_block_obj && next_block_obj.data && next_block_obj.data.length > 0) {
-                        let next_trial = next_block_obj.data[0];
-                        let n_cue_inst = next_trial.CueInstruction;
-                        let n_colorStr = next_trial.Color;
+                        let informative_trial = next_block_obj.data.find(t => t.CueInstruction !== 'cue_neutral');
+                        let n_cue_inst = informative_trial ? informative_trial.CueInstruction : 'cue_neutral';
+                        let n_colorStr = next_block_obj.data[0].Color;
                         
                         let info = n_colorStr.split("-");
                         let targetColor = info[1].toLowerCase();
