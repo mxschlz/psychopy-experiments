@@ -65,7 +65,7 @@ def _check_max_consecutive_items(data_list: list, item_to_check: any, max_allowe
     return True
 
 
-def insert_pseudo_randomized_cues(df: pd.DataFrame,
+def insert_pseudo_randomized_cues(df: pd.DataFrame, subject_id_int: int,
                                   block_num: int,
                                   prop_informative: float = 0.8,
                                   max_consecutive_block_cues: int = 5) -> pd.DataFrame:
@@ -89,175 +89,67 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame,
 
     df["CueInstruction"] = pd.NA
 
-    cue_nonsingleton_label = "cue_nonsingleton_location"
+    cue_target_label = "cue_target_location"
     cue_distractor_label = "cue_distractor_location"
+    cue_control_label = "cue_nonsingleton_location"
     uninformative_cue_label = "cue_neutral"
 
-    # --- BLOCK-WISE CUEING LOGIC ---
-    logging.info(f"Block {block_num}: Applying BLOCK-WISE cueing strategy.")
+    # Define the 6 counter-balanced block orders
+    block_orders = [
+        ["T", "D", "C", "T", "D", "C"],
+        ["T", "C", "D", "T", "C", "D"],
+        ["D", "T", "C", "D", "T", "C"],
+        ["D", "C", "T", "D", "C", "T"],
+        ["C", "T", "D", "C", "T", "D"],
+        ["C", "D", "T", "C", "D", "T"]
+    ]
+    
+    subject_idx = (subject_id_int - 1) % 6
+    block_cue_type = block_orders[subject_idx][block_num]
 
-    cue_nonsingleton_stimulus_this_block: bool
-    if block_num % 2 == 0:  # Even block number
-        cue_nonsingleton_stimulus_this_block = False  # Distractor cueing
-    else:  # Odd block number
-        cue_nonsingleton_stimulus_this_block = True  # Non-Singleton cueing
-
-    # Define the specific informative cue label for this block type
-    block_specific_informative_cue: str
-    if cue_nonsingleton_stimulus_this_block:
-        block_specific_informative_cue = cue_nonsingleton_label
-    else:
+    if block_cue_type == "T":
+        block_specific_informative_cue = cue_target_label
+    elif block_cue_type == "D":
         block_specific_informative_cue = cue_distractor_label
-
-    logging.info(
-        f"Block {block_num}: Cueing strategy set to {'NONSINGLETONS' if cue_nonsingleton_stimulus_this_block else 'DISTRACTORS'}.")
-    logging.info(
-        f"Block {block_num}: Informative cue label for this block: '{block_specific_informative_cue}', Uninformative: '{uninformative_cue_label}'.")
-    logging.info(f"Block {block_num}: Prop informative: {prop_informative*100:.0f}%. Max consecutive informative: {max_consecutive_block_cues}.")
-
-    if cue_nonsingleton_stimulus_this_block:
-        # --- NONSINGLETON CUEING BLOCK LOGIC ---
-        n_total_trials = len(df)
-        logging.info(
-            f"Block {block_num} (Target Cues): Applying {prop_informative * 100:.0f}/{(1 - prop_informative) * 100:.0f} informative/neutral split to all {n_total_trials} trials.")
-
-        if n_total_trials == 0:
-            logging.warning(
-                f"Block {block_num} (Target Cues): DataFrame is empty. No cues to assign.")
-            return df
-
-        n_informative_total = int(round(prop_informative * n_total_trials))
-        n_uninformative_total = n_total_trials - n_informative_total
-
-        logging.info(f"Block {block_num} (Target Cues): For all {n_total_trials} trials: "
-                     f"{n_informative_total} informative ('{block_specific_informative_cue}'), {n_uninformative_total} neutral ('{uninformative_cue_label}'). ")
-
-        cues_for_block_prototype = ([block_specific_informative_cue] * n_informative_total +
-                                    [uninformative_cue_label] * n_uninformative_total)
-        cues_for_block_list = list(cues_for_block_prototype)
-
-        if n_informative_total > 0 and n_informative_total > max_consecutive_block_cues:
-            min_uninformative_needed = (n_informative_total - 1) // max_consecutive_block_cues if n_informative_total > 0 else 0
-            if n_uninformative_total < min_uninformative_needed:
-                logging.warning(
-                    f"Block {block_num} (Target Cues): Potentially not enough uninformative cues ({n_uninformative_total}) "
-                    f"to strictly enforce max_consecutive_block_cues={max_consecutive_block_cues} "
-                    f"for {n_informative_total} informative cues. (Need at least {min_uninformative_needed}). "
-                    f"Will attempt to shuffle but constraint might not be met."
-                )
-            max_shuffling_attempts = 200
-            found_valid_sequence = False
-            for attempt in range(max_shuffling_attempts):
-                np.random.shuffle(cues_for_block_list)
-                if _check_max_consecutive_items(cues_for_block_list, block_specific_informative_cue,
-                                                max_consecutive_block_cues):
-                    logging.info(
-                        f"Block {block_num} (Target Cues): Found block-wide cue sequence meeting max consecutive constraint after {attempt + 1} shuffles.")
-                    found_valid_sequence = True
-                    break
-            if not found_valid_sequence:
-                logging.warning(
-                    f"Block {block_num} (Target Cues): Could not find block-wide cue sequence meeting max_consecutive_block_cues={max_consecutive_block_cues} after {max_shuffling_attempts} attempts. Using last shuffled sequence.")
-        else:
-            np.random.shuffle(cues_for_block_list)
-            if n_informative_total > 0:
-                logging.info(
-                    f"Block {block_num} (Target Cues): Max consecutive informative cue constraint ({max_consecutive_block_cues}) trivially met or not applicable for {n_informative_total} informative cues. Shuffled once.")
-
-        if len(cues_for_block_list) == n_total_trials:
-            df["CueInstruction"] = cues_for_block_list
-        else:
-            logging.error(
-                f"Block {block_num} (Target Cues): Mismatch in length of generated cues ({len(cues_for_block_list)}) and total trials ({n_total_trials}). This is a bug. Filling with neutral.")
-            df["CueInstruction"] = uninformative_cue_label
     else:
-        # --- DISTRACTOR CUEING BLOCK LOGIC ---
-        logging.info(
-            f"Block {block_num} (Distractor Cues): Applying {prop_informative * 100:.0f}/{(1 - prop_informative) * 100:.0f} informative/neutral split to SingletonPresent==1 trials only.")
-        sp_trials_mask = df["SingletonPresent"] == 1
-        n_sp_trials = sp_trials_mask.sum()
+        block_specific_informative_cue = cue_control_label
 
-        if n_sp_trials > 0:
-            n_informative_for_sp = int(round(prop_informative * n_sp_trials))
-            n_uninformative_for_sp = n_sp_trials - n_informative_for_sp
+    logging.info(f"Block {block_num}: Cueing strategy set to {block_cue_type}.")
+    
+    n_total_trials = len(df)
+    n_informative_total = int(round(prop_informative * n_total_trials))
+    n_uninformative_total = n_total_trials - n_informative_total
 
-            logging.info(
-                f"Block {block_num} (Distractor Cues): For {n_sp_trials} SingletonPresent trials: "
-                f"{n_informative_for_sp} informative ('{block_specific_informative_cue}'), {n_uninformative_for_sp} neutral ('{uninformative_cue_label}'). "
-                f"Max consecutive informative: {max_consecutive_block_cues}.")
+    cues_for_block_prototype = ([block_specific_informative_cue] * n_informative_total +
+                                [uninformative_cue_label] * n_uninformative_total)
+    cues_for_block_list = list(cues_for_block_prototype)
 
-            cues_for_sp_prototype = ([block_specific_informative_cue] * n_informative_for_sp +
-                                     [uninformative_cue_label] * n_uninformative_for_sp)
-            cues_for_sp_list = list(cues_for_sp_prototype)
+    import numpy as np
+    
+    if n_informative_total > 0 and n_informative_total > max_consecutive_block_cues:
+        max_shuffling_attempts = 200
+        found_valid_sequence = False
+        for attempt in range(max_shuffling_attempts):
+            np.random.shuffle(cues_for_block_list)
+            if _check_max_consecutive_items(cues_for_block_list, block_specific_informative_cue,
+                                            max_consecutive_block_cues):
+                found_valid_sequence = True
+                break
+    else:
+        np.random.shuffle(cues_for_block_list)
 
-            if n_informative_for_sp > 0 and n_informative_for_sp > max_consecutive_block_cues:
-                min_uninformative_needed = (n_informative_for_sp - 1) // max_consecutive_block_cues if n_informative_for_sp > 0 else 0
-                if n_uninformative_for_sp < min_uninformative_needed:
-                    logging.warning(
-                        f"Block {block_num} (Distractor Cues - SP): Potentially not enough uninformative cues ({n_uninformative_for_sp}) "
-                        f"to strictly enforce max_consecutive_block_cues={max_consecutive_block_cues} "
-                        f"for {n_informative_for_sp} informative cues. (Need at least {min_uninformative_needed}). "
-                        f"Will attempt to shuffle but constraint might not be met."
-                    )
-                max_shuffling_attempts = 200
-                found_valid_sequence = False
-                for attempt in range(max_shuffling_attempts):
-                    np.random.shuffle(cues_for_sp_list)
-                    if _check_max_consecutive_items(cues_for_sp_list, block_specific_informative_cue,
-                                                    max_consecutive_block_cues):
-                        logging.info(
-                            f"Block {block_num} (Distractor Cues - SP): Found SP cue sequence meeting max consecutive constraint "
-                            f"after {attempt + 1} shuffles."
-                        )
-                        found_valid_sequence = True
-                        break
-                if not found_valid_sequence:
-                    logging.warning(
-                        f"Block {block_num} (Distractor Cues - SP): Could not find SP cue sequence meeting "
-                        f"max_consecutive_block_cues={max_consecutive_block_cues} "
-                        f"after {max_shuffling_attempts} attempts. Using last shuffled sequence. "
-                        f"Counts: {n_informative_for_sp} informative, {n_uninformative_for_sp} uninformative."
-                    )
-            else:
-                np.random.shuffle(cues_for_sp_list)
-                if n_informative_for_sp > 0:
-                    logging.info(
-                        f"Block {block_num} (Distractor Cues - SP): Max consecutive informative cue constraint ({max_consecutive_block_cues}) "
-                        f"is trivially met or not applicable for {n_informative_for_sp} informative cues. Shuffled once."
-                    )
-
-            if len(cues_for_sp_list) == n_sp_trials:
-                df.loc[sp_trials_mask, "CueInstruction"] = cues_for_sp_list
-            elif n_sp_trials > 0:
-                logging.error(
-                    f"Block {block_num} (Distractor Cues - SP): Mismatch in length of generated SP cues ({len(cues_for_sp_list)}) "
-                    f"and number of SP trials ({n_sp_trials}). This is a bug. SP cues not assigned to these trials.")
-        else:
-            logging.info(
-                f"Block {block_num} (Distractor Cues): No SingletonPresent == 1 trials found. "
-                f"No SP-specific informative/neutral cues to generate.")
-
-        sa_trials_mask = df["SingletonPresent"] == 0
-        df.loc[sa_trials_mask, "CueInstruction"] = uninformative_cue_label
-        logging.info(
-            f"Block {block_num} (Distractor Cues): Assigned '{uninformative_cue_label}' to {sa_trials_mask.sum()} SingletonPresent==0 trials.")
+    if len(cues_for_block_list) == n_total_trials:
+        df["CueInstruction"] = cues_for_block_list
+    else:
+        df["CueInstruction"] = uninformative_cue_label
 
     if df["CueInstruction"].isna().any():
-        default_fallback_cue = uninformative_cue_label
-        logging.warning(
-            f"Block {block_num}: Some CueInstructions were still NA after main assignment logic. Defaulting them to '{default_fallback_cue}'.")
-        df["CueInstruction"].fillna(default_fallback_cue, inplace=True)
-
-    if df["CueInstruction"].isna().any():
-        logging.error(
-            f"CRITICAL - Block {block_num}: CueInstruction column still contains NA values after processing and fallback!")
+        df["CueInstruction"].fillna(uninformative_cue_label, inplace=True)
 
     counts = df["CueInstruction"].value_counts(dropna=False)
     logging.info(f"Final cue instruction distribution for block {block_num}: {counts.to_dict()}")
 
     return df
-
-
 def precompute_sequence(subject_id, block, settings, logging_level="INFO", compute_snr=False, skip_sound_generation=False):
     subject_id = str(subject_id).zfill(2)
     # get relevant params from settings
@@ -340,15 +232,19 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
     # Color mapping counterbalanced for every two subjects
     # Assumes subject_id_int is 1-based (e.g., 1, 2, 3, ...)
     # Pair group index: (0,0), (1,1), (2,2), ... for subjects (1,2), (3,4), (5,6), ...
-    pair_group_index = (subject_id_int - 1) // 2
-    if pair_group_index % 2 == 0: # Even pair group (0, 2, 4...)
-        color_mapping_for_subject = "nonsingleton-blue-singleton-yellow"
-    else: # Odd pair group (1, 3, 5...)
-        color_mapping_for_subject = "nonsingleton-yellow-singleton-blue"
+    color_permutations = [
+        ("blue", "yellow", "violet"),
+        ("blue", "violet", "yellow"),
+        ("yellow", "blue", "violet"),
+        ("yellow", "violet", "blue"),
+        ("violet", "blue", "yellow"),
+        ("violet", "yellow", "blue")
+    ]
+    colors = color_permutations[(subject_id_int - 1) % 6]
+    color_mapping_for_subject = f"target-{colors[0]}-distractor-{colors[1]}-control-{colors[2]}"
 
     logging.info(f"Subject ID: {subject_id}, Integer: {subject_id_int}")
     logging.info(f"Cue Design Strategy for Subject: {cue_design_strategy_for_subject}")
-    logging.info(f"Color Mapping Pair Group Index: {pair_group_index}")
     logging.info(f"Color Mapping for Subject: {color_mapping_for_subject}")
 
     # Iterate over blocks (starting from the 'block' argument, up to n_blocks)
@@ -447,6 +343,7 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
         trial_sequence = insert_pseudo_randomized_cues(
             trial_sequence,
+            subject_id_int=subject_id_int,
             block_num=current_block_num,
             prop_informative=cue_prop_informative,
             max_consecutive_block_cues=max_consecutive_block_cues
@@ -632,4 +529,5 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
 
 
-precompute_sequence(subject_id=info["subject_id"], block=info["block"], settings=settings)
+if __name__ == "__main__":
+    precompute_sequence(subject_id=info["subject_id"], block=info["block"], settings=settings)

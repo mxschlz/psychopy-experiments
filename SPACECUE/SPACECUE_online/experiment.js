@@ -173,7 +173,7 @@ const prompts = {
     prompt1: `Willkommen und vielen Dank für die Teilnahme an diesem Experiment zur räumlichen Aufmerksamkeit.<br><br>
 In jedem Durchgang des Experiments sollen Sie ein Zahlwort aus jeweils drei verschiedenen Zahlwörtern identifizieren.<br>
 Versuchen Sie dabei stets, so korrekt und so schnell wie möglich zu antworten!<br>
-Das Experiment ist in 4 Blöcke aufgeteilt, zwischen denen Sie kurze Pausen einlegen können.<br><br>
+Das Experiment ist in 6 Blöcke aufgeteilt, zwischen denen Sie kurze Pausen einlegen können.<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`,
 
     prompt2: `In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter aus drei verschiedenen Richtungen abgespielt (links, mitte, rechts).<br>
@@ -205,39 +205,45 @@ Drücken Sie LEERTASTE, um weiterzublättern.`
 };
 
 function getCueInstruction(colorStr) {
-    let t_ger = "weiß";
+    let trg_ger = "weiß";
     let d_ger = "weiß";
-    let t_col = "#ffffff";
+    let c_ger = "weiß";
+    let trg_col = "#ffffff";
     let d_col = "#ffffff";
+    let c_col = "#ffffff";
     
     if (colorStr) {
         let info = colorStr.split("-");
-        if (info.length >= 4) {
-            let targetColor = info[1].toLowerCase(); // Still extracting color from index 1 (nonsingleton color now)
+        if (info.length >= 6) {
+            let targetColor = info[1].toLowerCase();
             let distractorColor = info[3].toLowerCase();
+            let controlColor = info[5].toLowerCase();
             
-            const colorMap = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß" };
-            // Using slightly muted/brightened hex codes so they look good on a dark background
-            const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
+            const colorMap = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß", "violet": "violett" };
+            const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff", "violet": "#b388ff" };
             
-            t_ger = colorMap[targetColor] || targetColor;
+            trg_ger = colorMap[targetColor] || targetColor;
             d_ger = colorMap[distractorColor] || distractorColor;
-            t_col = hexMap[targetColor] || targetColor;
+            c_ger = colorMap[controlColor] || controlColor;
+            trg_col = hexMap[targetColor] || targetColor;
             d_col = hexMap[distractorColor] || distractorColor;
+            c_col = hexMap[controlColor] || controlColor;
         }
     }
     
-    let t_highlight = `<span style="color: ${t_col}; font-weight: bold; text-transform: uppercase;">${t_ger}</span>`;
+    let trg_highlight = `<span style="color: ${trg_col}; font-weight: bold; text-transform: uppercase;">${trg_ger}</span>`;
     let d_highlight = `<span style="color: ${d_col}; font-weight: bold; text-transform: uppercase;">${d_ger}</span>`;
+    let c_highlight = `<span style="color: ${c_col}; font-weight: bold; text-transform: uppercase;">${c_ger}</span>`;
     
-    let colored_arrow_description = `In anderen Durchgängen besitzt ein Pfeil entweder die Farbe ${t_highlight} oder ${d_highlight}.`;
+    let colored_arrow_description = `In anderen Durchgängen besitzt ein Pfeil entweder die Farbe ${trg_highlight}, ${d_highlight} oder ${c_highlight}.`;
     
     return `In jedem Durchgang werden Ihnen drei Pfeile angezeigt, welche in drei Richtungen zeigen.<br>
 In einigen Durchgängen sind alle Pfeile farblos. ${colored_arrow_description}<br>
 Dieser Pfeil ist nützlich, denn er zeigt, welche Art von Zahlwort aus dieser Richtung kommen wird.<br>
 Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt.<br>
-Ist der Pfeil ${t_highlight}, handelt es sich um das Zahlwort mit normaler Stimme.<br>
-Ist der Pfeil ${d_highlight}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört.<br><br>
+Ist der Pfeil ${trg_highlight}, handelt es sich um das raue Zahlwort, auf das Sie reagieren sollen (Zielreiz).<br>
+Ist der Pfeil ${d_highlight}, handelt es sich um das hohe Zahlwort, welches sich wie eine Kinderstimme anhört (Störreiz).<br>
+Ist der Pfeil ${c_highlight}, handelt es sich um das Zahlwort mit normaler Stimme.<br><br>
 Drücken Sie LEERTASTE, um weiterzublättern.`;
 }
 
@@ -541,7 +547,7 @@ function getScreeningTrials() {
     let all_blocks_data = [];
 
     try {
-        for (let b = start_block; b < 4; b++) {
+        for (let b = start_block; b < 6; b++) {
             let b_csv_path = `${base_url}sequences/sce-${subject}_block_${b}.csv`;
             const response = await fetch(b_csv_path);
             if (!response.ok) throw new Error("CSV konnte nicht geladen werden: " + b_csv_path);
@@ -633,7 +639,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         timeline.push({
             type: jsPsychPreload,
             audio: audio_files,
-            message: `Lade akustische Stimuli (Block ${current_block_num + 1} von 4), bitte warten...`
+            message: `Lade akustische Stimuli (Block ${current_block_num + 1} von 6), bitte warten...`
         });
 
         // 2. Instructions
@@ -793,8 +799,9 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     <h2 style="color: #4da8da;">Pfeil-Test</h2>
                     <p>Nun prüfen wir, ob Sie sich die Bedeutung der farbigen Pfeile gemerkt haben.</p>
                     <p>Ihnen wird nacheinander ein farbiger Pfeil präsentiert.</p>
-                    <p>Drücken Sie die Taste <strong style="color: #4caf50;">N</strong>, wenn der Pfeil die <strong>Normale Stimme</strong> ankündigt.</p>
+                    <p>Drücken Sie die Taste <strong style="color: #4da8da;">Z</strong>, wenn der Pfeil den <strong>Zielreiz</strong> (raue Stimme) ankündigt.</p>
                     <p>Drücken Sie die Taste <strong style="color: #ff6b6b;">K</strong>, wenn der Pfeil die <strong>Kinderstimme</strong> (Störreiz) ankündigt.</p>
+                    <p>Drücken Sie die Taste <strong style="color: #4caf50;">N</strong>, wenn der Pfeil die <strong>Normale Stimme</strong> ankündigt.</p>
                     <p>Sie müssen 10 Pfeile <strong>hintereinander</strong> korrekt zuordnen.</p>
                     <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
                 </div>
@@ -806,24 +813,36 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             let cue_test_trial = {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: function() {
-                    let t_color_name = trial_data[0].Color.split("-")[1].toLowerCase();
+                    let trg_color_name = trial_data[0].Color.split("-")[1].toLowerCase();
                     let d_color_name = trial_data[0].Color.split("-")[3].toLowerCase();
-                    const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
-                    let t_col_hex = hexMap[t_color_name] || t_color_name;
+                    let c_color_name = trial_data[0].Color.split("-")[5].toLowerCase();
+                    const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff", "violet": "#b388ff" };
+                    let trg_col_hex = hexMap[trg_color_name] || trg_color_name;
                     let d_col_hex = hexMap[d_color_name] || d_color_name;
+                    let c_col_hex = hexMap[c_color_name] || c_color_name;
                     
-                    let isTarget = Math.random() < 0.5;
-                    current_cue_trial.color_hex = isTarget ? t_col_hex : d_col_hex;
-                    current_cue_trial.correct_key = isTarget ? 'n' : 'k';
+                    let rand = Math.random();
+                    if (rand < 0.333) {
+                        current_cue_trial.color_hex = trg_col_hex;
+                        current_cue_trial.correct_key = 'z';
+                    } else if (rand < 0.666) {
+                        current_cue_trial.color_hex = d_col_hex;
+                        current_cue_trial.correct_key = 'k';
+                    } else {
+                        current_cue_trial.color_hex = c_col_hex;
+                        current_cue_trial.correct_key = 'n';
+                    }
                     
                     return `
                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
                             <div class="arrow arrow-up" style="border-bottom-color: ${current_cue_trial.color_hex}; transform: translate(0, 0) scale(3); position: relative; margin-bottom: 60px; top: 0; left: 0;"></div>
                             <div style="font-size: 30px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 40px;">
-                                <div style="display: flex; gap: 50px;">
-                                    <div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>
+                                <div style="display: flex; gap: 40px;">
+                                    <div><span style="color: #4da8da; font-weight: bold;">Z</span> (Zielreiz)</div>
                                     <div>oder</div>
                                     <div><span style="color: #ff6b6b; font-weight: bold;">K</span> (Kinderstimme)</div>
+                                    <div>oder</div>
+                                    <div><span style="color: #4caf50; font-weight: bold;">N</span> (Normale Stimme)</div>
                                 </div>
                                 <div style="font-size: 24px; color: #aaa;">
                                     Bisher korrekt: ${cue_correct_count} / 10
@@ -832,7 +851,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                         </div>
                     `;
                 },
-                choices: ['n', 'k'],
+                choices: ['z', 'k', 'n'],
                 on_finish: function(data) {
                     data.correct = (data.response === current_cue_trial.correct_key);
                 }
@@ -899,20 +918,26 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     stimulus: function() {
                         let nonsingletonLoc = jsPsych.timelineVariable('Non-Singleton2Loc', true); 
                         let singletonLoc = jsPsych.timelineVariable('SingletonLoc', true);
+                        let targetLoc = jsPsych.timelineVariable('TargetLoc', true);
                         let colorStr = jsPsych.timelineVariable('Color', true); 
                         let cueInstruction = jsPsych.timelineVariable('CueInstruction', true);
 
                         let colorParts = colorStr.split('-');
-                        let nonsingletonColor = colorParts[1];
+                        let targetColor = colorParts[1];
                         let distractorColor = colorParts[3];
-                        const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff" };
-                        let nonsingletonColorHex = hexMap[nonsingletonColor] || nonsingletonColor;
+                        let nonsingletonColor = colorParts[5];
+                        const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff", "violet": "#b388ff" };
+                        let targetColorHex = hexMap[targetColor] || targetColor;
                         let distractorColorHex = hexMap[distractorColor] || distractorColor;
+                        let nonsingletonColorHex = hexMap[nonsingletonColor] || nonsingletonColor;
                         
                         let cuedIndex = -1; // 1=L, 2=U, 3=R
                         let activeColor = 'white';
                         
-                        if (cueInstruction.includes('nonsingleton_location')) {
+                        if (cueInstruction.includes('target_location')) {
+                            cuedIndex = targetLoc;
+                            activeColor = targetColorHex;
+                        } else if (cueInstruction.includes('nonsingleton_location')) {
                             cuedIndex = nonsingletonLoc;
                             activeColor = nonsingletonColorHex;
                         } else if (cueInstruction.includes('distractor_location')) {
@@ -1092,16 +1117,57 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         };
         timeline.push(save_mouse_data);
 
-        if (current_block_num < 3) {
+        if (current_block_num < 5) {
             timeline.push({
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: function() {
+                    let next_msg = "";
+                    let next_block_obj = all_blocks_data.find(b => b.block === current_block_num + 1);
+                    if (next_block_obj && next_block_obj.data && next_block_obj.data.length > 0) {
+                        let next_trial = next_block_obj.data[0];
+                        let n_cue_inst = next_trial.CueInstruction;
+                        let n_colorStr = next_trial.Color;
+                        
+                        let info = n_colorStr.split("-");
+                        let targetColor = info[1].toLowerCase();
+                        let distractorColor = info[3].toLowerCase();
+                        let controlColor = info[5].toLowerCase();
+                        
+                        const colorMap = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß", "violet": "violett" };
+                        const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff", "violet": "#b388ff" };
+                        
+                        let active_color_eng = "";
+                        let cue_desc = "";
+                        
+                        if (n_cue_inst.includes('target_location')) {
+                            active_color_eng = targetColor;
+                            cue_desc = "den <strong>Zielreiz</strong> (raue Stimme)";
+                        } else if (n_cue_inst.includes('distractor_location')) {
+                            active_color_eng = distractorColor;
+                            cue_desc = "den <strong>Störreiz</strong> (Kinderstimme)";
+                        } else if (n_cue_inst.includes('nonsingleton_location')) {
+                            active_color_eng = controlColor;
+                            cue_desc = "die <strong>Normale Stimme</strong>";
+                        }
+                        
+                        let active_ger = colorMap[active_color_eng] || active_color_eng;
+                        let active_hex = hexMap[active_color_eng] || active_color_eng;
+                        let highlight = `<span style="color: ${active_hex}; font-weight: bold; text-transform: uppercase;">${active_ger}</span>`;
+                        
+                        next_msg = `<div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                            <p style="font-size: 18px; margin-bottom: 10px; color: #4da8da;"><strong>Erinnerung für den nächsten Block:</strong></p>
+                            <p style="font-size: 16px;">Der farbige Pfeil kündigt ${cue_desc} an.<br>
+                            Achten Sie auf den Pfeil mit der Farbe ${highlight}.</p>
+                        </div>`;
+                    }
+
                     return `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                         <div class="glass-container" style="text-align: center; max-width: 600px;">
                             <h2 style="color: #4da8da;">Dieser Block ist zu Ende.</h2>
                             <p>Bitte machen Sie eine kurze Pause von 60 Sekunden.</p>
-                            <p>Der nächste Block startet automatisch in <strong style="font-size: 24px; color: #ff6b6b;" id="countdown">60</strong> Sekunden.</p>
+                            ${next_msg}
+                            <p style="margin-top: 20px;">Der nächste Block startet automatisch in <strong style="font-size: 24px; color: #ff6b6b;" id="countdown">60</strong> Sekunden.</p>
                         </div>
                     </div>`;
                 },
