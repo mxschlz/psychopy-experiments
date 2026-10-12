@@ -18,12 +18,13 @@ import re
 
 #os.chdir("C:/Users/Max/PycharmProjects/psychopy-experiments/SPACECUE")
 
-info = get_input_from_dict({"subject_id": 99, "block": 0})
-
 # load settings
 settings_path = "config.yaml"
-with open(settings_path) as file:
-    settings = yaml.safe_load(file)
+if os.path.exists(settings_path):
+    with open(settings_path) as file:
+        settings = yaml.safe_load(file)
+else:
+    settings = {}
 
 
 def extract_number_for_sorting(filename_with_ext):
@@ -67,7 +68,7 @@ def _check_max_consecutive_items(data_list: list, item_to_check: any, max_allowe
 
 def insert_pseudo_randomized_cues(df: pd.DataFrame, subject_id_int: int,
                                   block_num: int,
-                                  prop_informative: float = 0.8,
+                                  prop_informative: float = 0.5,
                                   max_consecutive_block_cues: int = 5) -> pd.DataFrame:
     """
     Inserts a column "CueInstruction" into the DataFrame.
@@ -75,8 +76,9 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame, subject_id_int: int,
 
     Args:
         df (pd.DataFrame): The trial sequence DataFrame for the current block.
-        block_num (int): The current block number.
-        prop_informative (float): Proportion of trials for informative cues (target/distractor).
+        subject_id_int (int): Subject ID integer for determining block order.
+        block_num (int): The current block number (0-5).
+        prop_informative (float): Proportion of trials for informative cues (target/distractor/control). Default: 0.5.
         max_consecutive_block_cues (int): Max consecutive informative cues in block-wise mode.
 
     Returns:
@@ -530,4 +532,6 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
 
 
 if __name__ == "__main__":
-    precompute_sequence(subject_id=info["subject_id"], block=info["block"], settings=settings)
+    info = get_input_from_dict({"subject_id": 99, "block": 0})
+    if info:
+        precompute_sequence(subject_id=info["subject_id"], block=info["block"], settings=settings)
