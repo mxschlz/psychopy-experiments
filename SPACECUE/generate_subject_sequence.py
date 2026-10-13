@@ -111,40 +111,60 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame, subject_id_int: int,
 
     if block_cue_type == "T":
         block_specific_informative_cue = cue_target_label
+        cued_loc_col = "TargetLoc"
     elif block_cue_type == "D":
         block_specific_informative_cue = cue_distractor_label
+        cued_loc_col = "SingletonLoc"
     else:
         block_specific_informative_cue = cue_control_label
+        cued_loc_col = "Non-Singleton2Loc"
 
-    logging.info(f"Block {block_num}: Cueing strategy set to {block_cue_type}.")
-    
-    n_total_trials = len(df)
-    n_informative_total = int(round(prop_informative * n_total_trials))
-    n_uninformative_total = n_total_trials - n_informative_total
+    logging.info(f"Block {block_num}: Cueing strategy set to {block_cue_type} (stratifying by {cued_loc_col}).")
 
-    cues_for_block_prototype = ([block_specific_informative_cue] * n_informative_total +
-                                [uninformative_cue_label] * n_uninformative_total)
-    cues_for_block_list = list(cues_for_block_prototype)
-
+    import random
     import numpy as np
-    
-    if n_informative_total > 0 and n_informative_total > max_consecutive_block_cues:
-        max_shuffling_attempts = 200
-        found_valid_sequence = False
+
+    # Stratify informative cue assignment across cued locations so all locations (Left, Center, Right)
+    # have balanced proportions of informative vs neutral cues
+    unique_locs = [loc for loc in df[cued_loc_col].unique() if pd.notna(loc) and loc != 0] if cued_loc_col in df.columns else []
+
+    max_shuffling_attempts = 500
+    found_valid_sequence = False
+    best_cues = None
+
+    if unique_locs:
         for attempt in range(max_shuffling_attempts):
-            np.random.shuffle(cues_for_block_list)
-            if _check_max_consecutive_items(cues_for_block_list, block_specific_informative_cue,
-                                            max_consecutive_block_cues):
+            cues_candidate = pd.Series(uninformative_cue_label, index=df.index)
+            for loc in unique_locs:
+                loc_indices = df.index[df[cued_loc_col] == loc].tolist()
+                n_inf = int(round(prop_informative * len(loc_indices)))
+                if n_inf > 0:
+                    inf_indices = random.sample(loc_indices, n_inf)
+                    cues_candidate.loc[inf_indices] = block_specific_informative_cue
+
+            cues_list = cues_candidate.tolist()
+            best_cues = cues_list
+            if _check_max_consecutive_items(cues_list, block_specific_informative_cue, max_consecutive_block_cues):
                 found_valid_sequence = True
+                logging.info(f"Block {block_num}: Found valid stratified cue sequence meeting max consecutive constraint after {attempt + 1} attempts.")
                 break
     else:
-        np.random.shuffle(cues_for_block_list)
+        n_total_trials = len(df)
+        n_informative_total = int(round(prop_informative * n_total_trials))
+        n_uninformative_total = n_total_trials - n_informative_total
+        cues_for_block_list = ([block_specific_informative_cue] * n_informative_total +
+                               [uninformative_cue_label] * n_uninformative_total)
+        for attempt in range(max_shuffling_attempts):
+            np.random.shuffle(cues_for_block_list)
+            best_cues = list(cues_for_block_list)
+            if _check_max_consecutive_items(cues_for_block_list, block_specific_informative_cue, max_consecutive_block_cues):
+                found_valid_sequence = True
+                break
 
-    if len(cues_for_block_list) == n_total_trials:
-        df["CueInstruction"] = cues_for_block_list
-    else:
-        df["CueInstruction"] = uninformative_cue_label
+    if not found_valid_sequence:
+        logging.warning(f"Block {block_num}: Could not satisfy max_consecutive constraint ({max_consecutive_block_cues}) with stratified assignment; using best found sequence.")
 
+    df["CueInstruction"] = best_cues
     if df["CueInstruction"].isna().any():
         df["CueInstruction"].fillna(uninformative_cue_label, inplace=True)
 
@@ -284,9 +304,27 @@ def precompute_sequence(subject_id, block, settings, logging_level="INFO", compu
         prev_target_loc = None
         prev_singleton_loc = None
 
+        # Create balanced pool of TargetLoc (e.g. 27, 27, 26 across locations 1, 2, 3)
+        n_locs = settings["session"].get("n_locations", 3)
+        base_per_loc = n_trials // n_locs
+        rem = n_trials % n_locs
+        target_loc_pool = []
+        for l_idx in range(1, n_locs + 1):
+            target_loc_pool.extend([l_idx] * (base_per_loc + (1 if l_idx <= rem else 0)))
+
+        for _ in range(200):
+            np.random.shuffle(target_loc_pool)
+            if all(_check_max_consecutive_items(target_loc_pool, l, 4) for l in range(1, n_locs + 1)):
+                break
+
         for i, element in enumerate(sequence_final):
             select_singleton_present = True if "SP" in element else False
-            possible_samples = df_conditions[df_conditions["SingletonPresent"] == select_singleton_present]
+            desired_target_loc = target_loc_pool[i] if i < len(target_loc_pool) else None
+            possible_samples = pd.DataFrame()
+            if desired_target_loc is not None:
+                possible_samples = df_conditions[(df_conditions["SingletonPresent"] == select_singleton_present) & (df_conditions["TargetLoc"] == desired_target_loc)]
+            if possible_samples.empty:
+                possible_samples = df_conditions[df_conditions["SingletonPresent"] == select_singleton_present]
             
             if possible_samples.empty:
                 logging.error(f"No conditions found for SingletonPresent={select_singleton_present} (element: {element}). This should not happen if conditions file is complete.")

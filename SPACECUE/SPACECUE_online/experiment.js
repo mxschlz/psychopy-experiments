@@ -282,7 +282,7 @@ function getCueInstruction(colorStr) {
     
     let colored_arrow_description = `In anderen Durchgängen besitzt ein Pfeil entweder die Farbe ${trg_highlight}, ${d_highlight} oder ${c_highlight}.`;
     
-    return `In jedem Durchgang werden Ihnen drei Pfeile angezeigt, welche in drei Richtungen zeigen.<br>
+    return `In jedem Durchgang werden Ihnen drei Pfeile angezeigt, welche in drei Richtungen zeigen (der linke Pfeil für links, der obere Pfeil für die Mitte / geradeaus, der rechte Pfeil für rechts).<br>
 In einigen Durchgängen sind alle Pfeile farblos. ${colored_arrow_description}<br>
 Dieser Pfeil ist nützlich, denn er zeigt, welche Art von Zahlwort aus dieser Richtung kommen wird.<br>
 Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt.<br>
@@ -972,6 +972,8 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             `));
         }
 
+        let indexed_trials = trial_data.map((row, idx) => ({...row, original_index: idx}));
+
         // 3. Main Trial Loop
         let trial_timeline = {
             timeline: [
@@ -1123,7 +1125,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     data: { phase: 'iti', trial_nr: jsPsych.timelineVariable('original_index'), is_practice: jsPsych.timelineVariable('is_practice'), block: current_block_num }
                 }
             ],
-            timeline_variables: trial_data.map((row, idx) => ({...row, original_index: idx, is_practice: false}))
+            timeline_variables: indexed_trials.map(row => ({...row, is_practice: false}))
         };
 
         if (current_block_num === 0) {
@@ -1139,7 +1141,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             };
             timeline.push(practice_intro);
             
-            let practice_vars = jsPsych.randomization.sampleWithoutReplacement(trial_data, 15).map((row, idx) => ({...row, original_index: idx, is_practice: true}));
+            let practice_vars = jsPsych.randomization.sampleWithoutReplacement(indexed_trials, 15).map(row => ({...row, is_practice: true}));
             let practice_timeline = {
                 timeline: trial_timeline.timeline,
                 timeline_variables: practice_vars
