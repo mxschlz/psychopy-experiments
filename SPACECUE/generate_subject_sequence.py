@@ -133,11 +133,35 @@ def insert_pseudo_randomized_cues(df: pd.DataFrame, subject_id_int: int,
     best_cues = None
 
     if unique_locs:
+        # Exact-total stratified allocation (largest-remainder method).
+        # Per-location rounding (int(round(p * n_loc))) can drift the block total
+        # away from the intended proportion (e.g. 41/39 instead of 40/40 at p=0.5
+        # when location strata have odd sizes). Instead: allocate floor(p * n_loc)
+        # per location first, then hand the remaining slots to the strata with the
+        # largest fractional parts, so the block total is EXACTLY
+        # round(prop_informative * n_trials) - e.g. 40 informative / 40 neutral.
+        target_inf_total = int(round(prop_informative * len(df.index)))
+        strata = []
+        for loc in unique_locs:
+            loc_indices = df.index[df[cued_loc_col] == loc].tolist()
+            exact = prop_informative * len(loc_indices)
+            strata.append((loc, loc_indices, exact, int(exact)))  # int() == floor for 0 <= p <= 1
+        # safety: never request more informative cues than strata can hold
+        target_inf_total = min(target_inf_total, sum(len(s[1]) for s in strata))
+
         for attempt in range(max_shuffling_attempts):
             cues_candidate = pd.Series(uninformative_cue_label, index=df.index)
-            for loc in unique_locs:
-                loc_indices = df.index[df[cued_loc_col] == loc].tolist()
-                n_inf = int(round(prop_informative * len(loc_indices)))
+            budget = target_inf_total - sum(s[3] for s in strata)
+            extra = [0] * len(strata)
+            if budget > 0:
+                order = sorted(range(len(strata)), key=lambda i: -(strata[i][2] - strata[i][3]))
+                j = 0
+                while budget > 0:
+                    extra[order[j % len(order)]] += 1
+                    budget -= 1
+                    j += 1
+            for k, (loc, loc_indices, exact, floor_n) in enumerate(strata):
+                n_inf = min(floor_n + extra[k], len(loc_indices))
                 if n_inf > 0:
                     inf_indices = random.sample(loc_indices, n_inf)
                     cues_candidate.loc[inf_indices] = block_specific_informative_cue
