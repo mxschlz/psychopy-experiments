@@ -37,34 +37,47 @@ elif len(fn) == 1:
     df = pd.read_csv(os.path.join(fp, file))
 else:
     print("Could not find any excel files!")
-# sort for mouse clicks
-df = df[(df["event_type"]=="mouse_click")]
-# Clean up response column: convert to numeric, coercing errors to NaN, then use nullable integer.
-# The "space" value will be coerced to NaN automatically.
-df['response'] = pd.to_numeric(df['response'], errors='coerce')
-df['response'] = df['response'].astype('Int64')
+# 1. Base trial structure on stimulus presentations (retains all 1800 trials)
+stims = df[df["event_type"] == "stim"].copy()
+stims['Absolute Trial Nr'] = (stims['block']) * (stims["trial_nr"].max() + 1) + stims['trial_nr']
+stims = stims.drop_duplicates(subset='Absolute Trial Nr', keep='last')
+
+# 2. Extract mouse clicks
+clicks = df[df["event_type"] == "mouse_click"].copy()
+clicks['Absolute Trial Nr'] = (clicks['block']) * (clicks["trial_nr"].max() + 1) + clicks['trial_nr']
+clicks = clicks.drop_duplicates(subset='Absolute Trial Nr', keep='first')
+
+# Clean up click response column
+clicks['response'] = pd.to_numeric(clicks['response'], errors='coerce')
+
+# 3. Left-join mouse clicks onto stimulus trials
+df = pd.merge(
+    stims,
+    clicks[['Absolute Trial Nr', 'response', 'rt']],
+    on='Absolute Trial Nr',
+    how='left',
+    suffixes=('', '_click')
+)
+df['response'] = df['response_click']
+df['rt'] = df['rt_click']
+df.drop(columns=['response_click', 'rt_click'], inplace=True, errors='ignore')
 
 # swap distractor probabilities for subjects 996 and 989
 if subject_id in [996, 989]:
     swap_dict = {'high-probability': 'low-probability', 'low-probability': 'high-probability'}
     df['DistractorProb'] = df['DistractorProb'].map(swap_dict)
 
-# get correct in singleton absent vs present trials
-df["IsCorrect"] = df.response == df.TargetDigit
-df["SelectDistractor"] = df["response"] == df["SingletonDigit"]
-df["SelectControl"] = (df["response"] == df["Non-Singleton2Digit"]) | (df["response"] == df["Non-Singleton1Digit"])
-df["SelectOther"] = (df["response"] != df["Non-Singleton2Digit"]) & (df["response"] != df["Non-Singleton1Digit"]) & (df["response"] != df["TargetDigit"]) & (df["response"] != df["SingletonDigit"])
+# get correct in singleton absent vs present trials (False on non-click trials)
+df["IsCorrect"] = (df['response'] == df['TargetDigit'])
+df["SelectDistractor"] = (df['response'] == df['SingletonDigit'])
+df["SelectControl"] = (df['response'] == df['Non-Singleton2Digit']) | (df['response'] == df['Non-Singleton1Digit'])
+df["SelectOther"] = df['response'].notna() & (~df['IsCorrect']) & (~df['SelectDistractor']) & (~df['SelectControl'])
+
 # add meta data
 df["Gender"] = "Female" if info["gender"] == "f" else "Male"
 df["Handedness"] = "Right-handed" if info["handedness"] == "r" else "Left-handed"
 df["age"] = info["age"]
-# get absolute trial_nr count
-df['Absolute Trial Nr'] = (df['block']) * (df["trial_nr"].max() + 1) + df['trial_nr']
-# Find duplicate trial numbers
-duplicates = df[df.duplicated(subset='Absolute Trial Nr', keep=False)]
-print("Duplicate trial numbers:\n", duplicates)
-# drop duplicates
-df = df.drop_duplicates(subset='Absolute Trial Nr', keep='first')  # or 'last'
+
 # Create a new DataFrame to store aligned behavioral data
 df = df.set_index('Absolute Trial Nr')
 # Create a complete range of trial numbers
