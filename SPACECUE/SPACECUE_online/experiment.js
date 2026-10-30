@@ -2,6 +2,7 @@ let global_all_blocks_data = {};
 let current_block_global = 0;
 let abort_experiment = false;
 let exited_early = false;
+let demo_headphone_type = null; // pilot v2: track playback device (Bluetooth/mono-downmix risk)
 const datapipe_id = "p6rmFV5NMVaw";
 
 function formatDataToCSV(b) {
@@ -23,6 +24,7 @@ function formatDataToCSV(b) {
         new_row.age = demo_age;
         new_row.gender = demo_gender;
         new_row.handedness = demo_handedness;
+        new_row.headphone_type = demo_headphone_type; // pilot v2: playback device tracking
         
         if (resp_trial && resp_trial.response !== null) {
             new_row.rt = resp_trial.rt ? resp_trial.rt / 1000 : null; // match python format (seconds)
@@ -642,6 +644,14 @@ const demoTrial = {
                 <option value="r">Rechtshänder</option>
                 <option value="l">Linkshänder</option>
             </select>
+            <p style="margin-top: 15px;">Mit welchem Gerät hören Sie die Klänge?</p>
+            <select id="headphone_type" name="headphone_type" required style="padding: 10px; border-radius: 5px; font-size: 16px;">
+                <option value="" disabled selected>Bitte wählen...</option>
+                <option value="wired">Kabelgebundene Kopfhörer</option>
+                <option value="wireless">Funk-/Bluetooth-Kopfhörer</option>
+                <option value="builtin">Eingebaute Lautsprecher (Laptop/Handy)</option>
+                <option value="external">Externe Lautsprecher</option>
+            </select>
         </div>
     `,
     button_label: 'Weiter',
@@ -649,6 +659,7 @@ const demoTrial = {
         demo_age = data.response.age;
         demo_gender = data.response.gender;
         demo_handedness = data.response.handedness;
+        demo_headphone_type = data.response.headphone_type;
     }
 };
 
@@ -681,6 +692,42 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                 audio_files.push(`${base_url}stimuli/targets_low_30_Hz/${d}_amplitude_modulated_30.wav`);
                 audio_files.push(`${base_url}stimuli/digits_all_250ms/${d}.wav`);
             });
+        }
+        
+        // 1b. Cross-cue-type practice set (experiment start only, i.e. first block of
+        // this session). Pilot v2: practice samples trials of EVERY cue type (target /
+        // distractor / non-singleton / neutral) from all loaded blocks, so participants
+        // can learn the global color->role mapping (constant across blocks) with
+        // feedback before the first measured block.
+        let practice_rows = [];
+        if (b_idx === 0) {
+            const N_PER_CUE_TYPE = 4;   // per informative cue type (target, distractor, control)
+            const N_NEUTRAL = 3;        // neutral (uninformative) trials
+            const cuePools = {
+                cue_target_location: [],
+                cue_distractor_location: [],
+                cue_nonsingleton_location: [],
+                cue_neutral: []
+            };
+            for (let item of all_blocks_data) {
+                item.data.forEach(function(row, idx) {
+                    if (cuePools[row.CueInstruction]) {
+                        cuePools[row.CueInstruction].push({ row: row, src_block: item.block, original_index: idx });
+                    }
+                });
+            }
+            ['cue_target_location', 'cue_distractor_location', 'cue_nonsingleton_location'].forEach(function(ct) {
+                jsPsych.randomization.sampleWithoutReplacement(cuePools[ct], N_PER_CUE_TYPE).forEach(function(s) {
+                    practice_rows.push(Object.assign({}, s.row, { src_block: s.src_block, original_index: s.original_index, is_practice: true }));
+                });
+            });
+            jsPsych.randomization.sampleWithoutReplacement(cuePools.cue_neutral, N_NEUTRAL).forEach(function(s) {
+                practice_rows.push(Object.assign({}, s.row, { src_block: s.src_block, original_index: s.original_index, is_practice: true }));
+            });
+            practice_rows = jsPsych.randomization.shuffle(practice_rows);
+            for (let pr of practice_rows) {
+                audio_files.push(`${base_url}sequences/sce-${subject}_block_${pr.src_block}/s_${pr.original_index}.wav`);
+            }
         }
         
         timeline.push({
@@ -1022,7 +1069,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                         </div>`;
                     },
                     choices: "NO_KEYS",
-                    trial_duration: 200, 
+                    trial_duration: 200,
                     on_start: function() {
                         const logo = document.getElementById('uzl-logo');
                         if (logo) logo.style.display = 'none';
@@ -1048,7 +1095,11 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     type: jsPsychAudioButtonResponse,
                     stimulus: function() {
                         let i = jsPsych.timelineVariable('original_index', true);
-                        return `${b_audio_folder}s_${i}.wav`;
+                        // Practice trials replay audio from their original block's folder
+                        // (cross-cue-type practice samples trials from all blocks).
+                        let src_b = jsPsych.timelineVariable('src_block', true);
+                        let folder = (typeof src_b === 'number') ? `${base_url}sequences/sce-${subject}_block_${src_b}/` : b_audio_folder;
+                        return `${folder}s_${i}.wav`;
                     },
                     choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
                     button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
@@ -1081,6 +1132,37 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                         let selectedDigit = data.response !== null ? data.response + 1 : null; 
                         data.correct = (selectedDigit === data.targetDigit);
                     }
+                },
+                {
+                    // Practice-only correctness feedback (pilot v2 fix for cue-ignorance:
+                    // participants previously never received any feedback, so the
+                    // cue->role contingency had to be learned from instructions alone).
+                    type: jsPsychHtmlKeyboardResponse,
+                    stimulus: function() {
+                        const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
+                        if (!last || last.response === null) {
+                            return `<div class="instruction-text">
+                                <p style="font-size: 32px; color: #ff6b6b;">Zu langsam!</p>
+                                <p style="font-size: 24px;">Bitte versuchen Sie, schneller zu antworten.</p>
+                            </div>`;
+                        }
+                        if (last.correct) {
+                            return `<div class="instruction-text">
+                                <p style="font-size: 32px; color: #4caf50;">Richtig!</p>
+                            </div>`;
+                        }
+                        return `<div class="instruction-text">
+                            <p style="font-size: 32px; color: #ff6b6b;">Leider falsch.</p>
+                            <p style="font-size: 24px;">Die Zielzahl war: <strong style="color: #4da8da;">${last.targetDigit}</strong></p>
+                        </div>`;
+                    },
+                    choices: "NO_KEYS",
+                    trial_duration: 800,
+                    conditional_function: function() {
+                        // Feedback only during practice trials, never in the main experiment.
+                        return jsPsych.timelineVariable('is_practice', true) === true;
+                    },
+                    data: { phase: 'practice_feedback', is_practice: true, block: current_block_num }
                 },
                 {
                     type: jsPsychHtmlButtonResponse,
@@ -1128,23 +1210,25 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             timeline_variables: indexed_trials.map(row => ({...row, is_practice: false}))
         };
 
-        if (current_block_num === 0) {
+        // Practice runs ONCE at the start of the experiment (first block of this
+        // session), covering ALL cue types with feedback - not before every block.
+        if (b_idx === 0) {
             let practice_intro = {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: `<div class="instruction-text">
                     <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge</h2>
                     <p>Bevor das eigentliche Experiment beginnt, haben Sie nun die Möglichkeit, 15 Übungsdurchgänge zu absolvieren.</p>
-                    <p>Nutzen Sie diese Durchgänge, um sich an die Aufgabe und die Steuerung zu gewöhnen. Diese Durchgänge gehen nicht in die Wertung ein.</p>
+                    <p>Dabei kommen <strong>alle Hinweisarten</strong> vor: der Hinweis auf den Zielreiz, der Hinweis auf den Störreiz, der Hinweis auf ein normales Zahlwort sowie neutrale Durchgänge ohne Hinweis.</p>
+                    <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Nutzen Sie diese Rückmeldung, um die Bedeutung der Hinweisfarben zu lernen. Diese Durchgänge gehen nicht in die Wertung ein.</p>
                     <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit den Übungsdurchgängen zu beginnen.</p>
                 </div>`,
                 choices: [" "]
             };
             timeline.push(practice_intro);
             
-            let practice_vars = jsPsych.randomization.sampleWithoutReplacement(indexed_trials, 15).map(row => ({...row, is_practice: true}));
             let practice_timeline = {
                 timeline: trial_timeline.timeline,
-                timeline_variables: practice_vars
+                timeline_variables: practice_rows
             };
             timeline.push(getBlockReminderTrial(trial_data));
             timeline.push(practice_timeline);
