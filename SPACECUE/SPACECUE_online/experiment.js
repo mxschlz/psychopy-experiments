@@ -695,19 +695,19 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         }
         
         // 1b. Cross-cue-type practice set (experiment start only, i.e. first block of
-        // this session). Pilot v2: practice samples trials of EVERY cue type (target /
-        // distractor / non-singleton / neutral) from all loaded blocks, so participants
-        // can learn the global color->role mapping (constant across blocks) with
-        // feedback before the first measured block.
+        // this session). Pilot v3: practice consists EXCLUSIVELY of informative-cue
+        // trials (100% informative: 5 target / 5 distractor / 5 non-singleton), sampled
+        // from the subject's real trials across all loaded blocks, so participants can
+        // learn the global color->role mapping (constant across blocks) with feedback
+        // before the first measured block. Neutral trials are deliberately excluded:
+        // they teach nothing about the cue->role mapping.
         let practice_rows = [];
         if (b_idx === 0) {
-            const N_PER_CUE_TYPE = 4;   // per informative cue type (target, distractor, control)
-            const N_NEUTRAL = 3;        // neutral (uninformative) trials
+            const N_PER_CUE_TYPE = 5;   // per informative cue type (target, distractor, control)
             const cuePools = {
                 cue_target_location: [],
                 cue_distractor_location: [],
-                cue_nonsingleton_location: [],
-                cue_neutral: []
+                cue_nonsingleton_location: []
             };
             for (let item of all_blocks_data) {
                 item.data.forEach(function(row, idx) {
@@ -720,9 +720,6 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                 jsPsych.randomization.sampleWithoutReplacement(cuePools[ct], N_PER_CUE_TYPE).forEach(function(s) {
                     practice_rows.push(Object.assign({}, s.row, { src_block: s.src_block, original_index: s.original_index, is_practice: true }));
                 });
-            });
-            jsPsych.randomization.sampleWithoutReplacement(cuePools.cue_neutral, N_NEUTRAL).forEach(function(s) {
-                practice_rows.push(Object.assign({}, s.row, { src_block: s.src_block, original_index: s.original_index, is_practice: true }));
             });
             practice_rows = jsPsych.randomization.shuffle(practice_rows);
             for (let pr of practice_rows) {
@@ -1134,37 +1131,6 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     }
                 },
                 {
-                    // Practice-only correctness feedback (pilot v2 fix for cue-ignorance:
-                    // participants previously never received any feedback, so the
-                    // cue->role contingency had to be learned from instructions alone).
-                    type: jsPsychHtmlKeyboardResponse,
-                    stimulus: function() {
-                        const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
-                        if (!last || last.response === null) {
-                            return `<div class="instruction-text">
-                                <p style="font-size: 32px; color: #ff6b6b;">Zu langsam!</p>
-                                <p style="font-size: 24px;">Bitte versuchen Sie, schneller zu antworten.</p>
-                            </div>`;
-                        }
-                        if (last.correct) {
-                            return `<div class="instruction-text">
-                                <p style="font-size: 32px; color: #4caf50;">Richtig!</p>
-                            </div>`;
-                        }
-                        return `<div class="instruction-text">
-                            <p style="font-size: 32px; color: #ff6b6b;">Leider falsch.</p>
-                            <p style="font-size: 24px;">Die Zielzahl war: <strong style="color: #4da8da;">${last.targetDigit}</strong></p>
-                        </div>`;
-                    },
-                    choices: "NO_KEYS",
-                    trial_duration: 800,
-                    conditional_function: function() {
-                        // Feedback only during practice trials, never in the main experiment.
-                        return jsPsych.timelineVariable('is_practice', true) === true;
-                    },
-                    data: { phase: 'practice_feedback', is_practice: true, block: current_block_num }
-                },
-                {
                     type: jsPsychHtmlButtonResponse,
                     stimulus: '',
                     choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
@@ -1218,7 +1184,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                 stimulus: `<div class="instruction-text">
                     <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge</h2>
                     <p>Bevor das eigentliche Experiment beginnt, haben Sie nun die Möglichkeit, 15 Übungsdurchgänge zu absolvieren.</p>
-                    <p>Dabei kommen <strong>alle Hinweisarten</strong> vor: der Hinweis auf den Zielreiz, der Hinweis auf den Störreiz, der Hinweis auf ein normales Zahlwort sowie neutrale Durchgänge ohne Hinweis.</p>
+                    <p>In jedem dieser Durchgänge erhalten Sie einen <strong>hilfreichen Hinweis</strong>: Es kommt jede Hinweisart vor - der Hinweis auf den Zielreiz, der Hinweis auf den Störreiz und der Hinweis auf ein normales Zahlwort.</p>
                     <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Nutzen Sie diese Rückmeldung, um die Bedeutung der Hinweisfarben zu lernen. Diese Durchgänge gehen nicht in die Wertung ein.</p>
                     <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit den Übungsdurchgängen zu beginnen.</p>
                 </div>`,
@@ -1226,8 +1192,48 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             };
             timeline.push(practice_intro);
             
+            // Practice-only correctness feedback (pilot v3 fix for cue-ignorance:
+            // participants previously never received any feedback, so the
+            // cue->role contingency had to be learned from instructions alone).
+            // jsPsych 7.3 NOTE: conditional_function is only evaluated on TIMELINES,
+            // never on individual trials - a trial-level conditional_function is
+            // silently ignored. Therefore this feedback trial is NOT part of the main
+            // trial_timeline at all. Instead, it is spliced into a copy of the trial
+            // procedure that is used exclusively for the practice timeline below.
+            // This structurally guarantees: feedback during practice, none in the
+            // main experiment.
+            let practice_feedback_trial = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: function() {
+                    const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
+                    if (!last || last.response === null) {
+                        return `<div class="instruction-text">
+                            <p style="font-size: 32px; color: #ff6b6b;">Zu langsam!</p>
+                            <p style="font-size: 24px;">Bitte versuchen Sie, schneller zu antworten.</p>
+                        </div>`;
+                    }
+                    if (last.correct) {
+                        return `<div class="instruction-text">
+                            <p style="font-size: 32px; color: #4caf50;">Richtig!</p>
+                        </div>`;
+                    }
+                    return `<div class="instruction-text">
+                        <p style="font-size: 32px; color: #ff6b6b;">Leider falsch.</p>
+                        <p style="font-size: 24px;">Die Zielzahl war: <strong style="color: #4da8da;">${last.targetDigit}</strong></p>
+                    </div>`;
+                },
+                choices: "NO_KEYS",
+                trial_duration: 800,
+                data: { phase: 'practice_feedback', is_practice: true, block: current_block_num }
+            };
+
+            // Practice procedure = copy of the main trial procedure with the feedback
+            // trial inserted right before the ITI trial (the last element).
+            let practice_procedure = trial_timeline.timeline.slice();
+            practice_procedure.splice(practice_procedure.length - 1, 0, practice_feedback_trial);
+
             let practice_timeline = {
-                timeline: trial_timeline.timeline,
+                timeline: practice_procedure,
                 timeline_variables: practice_rows
             };
             timeline.push(getBlockReminderTrial(trial_data));
