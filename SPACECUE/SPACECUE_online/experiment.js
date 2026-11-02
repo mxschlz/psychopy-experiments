@@ -9,8 +9,16 @@ const datapipe_id = "p6rmFV5NMVaw";
 // 'de' (default) or 'en'. Controls ALL instruction, feedback and UI text
 // (info/consent pages, screening, tests, practice feedback, block summaries).
 // NOTE: the task itself (spoken German digits) stays German in both settings.
-const LANGUAGE = "en";
+const LANGUAGE = "de";
 const L = (de, en) => (LANGUAGE === "en" ? en : de);
+
+// --- DEBUG FLAG (?debug=1) --------------------------------------------------
+// Testing aid: append &debug=1 to the URL (e.g. ...?subject=37&block=0&debug=1)
+// to skip the whole intro battery (info/consent pages, demographics, headphone
+// check, screening, spoken-digit demo, accuracy test, arrow test, ready screen)
+// and jump straight to the two-stage practice and the main task. All DataPipe
+// saves are disabled so debug runs can never pollute pilot data.
+let DEBUG_MODE = false;
 
 // English color key -> localized color name for on-screen cue descriptions.
 const COLOR_NAME_MAP_DE = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß", "violet": "violett" };
@@ -110,6 +118,18 @@ const jsPsych = initJsPsych({
         }
 
         if (exited_early) {
+            if (DEBUG_MODE) {
+                // Debug runs never write to DataPipe; show the abort screen directly.
+                document.body.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
+                    <div class="glass-container" style="text-align: center; max-width: 600px;">
+                        <h2 style="color: #ff6b6b;">${L("Experiment abgebrochen (Debug-Modus)", "Experiment Aborted (Debug Mode)")}</h2>
+                        <p>${L("Debug-Modus: Es wurden keine Daten gespeichert.", "Debug mode: no data have been saved.")}</p>
+                        <p>${L("Sie können dieses Fenster nun schließen.", "You may now close this window.")}</p>
+                    </div>
+                </div>`;
+                return;
+            }
             document.body.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                 <h2 style="color: #4da8da;">${L("Daten werden gespeichert...", "Saving data...")}</h2>
@@ -796,6 +816,11 @@ function getScreeningTrials() {
     }
 
     block = urlParams.get('block') || "0";
+    // ?debug=1 (also 'true'/'yes'): skip the intro battery and all DataPipe saves.
+    DEBUG_MODE = ['1', 'true', 'yes'].includes((urlParams.get('debug') || '').toLowerCase());
+    if (DEBUG_MODE) {
+        console.log('[SPACECUE DEBUG] ?debug=1 active: intro/consent/screening/tests skipped, DataPipe saves disabled - starting at the practice trials.');
+    }
     demo_age = urlParams.get('age') || null;
     demo_gender = urlParams.get('gender') || null;
     demo_handedness = urlParams.get('handedness') || null;
@@ -921,7 +946,9 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             audio_files.push(`${b_audio_folder}s_${i}.wav`);
         }
         
-        if (current_block_num === 0) {
+        // Screening/demo/accuracy audio is only needed for the intro battery,
+        // which ?debug=1 skips - do not preload it in debug mode.
+        if (current_block_num === 0 && !DEBUG_MODE) {
             ['4_loc1.wav', '7_loc3.wav', '2_loc2.wav', '8_loc2.wav', '3_loc1.wav', '5_loc3.wav'].forEach(f => {
                 audio_files.push(`${base_url}screening_stimuli/${f}`);
             });
@@ -1001,8 +1028,9 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             message: L(`Lade akustische Stimuli (Block ${current_block_num + 1} von 6), bitte warten...`, `Loading audio stimuli (block ${current_block_num + 1} of 6), please wait...`)
         });
 
-        // 2. Instructions
-        if (current_block_num === 0) {
+        // 2. Instructions - skipped entirely in ?debug=1 mode: the intro battery
+        //    is not needed to verify practice / main-task behavior.
+        if (current_block_num === 0 && !DEBUG_MODE) {
             let infoAndConsentLoop = {
                 timeline: [
                     ...getInfoTrials(),
@@ -1522,37 +1550,51 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             };
             timeline.push(practice_intro_stage1);
             
-            // Practice-only correctness feedback (pilot v3 fix for cue-ignorance:
-            // participants previously never received any feedback, so the
-            // cue->role contingency had to be learned from instructions alone).
+            // Practice-only feedback (pilot v3: correctness feedback was added
+            // because participants previously had to learn the cue->role
+            // contingency from instructions alone; pilot v9: miss handling).
             // jsPsych 7.3 NOTE: conditional_function is only evaluated on TIMELINES,
             // never on individual trials - a trial-level conditional_function is
-            // silently ignored. Therefore this feedback trial is NOT part of the main
-            // trial_timeline at all. Instead, it is spliced into a copy of the trial
-            // procedure that is used exclusively for the practice timeline below.
-            // This structurally guarantees: feedback during practice, none in the
-            // main experiment.
-            // The feedback screen REPLACES the ITI in practice trials and stays on
-            // for the REST of the trial: after the (immediately trial-ending) button
-            // response it fills the unused part of the 1750 ms response window plus
-            // the full ITI, so no response box is ever shown after the response.
-            // Too-slow (no response): NO text feedback - only the response box frame
-            // glows red (same error-glow styling as the late-click warning in the
-            // main experiment). Text feedback is given exclusively on the
-            // CORRECTNESS of an actual response, never on response pace.
-            let practice_feedback_trial = {
+            // silently ignored. Therefore the feedback trials are NOT part of the
+            // main trial_timeline at all. Instead, two variants are spliced into a
+            // copy of the trial procedure used exclusively for the practice
+            // timeline below, each wrapped in its own single-trial timeline so
+            // that conditional_function is honoured (exactly one of them runs
+            // after each practice response trial):
+            //   - practice_feedback_text: after an ACTUAL response -> correctness
+            //     text only ("Richtig!" / "Leider falsch." + target digit).
+            //   - practice_feedback_miss: after a MISS (no response within the
+            //     1750 ms window) -> a live, NEUTRAL response box (genuine
+            //     HtmlButtonResponse render, pixel-identical to the main
+            //     experiment's ITI box). Nothing glows red automatically: the
+            //     frame only flashes red (error-glow, 500 ms) when the participant
+            //     clicks AFTER the window has passed, i.e. upon a response OUTSIDE
+            //     of the response interval - the exact late-click warning
+            //     semantics of the main experiment ITI. (pilot v9 fix: v8 glowed
+            //     red on every miss even though no response had occurred, and its
+            //     synthetic box rendered slightly narrower than the real one.)
+            // Both variants REPLACE the ITI in practice trials and stay on for
+            // the REST of the trial (unused response window + full ITI), so
+            // practice pacing stays identical to main trials. This structurally
+            // guarantees: feedback during practice, none in the main experiment.
+            let practice_feedback_duration = function() {
+                // Remaining trial time after the response: the unused part of the
+                // 1750 ms response window plus the full ITI. Together with the
+                // (early-ending) response trial this keeps practice pacing
+                // identical to main trials: response + feedback span exactly
+                // 1750 ms + ITI, but filled entirely with feedback.
+                const RESPONSE_WINDOW_MS = 1750;
+                const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
+                const rt = (last && typeof last.rt === 'number') ? last.rt : 0;
+                const iti_ms = jsPsych.timelineVariable('ITI-Jitter', true) * 1000;
+                return Math.max((RESPONSE_WINDOW_MS - rt) + iti_ms, 800);
+            };
+
+            let practice_feedback_text = {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: function() {
                     const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
-                    if (!last || last.response === null) {
-                        // Too slow: render the response box frame highlighted in red,
-                        // nothing else (no distracting text). The digits are inert
-                        // (disabled) - the red frame alone signals "respond faster".
-                        const digits = ['1','2','3','4','5','6','7','8','9']
-                            .map(d => `<button class="jspsych-btn virtual-response-box" disabled>${d}</button>`)
-                            .join('');
-                        return `<div id="jspsych-html-button-response-btngroup" class="error-glow">${digits}</div>`;
-                    }
+                    if (!last || last.response === null) return '';   // defensive: misses are handled by practice_feedback_miss
                     if (last.correct) {
                         return `<div class="instruction-text">
                             <p style="font-size: 32px; color: #4caf50;">${L("Richtig!", "Correct!")}</p>
@@ -1564,17 +1606,52 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     </div>`;
                 },
                 choices: "NO_KEYS",
-                trial_duration: function() {
-                    // Remaining trial time after the response: the unused part of the
-                    // 1750 ms response window plus the full ITI. Together with the
-                    // (early-ending) response trial this keeps practice pacing
-                    // identical to main trials: response + feedback span exactly
-                    // 1750 ms + ITI, but filled entirely with feedback.
-                    const RESPONSE_WINDOW_MS = 1750;
-                    const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
-                    const rt = (last && typeof last.rt === 'number') ? last.rt : 0;
-                    const iti_ms = jsPsych.timelineVariable('ITI-Jitter', true) * 1000;
-                    return Math.max((RESPONSE_WINDOW_MS - rt) + iti_ms, 800);
+                trial_duration: practice_feedback_duration,
+                data: { phase: 'practice_feedback', is_practice: true, block: current_block_num }
+            };
+
+            // Miss feedback: a genuine HtmlButtonResponse screen, so the response
+            // box renders pixel-identical to the main experiment's ITI box. The
+            // box is live but NEUTRAL - no automatic red on a miss. The frame
+            // flashes red (error-glow, 500 ms) ONLY when the participant clicks
+            // after the response window has passed (a response outside of the
+            // response interval), exactly like the main experiment's ITI warning.
+            let practice_feedback_miss = {
+                type: jsPsychHtmlButtonResponse,
+                stimulus: '',
+                choices: ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                button_html: '<button class="jspsych-btn virtual-response-box">%choice%</button>',
+                response_ends_trial: false,
+                trial_duration: practice_feedback_duration,
+                on_load: function() {
+                    const btns = document.querySelectorAll('.virtual-response-box');
+
+                    btns.forEach(btn => {
+                        btn.style.transition = 'none';
+                        setTimeout(() => {
+                            btn.style.transition = '';
+                        }, 50);
+                    });
+
+                    if (window.responded_in_trial) {
+                        btns.forEach(btn => btn.setAttribute('disabled', 'disabled'));
+                        document.body.classList.add('hide-cursor');
+                    } else {
+                        document.body.classList.remove('hide-cursor');
+                    }
+
+                    btns.forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            document.body.classList.add('hide-cursor');
+                            const container = document.querySelector('#jspsych-html-button-response-btngroup');
+                            if (container && !window.responded_in_trial) {
+                                container.classList.add('error-glow');
+                                setTimeout(() => {
+                                    container.classList.remove('error-glow');
+                                }, 500);
+                            }
+                        });
+                    });
                 },
                 data: { phase: 'practice_feedback', is_practice: true, block: current_block_num }
             };
@@ -1584,8 +1661,10 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             // ends IMMEDIATELY on the button click (response_ends_trial = true), so
             // the feedback comes on straight after the response and stays on until
             // the nominal end of the trial (response window + ITI). The ITI screen
-            // with its response box is deliberately NOT part of practice trials:
-            // nothing but the feedback is shown after the response.
+            // of the main experiment is deliberately NOT part of practice trials:
+            // after an actual response only the feedback text is shown, and after
+            // a miss the feedback screen itself IS the (neutral, live) response
+            // box that carries the late-click warning.
             // NOTE: indexes refer to the main trial_timeline.timeline order:
             // [0]=cue, [1]=delay, [2]=response, [3]=iti.
             let practice_procedure = [];
@@ -1594,7 +1673,23 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             let practice_response_trial = Object.assign({}, trial_timeline.timeline[2]);  // response (copy)
             practice_response_trial.response_ends_trial = true;   // click ends trial -> feedback follows immediately
             practice_procedure.push(practice_response_trial);
-            practice_procedure.push(practice_feedback_trial);     // feedback = rest of the trial (replaces ITI)
+            // Text vs. miss feedback: conditional_function is only evaluated on
+            // TIMELINE nodes in jsPsych 7.3, so each variant is wrapped in its
+            // own single-trial timeline. Exactly one of the two runs per trial.
+            practice_procedure.push({
+                timeline: [practice_feedback_text],
+                conditional_function: function() {
+                    const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
+                    return !!(last && last.response !== null);
+                }
+            });
+            practice_procedure.push({
+                timeline: [practice_feedback_miss],
+                conditional_function: function() {
+                    const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
+                    return !(last && last.response !== null);
+                }
+            });
 
             // Stage 1 timeline: same procedure, but the sampled rows carry
             // CueInstruction 'cue_neutral' -> the cue screen shows three WHITE
@@ -1662,7 +1757,10 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             filename: ()=>`sce-${subject}_block_${current_block_num}_data_${getFormattedDate()}.csv`,
             data_string: ()=>formatDataToCSV(current_block_num)
         };
-        timeline.push(save_data);
+        // Debug runs must never write to DataPipe (would pollute pilot data).
+        if (!DEBUG_MODE) {
+            timeline.push(save_data);
+        }
 
         const save_mouse_data = {
             type: jsPsychPipe,
@@ -1671,7 +1769,9 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             filename: ()=>`sce-${subject}_block_${current_block_num}_trajectories_${getFormattedDate()}.csv`,
             data_string: ()=>formatMouseDataToCSV(current_block_num)
         };
-        timeline.push(save_mouse_data);
+        if (!DEBUG_MODE) {
+            timeline.push(save_mouse_data);
+        }
 
         // Post-block mean accuracy summary (pilot v7): purely informational, so
         // participants can see what they are actually doing - deliberately NOT
