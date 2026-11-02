@@ -958,33 +958,38 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             });
         }
         
-        // 1b. Cross-cue-type practice set (experiment start only, i.e. first block of
-        // this session). Stage 2 of the two-stage pilot v5 training: 100% informative
-        // cues (5 target / 5 distractor / 5 non-singleton), sampled from the subject's
-        // real trials across all loaded blocks, so participants can learn the global
-        // color->role mapping (constant across blocks) with feedback before the first
-        // measured block. Neutral trials are deliberately excluded: they teach nothing
-        // about the cue->role mapping.
+        // 1b. Single-cue-type practice set (experiment start only, i.e. first block
+        // of this session). Stage 2 of the two-stage training: 100% informative
+        // cues, but only of the ONE cue type that is actually informative in the
+        // first block of this session (for a session starting at block 0 that is
+        // the target cue; for one starting at block 1 the distractor cue, etc.).
+        // Pilot v10: all three cue types were dropped - training them proved
+        // confusing and is pointless anyway, since each block uses exactly one
+        // informative cue type (announced by the block reminder). 15 informative-
+        // cue trials sampled from the subject's real trials across all loaded
+        // blocks, so the cue->role mapping can be learned with feedback before
+        // the first measured block. Neutral trials are deliberately excluded:
+        // they teach nothing about the cue->role mapping.
         let practice_rows = [];
         let stage1_rows = [];   // stage 1: cue-free basic-task training (filled in 1c below)
+        let practice_cue_type = null;   // the ONE informative cue type trained in stage 2 (set below)
         if (b_idx === 0) {
-            const N_PER_CUE_TYPE = 5;   // per informative cue type (target, distractor, control)
-            const cuePools = {
-                cue_target_location: [],
-                cue_distractor_location: [],
-                cue_nonsingleton_location: []
-            };
+            // The one informative (non-neutral) cue type of the first block of
+            // this session - the cue type the participant is about to need.
+            const firstBlockCueTypes = new Set(all_blocks_data[0].data.map(r => r.CueInstruction));
+            practice_cue_type = ['cue_target_location', 'cue_distractor_location', 'cue_nonsingleton_location']
+                .find(ct => firstBlockCueTypes.has(ct));
+            const cuePool = [];
             for (let item of all_blocks_data) {
                 item.data.forEach(function(row, idx) {
-                    if (cuePools[row.CueInstruction]) {
-                        cuePools[row.CueInstruction].push({ row: row, src_block: item.block, original_index: idx });
+                    if (row.CueInstruction === practice_cue_type) {
+                        cuePool.push({ row: row, src_block: item.block, original_index: idx });
                     }
                 });
             }
-            ['cue_target_location', 'cue_distractor_location', 'cue_nonsingleton_location'].forEach(function(ct) {
-                jsPsych.randomization.sampleWithoutReplacement(cuePools[ct], N_PER_CUE_TYPE).forEach(function(s) {
-                    practice_rows.push(Object.assign({}, s.row, { src_block: s.src_block, original_index: s.original_index, is_practice: true }));
-                });
+            const N_PRACTICE_CUE = 15;   // all 15 trials use the single trained cue type
+            jsPsych.randomization.sampleWithoutReplacement(cuePool, N_PRACTICE_CUE).forEach(function(s) {
+                practice_rows.push(Object.assign({}, s.row, { src_block: s.src_block, original_index: s.original_index, is_practice: true }));
             });
             practice_rows = jsPsych.randomization.shuffle(practice_rows);
 
@@ -1573,6 +1578,10 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             //     semantics of the main experiment ITI. (pilot v9 fix: v8 glowed
             //     red on every miss even though no response had occurred, and its
             //     synthetic box rendered slightly narrower than the real one.)
+            //     Pilot v10: such a late (ITI) click now ALSO receives correctness
+            //     feedback - practice is for learning, so the clicked digit is
+            //     evaluated against the missed trial's target digit while the red
+            //     flash keeps flagging the timing.
             // Both variants REPLACE the ITI in practice trials and stay on for
             // the REST of the trial (unused response window + full ITI), so
             // practice pacing stays identical to main trials. This structurally
@@ -1616,6 +1625,8 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             // flashes red (error-glow, 500 ms) ONLY when the participant clicks
             // after the response window has passed (a response outside of the
             // response interval), exactly like the main experiment's ITI warning.
+            // Pilot v10: that late click ALSO gets correctness feedback for the
+            // clicked digit (see the click handler below).
             let practice_feedback_miss = {
                 type: jsPsychHtmlButtonResponse,
                 stimulus: '',
@@ -1649,6 +1660,32 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                                 setTimeout(() => {
                                     container.classList.remove('error-glow');
                                 }, 500);
+                                // Pilot v10: correctness feedback even for responses
+                                // given during the ITI (outside the response window).
+                                // Practice is for learning, so late answers are
+                                // evaluated too - the red flash flags the TIMING,
+                                // the text evaluates the DIGIT. The clicked digit
+                                // comes from the button label; the target digit
+                                // belongs to the practice response trial that just
+                                // missed its window.
+                                const clickedDigit = parseInt(btn.innerText, 10);
+                                const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
+                                const targetDigit = (last && last.targetDigit !== undefined && last.targetDigit !== null) ? last.targetDigit : null;
+                                let fb;
+                                if (targetDigit === null) {
+                                    // Defensive: no target digit available -> timing info only.
+                                    fb = `<div class="instruction-text"><p style="font-size: 24px; color: #ff6b6b;">${L("Zu spät!", "Too late!")}</p></div>`;
+                                } else if (clickedDigit === targetDigit) {
+                                    fb = `<div class="instruction-text"><p style="font-size: 24px; color: #4caf50;">${L("Zu spät &ndash; aber richtig!", "Too late &ndash; but correct!")}</p></div>`;
+                                } else {
+                                    fb = `<div class="instruction-text">
+                                        <p style="font-size: 24px; color: #ff6b6b;">${L("Zu spät &ndash; und leider falsch.", "Too late &ndash; and unfortunately wrong.")}</p>
+                                        <p style="font-size: 24px;">${L(`Die Zielzahl war: <strong style="color: #4da8da;">${targetDigit}</strong>`, `The target digit was: <strong style="color: #4da8da;">${targetDigit}</strong>`)}</p>
+                                    </div>`;
+                                }
+                                // Replace the box with the feedback text; the red
+                                // glow keeps flashing around it for the next 500 ms.
+                                container.innerHTML = fb;
                             }
                         });
                     });
@@ -1664,7 +1701,8 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             // of the main experiment is deliberately NOT part of practice trials:
             // after an actual response only the feedback text is shown, and after
             // a miss the feedback screen itself IS the (neutral, live) response
-            // box that carries the late-click warning.
+            // box that carries the late-click warning and, since pilot v10,
+            // correctness feedback for late (ITI) responses.
             // NOTE: indexes refer to the main trial_timeline.timeline order:
             // [0]=cue, [1]=delay, [2]=response, [3]=iti.
             let practice_procedure = [];
@@ -1701,24 +1739,34 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             };
             timeline.push(stage1_timeline);
 
-            // Stage 2 intro: a REAL-TASK example of the experiment containing ALL
-            // informative cue types (NOT a block-specific preview - the block-0
-            // reminder now only appears right before the main timeline below).
+            // Stage 2 intro: a real-task example restricted to the ONE informative
+            // cue type that the following block will actually use (pilot v10:
+            // all three cue types were dropped - too confusing and pointless,
+            // since each block contains exactly one informative cue type anyway;
+            // the block reminder below announces the concrete color).
             let practice_intro_stage2 = {
                 type: jsPsychHtmlKeyboardResponse,
-                stimulus: L(`<div class="instruction-text">
+                stimulus: function() {
+                    const cue_desc =
+                        practice_cue_type === 'cue_distractor_location'
+                            ? L("den <strong>Störreiz</strong> (Kinderstimme)", "the <strong>distractor</strong> (child's voice)")
+                            : practice_cue_type === 'cue_nonsingleton_location'
+                                ? L("die <strong>normale Stimme</strong>", "the <strong>normal voice</strong>")
+                                : L("den <strong>Zielreiz</strong> (raue Stimme)", "the <strong>target stimulus</strong> (rough voice)");
+                    return L(`<div class="instruction-text">
                     <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge &ndash; Teil 2: Hinweisreize</h2>
                     <p>Im zweiten Teil der Übung folgt nun ein <strong>realer Beispielblock des eigentlichen Experiments</strong> mit 15 Durchgängen.</p>
-                    <p>Anders als eben erscheint vor jedem Durchgang ein <strong>farbiger Hinweisreiz</strong>. Dabei kommen <strong>alle Hinweisarten</strong> vor: der Hinweis auf den Zielreiz, der Hinweis auf den Störreiz und der Hinweis auf die normale Stimme &ndash; genau wie im späteren Experiment.</p>
-                    <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Nutzen Sie diese Rückmeldung, um die Bedeutung der Hinweisfarben zu lernen. Auch diese Durchgänge gehen nicht in die Wertung ein.</p>
+                    <p>Anders als eben erscheint vor jedem Durchgang ein <strong>farbiger Hinweisreiz</strong>. In diesem Übungsteil kommt <strong>ausschließlich der Hinweis auf ${cue_desc}</strong> vor &ndash; genau der Hinweistyp, der auch im ersten Block des eigentlichen Experiments verwendet wird.</p>
+                    <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Nutzen Sie diese Rückmeldung, um die Bedeutung der Hinweisfarbe zu lernen. Auch diese Durchgänge gehen nicht in die Wertung ein.</p>
                     <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit Teil 2 der Übung zu beginnen.</p>
                 </div>`, `<div class="instruction-text">
                     <h2 style="color: #4da8da; margin-bottom: 20px;">Practice Trials &ndash; Part 2: Cues</h2>
                     <p>In the second part of the practice, a <strong>real example block of the actual experiment</strong> with 15 trials now follows.</p>
-                    <p>Unlike just now, a <strong>colored cue</strong> appears before every trial. <strong>All cue types</strong> occur: the cue to the target stimulus, the cue to the distractor and the cue to the normal voice &ndash; exactly as in the later experiment.</p>
-                    <p>After each response you will immediately learn whether you were correct. Use this feedback to learn the meaning of the cue colors. These trials also do not count toward your score.</p>
+                    <p>Unlike just now, a <strong>colored cue</strong> appears before every trial. In this practice part, <strong>only the cue to ${cue_desc}</strong> occurs &ndash; exactly the cue type that is also used in the first block of the actual experiment.</p>
+                    <p>After each response you will immediately learn whether you were correct. Use this feedback to learn the meaning of the cue color. These trials also do not count toward your score.</p>
                     <p style="margin-top: 30px; color: #aaa;">Press the <strong>SPACEBAR</strong> to begin part 2 of the practice.</p>
-                </div>`),
+                </div>`);
+                },
                 choices: [" "]
             };
             timeline.push(practice_intro_stage2);
