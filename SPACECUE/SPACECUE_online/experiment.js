@@ -695,13 +695,14 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         }
         
         // 1b. Cross-cue-type practice set (experiment start only, i.e. first block of
-        // this session). Pilot v3: practice consists EXCLUSIVELY of informative-cue
-        // trials (100% informative: 5 target / 5 distractor / 5 non-singleton), sampled
-        // from the subject's real trials across all loaded blocks, so participants can
-        // learn the global color->role mapping (constant across blocks) with feedback
-        // before the first measured block. Neutral trials are deliberately excluded:
-        // they teach nothing about the cue->role mapping.
+        // this session). Stage 2 of the two-stage pilot v5 training: 100% informative
+        // cues (5 target / 5 distractor / 5 non-singleton), sampled from the subject's
+        // real trials across all loaded blocks, so participants can learn the global
+        // color->role mapping (constant across blocks) with feedback before the first
+        // measured block. Neutral trials are deliberately excluded: they teach nothing
+        // about the cue->role mapping.
         let practice_rows = [];
+        let stage1_rows = [];   // stage 1: cue-free basic-task training (filled in 1c below)
         if (b_idx === 0) {
             const N_PER_CUE_TYPE = 5;   // per informative cue type (target, distractor, control)
             const cuePools = {
@@ -722,6 +723,36 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                 });
             });
             practice_rows = jsPsych.randomization.shuffle(practice_rows);
+
+            // 1c. Stage-1 cue-free training set (pilot v5): 15 real trials presented
+            // WITHOUT cue information (CueInstruction overridden to 'cue_neutral' ->
+            // the cue screen renders three white, uninformative arrows, exactly like
+            // neutral trials in the main experiment). This teaches the basic task
+            // (identify the rough target voice, report its digit) before any
+            // cue->role contingency is introduced in stage 2. The stage-2 picks are
+            // excluded so no underlying trial is used twice.
+            const usedKeys = new Set(practice_rows.map(pr => `${pr.src_block}_${pr.original_index}`));
+            let allPool = [];
+            for (let item of all_blocks_data) {
+                item.data.forEach(function(row, idx) {
+                    if (!usedKeys.has(`${item.block}_${idx}`)) {
+                        allPool.push({ row: row, src_block: item.block, original_index: idx });
+                    }
+                });
+            }
+            const N_STAGE1 = 15;
+            jsPsych.randomization.sampleWithoutReplacement(allPool, N_STAGE1).forEach(function(s) {
+                stage1_rows.push(Object.assign({}, s.row, {
+                    src_block: s.src_block,
+                    original_index: s.original_index,
+                    is_practice: true,
+                    CueInstruction: 'cue_neutral'  // all-white arrows = no cue information
+                }));
+            });
+            stage1_rows = jsPsych.randomization.shuffle(stage1_rows);
+            for (let pr of stage1_rows) {
+                audio_files.push(`${base_url}sequences/sce-${subject}_block_${pr.src_block}/s_${pr.original_index}.wav`);
+            }
             for (let pr of practice_rows) {
                 audio_files.push(`${base_url}sequences/sce-${subject}_block_${pr.src_block}/s_${pr.original_index}.wav`);
             }
@@ -1177,20 +1208,27 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         };
 
         // Practice runs ONCE at the start of the experiment (first block of this
-        // session), covering ALL cue types with feedback - not before every block.
+        // session) as a TWO-STAGE training (pilot v5), not before every block:
+        //   Stage 1: 15 cue-free trials (all-white neutral cue screen) with feedback,
+        //            teaching the basic task (identify the rough target voice).
+        //   Stage 2: 15 informative-cue trials (5 per cue type) with feedback,
+        //            teaching the cue->role contingency (a real-task example).
+        // The main experiment itself never shows feedback.
         if (b_idx === 0) {
-            let practice_intro = {
+            let practice_intro_stage1 = {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: `<div class="instruction-text">
-                    <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge</h2>
-                    <p>Bevor das eigentliche Experiment beginnt, haben Sie nun die Möglichkeit, 15 Übungsdurchgänge zu absolvieren.</p>
-                    <p>In jedem dieser Durchgänge erhalten Sie einen <strong>hilfreichen Hinweis</strong>: Es kommt jede Hinweisart vor - der Hinweis auf den Zielreiz, der Hinweis auf den Störreiz und der Hinweis auf ein normales Zahlwort.</p>
-                    <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Nutzen Sie diese Rückmeldung, um die Bedeutung der Hinweisfarben zu lernen. Diese Durchgänge gehen nicht in die Wertung ein.</p>
-                    <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit den Übungsdurchgängen zu beginnen.</p>
+                    <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge &ndash; Teil 1: Die Grundaufgabe</h2>
+                    <p>Bevor das eigentliche Experiment beginnt, üben Sie zunächst in <strong>15 Durchgängen die Grundaufgabe ohne Hinweisreize</strong>.</p>
+                    <p>Sie hören in jedem Durchgang gleichzeitig drei Zahlwörter: den <strong>Zielreiz</strong> (raue Stimme), einen <strong>Störreiz</strong> (Kinderstimme) und eine <strong>normale Stimme</strong>.</p>
+                    <p>Ihre Aufgabe ist es, die Zahl des <strong>Zielreizes (der rauen Stimme)</strong> über die Antwortbox einzugeben.</p>
+                    <p>Alle Pfeile bleiben in diesem Übungsteil <strong>weiß</strong> und liefern keine Information &ndash; hören Sie also genau hin, welche Stimme die raue ist.</p>
+                    <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Diese Durchgänge gehen nicht in die Wertung ein.</p>
+                    <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit Teil 1 der Übung zu beginnen.</p>
                 </div>`,
                 choices: [" "]
             };
-            timeline.push(practice_intro);
+            timeline.push(practice_intro_stage1);
             
             // Practice-only correctness feedback (pilot v3 fix for cue-ignorance:
             // participants previously never received any feedback, so the
@@ -1259,11 +1297,36 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             practice_procedure.push(practice_response_trial);
             practice_procedure.push(practice_feedback_trial);     // feedback = rest of the trial (replaces ITI)
 
+            // Stage 1 timeline: same procedure, but the sampled rows carry
+            // CueInstruction 'cue_neutral' -> the cue screen shows three WHITE
+            // arrows (exactly like neutral trials in the main experiment), i.e.
+            // the basic task is trained without any cue information.
+            let stage1_timeline = {
+                timeline: practice_procedure,
+                timeline_variables: stage1_rows
+            };
+            timeline.push(stage1_timeline);
+
+            // Stage 2 intro: a REAL-TASK example of the experiment containing ALL
+            // informative cue types (NOT a block-specific preview - the block-0
+            // reminder now only appears right before the main timeline below).
+            let practice_intro_stage2 = {
+                type: jsPsychHtmlKeyboardResponse,
+                stimulus: `<div class="instruction-text">
+                    <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge &ndash; Teil 2: Hinweisreize</h2>
+                    <p>Im zweiten Teil der Übung folgt nun ein <strong>realer Beispielblock des eigentlichen Experiments</strong> mit 15 Durchgängen.</p>
+                    <p>Anders als eben erscheint vor jedem Durchgang ein <strong>farbiger Hinweisreiz</strong>. Dabei kommen <strong>alle Hinweisarten</strong> vor: der Hinweis auf den Zielreiz, der Hinweis auf den Störreiz und der Hinweis auf die normale Stimme &ndash; genau wie im späteren Experiment.</p>
+                    <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Nutzen Sie diese Rückmeldung, um die Bedeutung der Hinweisfarben zu lernen. Auch diese Durchgänge gehen nicht in die Wertung ein.</p>
+                    <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit Teil 2 der Übung zu beginnen.</p>
+                </div>`,
+                choices: [" "]
+            };
+            timeline.push(practice_intro_stage2);
+
             let practice_timeline = {
                 timeline: practice_procedure,
                 timeline_variables: practice_rows
             };
-            timeline.push(getBlockReminderTrial(trial_data));
             timeline.push(practice_timeline);
             
             let main_start = {
