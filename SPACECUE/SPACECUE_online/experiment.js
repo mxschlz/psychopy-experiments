@@ -9,7 +9,7 @@ const datapipe_id = "p6rmFV5NMVaw";
 // 'de' (default) or 'en'. Controls ALL instruction, feedback and UI text
 // (info/consent pages, screening, tests, practice feedback, block summaries).
 // NOTE: the task itself (spoken German digits) stays German in both settings.
-const LANGUAGE = "de";
+const LANGUAGE = "en";
 const L = (de, en) => (LANGUAGE === "en" ? en : de);
 
 // English color key -> localized color name for on-screen cue descriptions.
