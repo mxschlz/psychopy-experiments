@@ -1579,13 +1579,18 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             //     Pilot v10: such a late (ITI) click also receives correctness
             //     feedback - practice is for learning, so the clicked digit is
             //     evaluated against the missed trial's target digit.
-            //     Pilot v13: presentation is now fully coherent with
-            //     practice_feedback_text - first the box flashes red for 500 ms
-            //     (the identical late-click warning of the main experiment ITI,
-            //     flagging the TIMING), then the SAME feedback panel as for
-            //     in-window responses (identical verdict wording, typography
-            //     and colors, plus a too-late note) replaces the display
-            //     content and evaluates the DIGIT.
+            //     Pilot v13: presentation became fully coherent with
+            //     practice_feedback_text - first the box flashed red for 500 ms
+            //     (the late-click warning of the main experiment ITI, flagging
+            //     the TIMING), then the SAME feedback panel as for in-window
+            //     responses (identical verdict wording, typography and colors,
+            //     plus a too-late note) replaced the display content and
+            //     evaluated the DIGIT.
+            //     Pilot v14: the 500 ms red flash is DROPPED for practice - it
+            //     ate into the remaining trial time, leaving too little time to
+            //     read the feedback text. A late click now swaps in the SAME
+            //     feedback panel (verdict + too-late note) IMMEDIATELY, so the
+            //     text can use the entire rest of the trial.
             // Both variants REPLACE the ITI in practice trials and stay on for
             // the REST of the trial (unused response window + full ITI), so
             // practice pacing stays identical to main trials. This structurally
@@ -1625,14 +1630,15 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
 
             // Miss feedback: a genuine HtmlButtonResponse screen, so the response
             // box renders pixel-identical to the main experiment's ITI box. The
-            // box is live but NEUTRAL - no automatic red on a miss. The frame
-            // flashes red (error-glow, 500 ms) ONLY when the participant clicks
-            // after the response window has passed (a response outside of the
-            // response interval), exactly like the main experiment's ITI warning.
+            // box is live but NEUTRAL - no automatic red on a miss and, since
+            // pilot v14, also NO red flash on a late click: unlike the main
+            // experiment's ITI warning, a click after the response window has
+            // passed shows the feedback text IMMEDIATELY (see the click handler
+            // below), so the participant has the full remaining trial time to
+            // read it.
             // Pilot v10/v13: that late click ALSO gets correctness feedback for
-            // the clicked digit - rendered after the 500 ms red flash as the
-            // same feedback panel used for in-window responses (see the click
-            // handler below).
+            // the clicked digit - rendered as the same feedback panel used for
+            // in-window responses (see the click handler below).
             let practice_feedback_miss = {
                 type: jsPsychHtmlButtonResponse,
                 stimulus: '',
@@ -1666,19 +1672,18 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                                 // response is evaluated per trial (disabled
                                 // buttons stop firing clicks via CSS).
                                 btns.forEach(b => b.setAttribute('disabled', 'disabled'));
-                                container.classList.add('error-glow');
                                 // Pilot v10/v13: a late (ITI) click gets the SAME
                                 // feedback panel as a response inside the window
                                 // (see practice_feedback_text): identical verdict
                                 // wording, typography and colors, plus a too-late
-                                // note. Sequence: the box flashes red for 500 ms -
-                                // the identical late-click warning of the main
-                                // experiment ITI, flagging the TIMING - then the
-                                // standard panel replaces the display content and
-                                // evaluates the DIGIT. The clicked digit comes
-                                // from the button label; the target digit belongs
-                                // to the practice response trial that just missed
-                                // its window.
+                                // note. The clicked digit comes from the button
+                                // label; the target digit belongs to the practice
+                                // response trial that just missed its window.
+                                // Pilot v14: NO red error-glow flash anymore - the
+                                // 500 ms flash ate into the remaining trial time
+                                // and left too little time to read the text. The
+                                // panel is swapped in IMMEDIATELY so it can use
+                                // the entire rest of the trial.
                                 const clickedDigit = parseInt(btn.innerText, 10);
                                 const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
                                 const targetDigit = (last && last.targetDigit !== undefined && last.targetDigit !== null) ? last.targetDigit : null;
@@ -1698,19 +1703,19 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                                         <p style="font-size: 24px;">${L("Außerdem zu spät &ndash; die Zeit war bereits abgelaufen.", "Also too late &ndash; the time had already run out.")}</p>
                                     </div>`;
                                 }
-                                // After the 500 ms warning flash: swap the WHOLE
-                                // display content for the feedback panel - NOT
-                                // the button group itself, whose 3-column grid
-                                // layout would squeeze the panel into a single
-                                // grid cell. If the trial has already ended and
-                                // the next one is on screen (very late click),
+                                // Swap the WHOLE display content for the feedback
+                                // panel IMMEDIATELY (pilot v14: the 500 ms red
+                                // warning flash was dropped so the text gets the
+                                // full remaining trial time) - NOT the button
+                                // group itself, whose 3-column grid layout would
+                                // squeeze the panel into a single grid cell. If
+                                // the trial has somehow already ended and the
+                                // next one is on screen (a very late click),
                                 // leave the DOM untouched.
-                                setTimeout(() => {
-                                    container.classList.remove('error-glow');
-                                    if (container.isConnected === false) return;   // trial already over
+                                if (container.isConnected !== false) {   // trial already over?
                                     const content = document.querySelector('#jspsych-content') || container.parentElement;
                                     if (content) content.innerHTML = fb;
-                                }, 500);
+                                }
                             }
                         });
                     });
@@ -1726,8 +1731,10 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             // of the main experiment is deliberately NOT part of practice trials:
             // after an actual response only the feedback text is shown, and after
             // a miss the feedback screen itself IS the (neutral, live) response
-            // box that carries the late-click warning and, since pilot v10,
-            // correctness feedback for late (ITI) responses.
+            // box that carries the immediate correctness feedback (plus a
+            // too-late note) for late (ITI) responses - pilot v14: no red
+            // warning flash anymore, so the text has the full remaining trial
+            // time to be read.
             // NOTE: indexes refer to the main trial_timeline.timeline order:
             // [0]=cue, [1]=delay, [2]=response, [3]=iti.
             let practice_procedure = [];
