@@ -5,6 +5,20 @@ let exited_early = false;
 let demo_headphone_type = null; // pilot v2: track playback device (Bluetooth/mono-downmix risk)
 const datapipe_id = "p6rmFV5NMVaw";
 
+// --- LANGUAGE FLAG ---------------------------------------------------------
+// 'de' (default) or 'en'. Controls ALL instruction, feedback and UI text
+// (info/consent pages, screening, tests, practice feedback, block summaries).
+// NOTE: the task itself (spoken German digits) stays German in both settings.
+const LANGUAGE = "de";
+const L = (de, en) => (LANGUAGE === "en" ? en : de);
+
+// English color key -> localized color name for on-screen cue descriptions.
+const COLOR_NAME_MAP_DE = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß", "violet": "violett" };
+function localizeColorName(engName) {
+    return (LANGUAGE === "en") ? engName : (COLOR_NAME_MAP_DE[engName] || engName);
+}
+
+
 function formatDataToCSV(b) {
     let current_trial_data = global_all_blocks_data[b];
     let responses = jsPsych.data.get().filter({phase: 'response', is_practice: false, block: b}).values();
@@ -98,7 +112,7 @@ const jsPsych = initJsPsych({
         if (exited_early) {
             document.body.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
-                <h2 style="color: #4da8da;">Daten werden gespeichert...</h2>
+                <h2 style="color: #4da8da;">${L("Daten werden gespeichert...", "Saving data...")}</h2>
             </div>`;
             
             const timestamp = getFormattedDate();
@@ -111,9 +125,9 @@ const jsPsych = initJsPsych({
                     document.body.innerHTML = `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                         <div class="glass-container" style="text-align: center; max-width: 600px;">
-                            <h2 style="color: #ff6b6b;">Experiment abgebrochen</h2>
-                            <p>Ihre Daten bis zu diesem Punkt wurden erfolgreich gespeichert.</p>
-                            <p>Sie können dieses Fenster nun schließen.</p>
+                            <h2 style="color: #ff6b6b;">${L("Experiment abgebrochen", "Experiment Aborted")}</h2>
+                            <p>${L("Ihre Daten bis zu diesem Punkt wurden erfolgreich gespeichert.", "Your data up to this point have been saved successfully.")}</p>
+                            <p>${L("Sie können dieses Fenster nun schließen.", "You may now close this window.")}</p>
                         </div>
                     </div>`;
                 } else {
@@ -121,9 +135,9 @@ const jsPsych = initJsPsych({
                     document.body.innerHTML = `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                         <div class="glass-container" style="text-align: center; max-width: 600px;">
-                            <h2 style="color: #ff6b6b;">Fehler beim Speichern</h2>
-                            <p>Leider ist ein Fehler beim Speichern aufgetreten. Details finden Sie in der Konsole.</p>
-                            <p>Sie können dieses Fenster nun schließen.</p>
+                            <h2 style="color: #ff6b6b;">${L("Fehler beim Speichern", "Error While Saving")}</h2>
+                            <p>${L("Leider ist ein Fehler beim Speichern aufgetreten. Details finden Sie in der Konsole.", "Unfortunately, an error occurred while saving. Details can be found in the browser console.")}</p>
+                            <p>${L("Sie können dieses Fenster nun schließen.", "You may now close this window.")}</p>
                         </div>
                     </div>`;
                 }
@@ -132,8 +146,8 @@ const jsPsych = initJsPsych({
                 document.body.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                     <div class="glass-container" style="text-align: center; max-width: 600px;">
-                        <h2 style="color: #ff6b6b;">Fehler beim Speichern</h2>
-                        <p>Leider ist ein Fehler beim Speichern aufgetreten.</p>
+                        <h2 style="color: #ff6b6b;">${L("Fehler beim Speichern", "Error While Saving")}</h2>
+                        <p>${L("Leider ist ein Fehler beim Speichern aufgetreten.", "Unfortunately, an error occurred while saving.")}</p>
                     </div>
                 </div>`;
             });
@@ -148,9 +162,9 @@ const jsPsych = initJsPsych({
             document.body.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                 <div class="glass-container" style="text-align: center; max-width: 600px;">
-                    <h2 style="color: #4caf50;">Das Experiment ist beendet.</h2>
-                    <p>Vielen Dank für Ihre Teilnahme!</p>
-                    <p>Ihre Daten wurden erfolgreich auf dem Server gespeichert. Sie können dieses Fenster nun schließen.</p>
+                    <h2 style="color: #4caf50;">${L("Das Experiment ist beendet.", "The experiment is finished.")}</h2>
+                    <p>${L("Vielen Dank für Ihre Teilnahme!", "Thank you very much for your participation!")}</p>
+                    <p>${L("Ihre Daten wurden erfolgreich auf dem Server gespeichert. Sie können dieses Fenster nun schließen.", "Your data have been saved successfully on the server. You may now close this window.")}</p>
                 </div>
             </div>`;
         }
@@ -162,9 +176,11 @@ let subject, prolific_pid, study_id, session_id, block, demo_age, demo_gender, d
 // Configure this to point to your Cloudflare R2 or OSF storage bucket link when deploying
 const base_url = "https://pub-65f7c7cdfbd94569a681f48c959ee559.r2.dev/";
 
-// Bind the exit button
-document.getElementById('exit-btn').addEventListener('click', function() {
-    if (confirm("Möchten Sie das Experiment wirklich frühzeitig abbrechen? Ihre bisherigen Daten werden gespeichert.")) {
+// Bind the exit button (label localized here so the flag also controls index.html)
+let exitBtnEl = document.getElementById('exit-btn');
+exitBtnEl.innerText = L("Abbrechen & Speichern", "Abort & Save");
+exitBtnEl.addEventListener('click', function() {
+    if (confirm(L("Möchten Sie das Experiment wirklich frühzeitig abbrechen? Ihre bisherigen Daten werden gespeichert.", "Do you really want to abort the experiment early? Your data collected so far will be saved."))) {
         exited_early = true;
         jsPsych.endExperiment();
     }
@@ -172,38 +188,59 @@ document.getElementById('exit-btn').addEventListener('click', function() {
 
 // --- PROMPTS FROM prompts.py ---
 const prompts = {
-    prompt1: `Willkommen und vielen Dank für die Teilnahme an diesem Experiment zur räumlichen Aufmerksamkeit.<br><br>
+    prompt1: L(`Willkommen und vielen Dank für die Teilnahme an diesem Experiment zur räumlichen Aufmerksamkeit.<br><br>
 In jedem Durchgang des Experiments sollen Sie ein Zahlwort aus jeweils drei verschiedenen Zahlwörtern identifizieren.<br>
 Versuchen Sie dabei stets, so korrekt und so schnell wie möglich zu antworten!<br>
 Das Experiment ist in 6 Blöcke aufgeteilt, zwischen denen Sie kurze Pausen einlegen können.<br><br>
-Drücken Sie LEERTASTE, um weiterzublättern.`,
+Drücken Sie LEERTASTE, um weiterzublättern.`, `Welcome and thank you very much for taking part in this experiment on spatial attention.<br><br>
+In each trial of the experiment, your task is to identify one spoken digit out of three different spoken digits.<br>
+Always try to answer as accurately and as quickly as possible!<br>
+The experiment is divided into 6 blocks, between which you can take short breaks.<br><br>
+Press SPACEBAR to continue.`),
 
-    prompt2: `In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter aus drei verschiedenen Richtungen abgespielt (links, mitte, rechts).<br>
+    prompt2: L(`In jedem Durchgang des Experiments werden gleichzeitig drei Zahlwörter aus drei verschiedenen Richtungen abgespielt (links, mitte, rechts).<br>
 Alle Zahlwörter werden von derselben Stimme gesprochen. Bei den Zahlwörtern handelt es sich um eine Auswahl der Zahlen zwischen 1 und 9.<br>
 In einem Durchgang sind alle Ziffern einzigartig, z.B. kann die Zahl 9 nicht sowohl von links als auch von rechts gleichzeitig ertönen.<br><br>
-Drücken Sie LEERTASTE, um weiterzublättern.`,
+Drücken Sie LEERTASTE, um weiterzublättern.`, `In each trial of the experiment, three spoken digits are played simultaneously from three different directions (left, center, right).<br>
+All digits are spoken by the same voice. The digits are a selection of the numbers between 1 and 9.<br>
+Within a trial, all digits are unique; for example, the number 9 cannot sound from the left and the right at the same time.<br><br>
+Press SPACEBAR to continue.`),
 
-    prompt3: `Das Zahlwort, welches Sie identifizieren sollen, unterscheidet sich von den anderen beiden in der folgenden Eigenschaft:<br>
+    prompt3: L(`Das Zahlwort, welches Sie identifizieren sollen, unterscheidet sich von den anderen beiden in der folgenden Eigenschaft:<br>
 Dieses Zahlwort klingt im Vergleich zu den restlichen Zahlwörtern sehr rau und kratzig.<br>
 Die Stimme dieses Wortes klingt wie in einer schlechten Telefonverbindung.<br>
 Auf genau dieses Zahlwort sollen Sie sich konzentrieren und die Zahl so schnell wie möglich angeben!<br><br>
-Drücken Sie LEERTASTE, um weiterzublättern.`,
+Drücken Sie LEERTASTE, um weiterzublättern.`, `The spoken digit you are supposed to identify differs from the other two in the following way:<br>
+Compared to the remaining digits, this digit sounds very rough and raspy.<br>
+The voice of this digit sounds like a bad phone connection.<br>
+You should concentrate on exactly this digit and report the number as quickly as possible!<br><br>
+Press SPACEBAR to continue.`),
 
-    prompt4: `In allen Durchgängen hat eines der zwei weiteren Zahlwörter eine andere Tonhöhe. Dieses Zahlwort ist ein Störreiz und klingt wie eine Kinderstimme.<br>
+    prompt4: L(`In allen Durchgängen hat eines der zwei weiteren Zahlwörter eine andere Tonhöhe. Dieses Zahlwort ist ein Störreiz und klingt wie eine Kinderstimme.<br>
 Lassen Sie sich davon nicht irritieren: Ihre Aufgabe bleibt es, stets das raue, kratzige Zahlwort zu benennen.<br><br>
-Drücken Sie LEERTASTE, um weiterzublättern.`,
+Drücken Sie LEERTASTE, um weiterzublättern.`, `In every trial, one of the two remaining digits has a different pitch. This digit is a distractor and sounds like a child's voice.<br>
+Do not let it distract you: your task remains to always name the rough, raspy digit.<br><br>
+Press SPACEBAR to continue.`),
 
-    prompt5: `Während des Experiments erscheint eine Antwort-Box in der Mitte des Bildschirms.<br>
+    prompt5: L(`Während des Experiments erscheint eine Antwort-Box in der Mitte des Bildschirms.<br>
 Diese enthält die Ziffern von 1 bis 9 und ist durch einen Rahmen begrenzt.<br>
 Mit der Maus können Sie auf eine Zahl pro Durchgang klicken, um das raue, kratzige Zahlwort anzugeben.<br>
 ACHTUNG: die Antwort ist nur gültig, wenn der Mauszeiger nach dem Klicken verschwindet! Bitte stellen Sie sicher, dass Sie in jedem Durchgang eine Antwort geben, da ansonsten Ihre Daten unvollständig sind und nicht gewertet werden können.<br><br>
-Drücken Sie LEERTASTE, um weiterzublättern.`,
+Drücken Sie LEERTASTE, um weiterzublättern.`, `During the experiment, a response box appears in the center of the screen.<br>
+It contains the digits 1 to 9 and is bounded by a frame.<br>
+With the mouse, you can click one number per trial to report the rough, raspy digit.<br>
+ATTENTION: the response is only valid if the mouse cursor disappears after the click! Please make sure that you give a response in every trial; otherwise your data will be incomplete and cannot be evaluated.<br><br>
+Press SPACEBAR to continue.`),
 
-    prompt6: `Sollten Sie zu langsam antworten, färbt sich der Rahmen der Box für eine kurze Zeit rot.<br>
+    prompt6: L(`Sollten Sie zu langsam antworten, färbt sich der Rahmen der Box für eine kurze Zeit rot.<br>
 Das ist dann der Hinweis, dass Sie in den kommenden Durchgängen etwas schneller antworten sollen.<br>
 Bitte halten Sie Ihren Blick während der Aufgabe stets auf die Antwort-Box gerichtet.<br>
 Die Zahlenfelder treten etwas hervor, wenn Sie den Mauszeiger über sie bewegen.<br>
-Drücken Sie LEERTASTE, um weiterzublättern.`
+Drücken Sie LEERTASTE, um weiterzublättern.`, `If you respond too slowly, the frame of the box briefly turns red.<br>
+This is the signal that you should respond somewhat faster in the upcoming trials.<br>
+Please keep your gaze directed at the response box at all times during the task.<br>
+The number fields stand out slightly when you move the mouse cursor over them.<br>
+Press SPACEBAR to continue.`)
 };
 
 function getBlockReminderTrial(trial_data) {
@@ -215,7 +252,6 @@ function getBlockReminderTrial(trial_data) {
     let distractorColor = info[3].toLowerCase();
     let controlColor = info[5].toLowerCase();
     
-    const colorMap = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß", "violet": "violett" };
     const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff", "violet": "#b388ff" };
     
     let active_color_eng = "";
@@ -223,16 +259,16 @@ function getBlockReminderTrial(trial_data) {
     
     if (n_cue_inst.includes('target_location')) {
         active_color_eng = targetColor;
-        cue_desc = "den <strong>Zielreiz</strong> (raue Stimme)";
+        cue_desc = L("den <strong>Zielreiz</strong> (raue Stimme)", "the <strong>target stimulus</strong> (rough voice)");
     } else if (n_cue_inst.includes('distractor_location')) {
         active_color_eng = distractorColor;
-        cue_desc = "den <strong>Störreiz</strong> (Kinderstimme)";
+        cue_desc = L("den <strong>Störreiz</strong> (Kinderstimme)", "the <strong>distractor</strong> (child's voice)");
     } else if (n_cue_inst.includes('nonsingleton_location')) {
         active_color_eng = controlColor;
-        cue_desc = "die <strong>Normale Stimme</strong>";
+        cue_desc = L("die <strong>Normale Stimme</strong>", "the <strong>normal voice</strong>");
     }
     
-    let active_ger = colorMap[active_color_eng] || active_color_eng;
+    let active_ger = localizeColorName(active_color_eng);
     let active_hex = hexMap[active_color_eng] || active_color_eng;
     let highlight = `<span style="color: ${active_hex}; font-weight: bold; text-transform: uppercase;">${active_ger}</span>`;
     
@@ -240,11 +276,10 @@ function getBlockReminderTrial(trial_data) {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: `
         <div class="instruction-text">
-            <h2 style="color: #4da8da; margin-bottom: 20px;">Wichtige Information zum aktuellen Block</h2>
-            <p style="font-size: 18px;">In diesem Block gibt Ihnen der farbige Pfeil einen Hinweis auf ${cue_desc}.</p>
-            <p style="font-size: 18px;">Achten Sie also auf den Pfeil mit der Farbe ${highlight}!</p>
-            <p style="margin-top: 40px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um sofort fortzufahren.<br>
-            (Dieses Fenster schließt sich automatisch nach 15 Sekunden)</p>
+            <h2 style="color: #4da8da; margin-bottom: 20px;">${L("Wichtige Information zum aktuellen Block", "Important Information About the Current Block")}</h2>
+            <p style="font-size: 18px;">${L(`In diesem Block gibt Ihnen der farbige Pfeil einen Hinweis auf ${cue_desc}.`, `In this block, the colored arrow gives you a cue about ${cue_desc}.`)}</p>
+            <p style="font-size: 18px;">${L(`Achten Sie also auf den Pfeil mit der Farbe ${highlight}!`, `So pay attention to the arrow with the color ${highlight}!`)}</p>
+            <p style="margin-top: 40px; color: #aaa;">${L("Drücken Sie die <strong>LEERTASTE</strong>, um sofort fortzufahren.<br>(Dieses Fenster schließt sich automatisch nach 15 Sekunden)", "Press the <strong>SPACEBAR</strong> to continue immediately.<br>(This window closes automatically after 15 seconds)")}</p>
         </div>`,
         choices: [" "],
         trial_duration: 15000
@@ -252,9 +287,9 @@ function getBlockReminderTrial(trial_data) {
 }
 
 function getCueInstruction(colorStr) {
-    let trg_ger = "weiß";
-    let d_ger = "weiß";
-    let c_ger = "weiß";
+    let trg_ger = L("weiß", "white");
+    let d_ger = L("weiß", "white");
+    let c_ger = L("weiß", "white");
     let trg_col = "#ffffff";
     let d_col = "#ffffff";
     let c_col = "#ffffff";
@@ -265,13 +300,11 @@ function getCueInstruction(colorStr) {
             let targetColor = info[1].toLowerCase();
             let distractorColor = info[3].toLowerCase();
             let controlColor = info[5].toLowerCase();
-            
-            const colorMap = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß", "violet": "violett" };
             const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff", "violet": "#b388ff" };
             
-            trg_ger = colorMap[targetColor] || targetColor;
-            d_ger = colorMap[distractorColor] || distractorColor;
-            c_ger = colorMap[controlColor] || controlColor;
+            trg_ger = localizeColorName(targetColor);
+            d_ger = localizeColorName(distractorColor);
+            c_ger = localizeColorName(controlColor);
             trg_col = hexMap[targetColor] || targetColor;
             d_col = hexMap[distractorColor] || distractorColor;
             c_col = hexMap[controlColor] || controlColor;
@@ -282,9 +315,12 @@ function getCueInstruction(colorStr) {
     let d_highlight = `<span style="color: ${d_col}; font-weight: bold; text-transform: uppercase;">${d_ger}</span>`;
     let c_highlight = `<span style="color: ${c_col}; font-weight: bold; text-transform: uppercase;">${c_ger}</span>`;
     
-    let colored_arrow_description = `In anderen Durchgängen besitzt ein Pfeil entweder die Farbe ${trg_highlight}, ${d_highlight} oder ${c_highlight}.`;
+    let colored_arrow_description = L(
+        `In anderen Durchgängen besitzt ein Pfeil entweder die Farbe ${trg_highlight}, ${d_highlight} oder ${c_highlight}.`,
+        `In other trials, one of the arrows has either the color ${trg_highlight}, ${d_highlight} or ${c_highlight}.`
+    );
     
-    return `In jedem Durchgang werden Ihnen drei Pfeile angezeigt, welche in drei Richtungen zeigen (der linke Pfeil für links, der obere Pfeil für die Mitte / geradeaus, der rechte Pfeil für rechts).<br>
+    return L(`In jedem Durchgang werden Ihnen drei Pfeile angezeigt, welche in drei Richtungen zeigen (der linke Pfeil für links, der obere Pfeil für die Mitte / geradeaus, der rechte Pfeil für rechts).<br>
 In einigen Durchgängen sind alle Pfeile farblos. ${colored_arrow_description}<br>
 Dieser Pfeil ist nützlich, denn er zeigt, welche Art von Zahlwort aus dieser Richtung kommen wird.<br>
 Die Farbe gibt dabei an, um welche Art von Zahlwort es sich handelt.<br>
@@ -293,7 +329,16 @@ Ist der Pfeil ${d_highlight}, handelt es sich um das hohe Zahlwort, welches sich
 Ist der Pfeil ${c_highlight}, handelt es sich um das Zahlwort mit normaler Stimme.<br><br>
 <b>Wichtig:</b> In einem bestimmten Block wird immer nur <b>eine</b> dieser drei Hinweis-Farben (zusammen mit den farblosen Pfeilen) verwendet.<br>
 Sie werden vor jedem Block darüber informiert, auf welche Farbe Sie in diesem Block achten müssen!<br><br>
-Drücken Sie LEERTASTE, um weiterzublättern.`;
+Drücken Sie LEERTASTE, um weiterzublättern.`, `In every trial, three arrows are shown to you, pointing in three directions (the left arrow for left, the top arrow for center / straight ahead, the right arrow for right).<br>
+In some trials, all arrows are colorless. ${colored_arrow_description}<br>
+This arrow is useful, because it indicates which kind of spoken digit will come from that direction.<br>
+The color tells you which kind of spoken digit it is.<br>
+If the arrow is ${trg_highlight}, it is the rough digit to which you should respond (target stimulus).<br>
+If the arrow is ${d_highlight}, it is the high-pitched digit that sounds like a child's voice (distractor).<br>
+If the arrow is ${c_highlight}, it is the digit with the normal voice.<br><br>
+<b>Important:</b> In any given block, only <b>one</b> of these three cue colors is used (alongside the colorless arrows).<br>
+Before each block, you will be informed about which color you need to pay attention to in that block!<br><br>
+Press SPACEBAR to continue.`);
 }
 
 // Reusable instruction trial factory
@@ -304,9 +349,13 @@ function createInstructionTrial(htmlContentArray) {
     
     let pages = htmlContentArray.map(htmlContent => {
         // Remove spacebar prompts if they happen to exist in the html
+        // (strip both languages so cleanup works regardless of LANGUAGE)
         htmlContent = htmlContent.replace("[Drücken Sie LEERTASTE, um weiterzublättern]", "");
         htmlContent = htmlContent.replace("Drücken Sie LEERTASTE, um weiterzublättern.", "");
         htmlContent = htmlContent.replace("Drücken Sie LEERTASTE, um zu beginnen.", "");
+        htmlContent = htmlContent.replace("[Press SPACEBAR to continue]", "");
+        htmlContent = htmlContent.replace("Press SPACEBAR to continue.", "");
+        htmlContent = htmlContent.replace("Press SPACEBAR to begin.", "");
         return `<div class="instruction-text">${htmlContent}</div>`;
     });
     
@@ -314,8 +363,8 @@ function createInstructionTrial(htmlContentArray) {
         type: jsPsychInstructions,
         pages: pages,
         show_clickable_nav: true,
-        button_label_previous: "Zurück",
-        button_label_next: "Weiter",
+        button_label_previous: L("Zurück", "Back"),
+        button_label_next: L("Weiter", "Next"),
         allow_keys: true,
         key_forward: "ArrowRight",
         key_backward: "ArrowLeft"
@@ -323,6 +372,119 @@ function createInstructionTrial(htmlContentArray) {
 }
 
 function getInfoTrials() {
+    // English info pages (working translation of the German legal text below).
+    if (LANGUAGE === "en") {
+        let pagesEn = [
+`<div class="instruction-text" style="text-align: left; overflow-y: auto; max-height: 70vh; padding-right: 15px;">
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Dear Madam, dear Sir,</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Thank you very much for your interest in our study!</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">In the following, we provide you with basic information about the study and the planned measurements. We also inform you about how the collected data will be handled and state the exclusion criteria for participation in the study.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Please read this study information carefully and contact the study team if you have any questions (for contact details, see section 4).</p>
+</div>`,
+
+`<div class="instruction-text" style="text-align: left; overflow-y: auto; max-height: 70vh; padding-right: 15px;">
+    <h3 style="color: #4da8da; margin-top: 25px; border-bottom: 1px solid rgba(77, 168, 218, 0.3); padding-bottom: 5px;"><strong>1. Study Objectives</strong></h3>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">With this study, we hope to gain new insights into the behavioral mechanisms at work when people direct their auditory attention onto a specific task.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">For this purpose, various spatial acoustic stimuli will be played to you, and you should attend to only one of these stimuli at a time.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">At the end of each trial, you will answer a question about the identity of the relevant acoustic stimulus.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Before the actual experiment, there is an introduction during which you can familiarize yourself with the procedure of the experiment.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">By participating, you would make an important contribution to basic research in cognitive psychology on the topic of attention.</p>
+</div>`,
+
+`<div class="instruction-text" style="text-align: left; overflow-y: auto; max-height: 70vh; padding-right: 15px;">
+    <h3 style="color: #4da8da; margin-top: 25px; border-bottom: 1px solid rgba(77, 168, 218, 0.3); padding-bottom: 5px;"><strong>2. Study Scope, Planned Procedure, Risks and Compensation</strong></h3>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">The study consists of a single session lasting approximately 60 minutes. Participation takes place online.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Please note that the study cannot be run on mobile phones or tablets, because you need a keyboard.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Furthermore, headphones are <strong>strictly</strong> required.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">The study comprises several parts, which we intend to conduct within a single session.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">All steps are described in detail below for your information.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">The following section contains details about the course of the study.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">The study is divided into the following parts:</p>
+    <p style="margin-left: 20px; color: #e2e8f0;">1. Written information for the participant.</p>
+    <p style="margin-left: 20px; color: #e2e8f0;">2. Collection of personal data (age, handedness and gender).</p>
+    <p style="margin-left: 20px; color: #e2e8f0;">3. Your performance of the attention task.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">There are no discernible risks for you. You will receive compensation of 12 euros per hour.</p>
+</div>`,
+`<div class="instruction-text" style="text-align: left; overflow-y: auto; max-height: 70vh; padding-right: 15px;">
+    <h3 style="color: #4da8da; margin-top: 25px; border-bottom: 1px solid rgba(77, 168, 218, 0.3); padding-bottom: 5px;"><strong>3. Inclusion and Exclusion Criteria</strong></h3>
+    <ul style="margin-left: 20px; line-height: 1.8;">
+        <li style="margin-top: 10px; font-weight: 600;">Inclusion criteria:</li>
+        <li style="color: #4caf50;">18 - 35 years</li>
+        <li style="color: #4caf50;">Ability to give informed consent to participate in the experiment</li>
+        <li style="margin-top: 10px; font-weight: 600;">Exclusion criteria:</li>
+        <li style="color: #ff6b6b;">Neurological or audiological disorders, e.g. wearing a hearing aid or a recent stroke</li>
+        <li style="color: #ff6b6b;">Inability to carry out the experimental tasks according to the instructions</li>
+        <li style="color: #ff6b6b;">Inability to give informed consent</li>
+    </ul>
+</div>`,
+`<div class="instruction-text" style="text-align: left; overflow-y: auto; max-height: 70vh; padding-right: 15px;">
+    <h3 style="color: #4da8da; margin-top: 25px; border-bottom: 1px solid rgba(77, 168, 218, 0.3); padding-bottom: 5px;"><strong>4. Data Protection Information</strong></h3>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">The collected data are pseudonymized<sup style="color: #4da8da; font-weight: bold; margin-left: 2px;">1</sup> and can be traced back to the individual participant via a code in the project database.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">The database is located on a server of the IT Service Center of the University of Lübeck (ITSC, https://www.itsc.uni-luebeck.de/dienstleistungen/it-sicherheit/firewall-und-idp.html),</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">which is protected by a firewall as well as an intrusion detection and intrusion prevention system (IDS).</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Study-relevant data are backed up in a RAID-based archive system on site.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Data are transferred only within the protected LAN or via the encrypted wireless networks of the University of Lübeck.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">All members of the "Auditory Cognition" working group sign a data protection and confidentiality agreement on their first day of work.</p>
+    <p style="color: #f1f5f9; margin-bottom: 8px;">Responsible for data processing:</p>
+    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; margin: 10px 0 20px 0;">
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Max Schulz, M.Sc.</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Maria-Goeppert-Straße 9a</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">23562 Lübeck</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Building MFC 8, 1st floor, Room 5</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Tel.: +49 451 3101 3647</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">E-Mail: (<a href="mailto:max.schulz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">max.schulz@uni-luebeck.de</a>)</p>
+    </div>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Data collection takes place for the purpose of the study objective stated above.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Personal data (addresses, names, etc.) are treated as strictly confidential and in accordance with statutory provisions.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">The data collected in the experiment are stored and analyzed electronically in pseudonymized form, i.e. without direct reference to your name.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">For the later analysis, the data of all participants are used in fully anonymized<sup style="color: #4da8da; font-weight: bold; margin-left: 2px;">2</sup> form.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">The provisions of data protection law are complied with.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Only members of the study team have access to your data.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">These persons are bound to confidentiality. The data are protected against access by third parties.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">You have the right to information about the data concerning you, including in the form of a free copy.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">If you withdraw your consent, you have the right to request the deletion of the data collected up to that point.</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">For this purpose, please contact Max Schulz (<a href="mailto:max.schulz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">max.schulz@uni-luebeck.de</a>).</p>
+    <p style="color: #f1f5f9; margin-bottom: 8px;">In the event of a complaint, please contact the Data Protection Officer of the University of Lübeck:</p>
+    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; margin: 10px 0 20px 0;">
+    <p style="color: #f1f5f9; margin-bottom: 4px;">x-tention Informationstechnologie GmbH</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Margot-Becke-Ring 37, 69124 Heidelberg</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Phone: 0451 3101 1903</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">E-Mail: <a href="mailto:datenschutz@uni-luebeck.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">datenschutz@uni-luebeck.de</a></p>
+    </div>
+    <p style="color: #f1f5f9; margin-bottom: 8px;">You can also address a complaint to the competent data protection authority:</p>
+    <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; margin: 10px 0 20px 0;">
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Unabhängiges Landeszentrum für Datenschutz Schleswig-Holstein (Independent State Center for Data Protection)</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">Holstenstraße 98, 24103 Kiel</p>
+    <p style="color: #f1f5f9; margin-bottom: 4px;">E-Mail: <a href="mailto:mail@datenschutzzentrum.de" style="color: #4da8da; text-decoration: none; font-weight: 600;">mail@datenschutzzentrum.de</a></p>
+    </div>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Thank you very much!</p>
+    <p style="color: #f1f5f9; margin-bottom: 12px;">Max Schulz</p>
+    <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 20px 0;">
+    <div style="font-size: 14px; color: #94a3b8; margin-top: 12px; padding-left: 12px; border-left: 3px solid #3b82f6; font-style: italic; background: rgba(59, 130, 246, 0.05); padding-top: 8px; padding-bottom: 8px; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0 0 5px 0;"><strong style="color: #4da8da; font-size: 16px; margin-right: 5px;">1</strong> <strong>Pseudonymization:</strong> "'pseudonymisation' means the processing of personal data in such a manner</p>
+        <p style="margin: 0 0 5px 0;">that the personal data can no longer be attributed to a specific data subject without the use of additional information,</p>
+        <p style="margin: 0 0 5px 0;">provided that such additional information is kept separately and is subject to technical and organisational measures</p>
+        <p style="margin: 0 0 5px 0;">to ensure that the personal data are not attributed to an identified or identifiable natural person;"</p>
+        <p style="margin: 0 0 5px 0;">Article 4(5) GDPR</p>
+    </div>
+    <div style="font-size: 14px; color: #94a3b8; margin-top: 12px; padding-left: 12px; border-left: 3px solid #3b82f6; font-style: italic; background: rgba(59, 130, 246, 0.05); padding-top: 8px; padding-bottom: 8px; border-radius: 0 8px 8px 0;">
+        <p style="margin: 0 0 5px 0;"><strong style="color: #4da8da; font-size: 16px; margin-right: 5px;">2</strong> <strong>Anonymization:</strong> "the alteration of personal data in such a way that details about personal or factual circumstances can no longer, or only with a disproportionate</p>
+        <p style="margin: 0 0 5px 0;">expenditure of time, cost and labour, be attributed to an identified or identifiable natural person." §3(6) BDSG</p>
+    </div>
+</div>`
+        ];
+        return [{
+            type: jsPsychInstructions,
+            pages: pagesEn,
+            show_clickable_nav: true,
+            button_label_previous: "Back",
+            button_label_next: "Next",
+            allow_keys: true,
+            key_forward: "ArrowRight",
+            key_backward: "ArrowLeft"
+        }];
+    }
+
     let pages = [
 `<div class="instruction-text" style="text-align: left; overflow-y: auto; max-height: 70vh; padding-right: 15px;">
     <p style="color: #f1f5f9; margin-bottom: 12px;">Sehr geehrte Dame, sehr geehrter Herr,</p>
@@ -360,7 +522,6 @@ function getInfoTrials() {
     <ul style="margin-left: 20px; line-height: 1.8;">
         <li style="margin-top: 10px; font-weight: 600;">Einschlusskriterien:</li>
         <li style="color: #4caf50;">18 - 35 Jahre</li>
-        <li style="color: #4caf50;">Rechtshändigkeit</li>
         <li style="color: #4caf50;">Fähigkeit der Einverständniserklärung zur Teilnahme an dem Experiment</li>
         <li style="margin-top: 10px; font-weight: 600;">Auschlusskriterien:</li>
         <li style="color: #ff6b6b;">Neurologische oder audiologische Erkrankungen, z.B. Tragen eines Hörgeräts oder ein Schlaganfall in vergangener Zeit</li>
@@ -430,8 +591,8 @@ function getInfoTrials() {
         type: jsPsychInstructions,
         pages: pages,
         show_clickable_nav: true,
-        button_label_previous: "Zurück",
-        button_label_next: "Weiter",
+        button_label_previous: L("Zurück", "Back"),
+        button_label_next: L("Weiter", "Next"),
         allow_keys: true,
         key_forward: "ArrowRight",
         key_backward: "ArrowLeft"
@@ -440,7 +601,7 @@ function getInfoTrials() {
 
 const consentTrial = {
     type: jsPsychHtmlButtonResponse,
-    stimulus: `<div class="instruction-text">
+    stimulus: L(`<div class="instruction-text">
         <div style="text-align: left; padding: 0 20px;">
             <h2 style="color: white; margin-bottom: 20px; text-align: center;">EINVERSTÄNDNISERKLÄRUNG</h2>
             <p>Ich bestätige hiermit, dass ich über Wesen, Bedeutung, Risiken und Tragweite der beabsichtigten Studie aufgeklärt wurde und für meine Entscheidung genügend Bedenkzeit hatte.</p>
@@ -452,8 +613,20 @@ const consentTrial = {
                 Wählen Sie unten eine Option aus.
             </div>
         </div>
-    </div>`,
-    choices: ['Zurück zu den Informationen', 'Nein, abbrechen', 'Ja, ich stimme zu'],
+    </div>`, `<div class="instruction-text">
+        <div style="text-align: left; padding: 0 20px;">
+            <h2 style="color: white; margin-bottom: 20px; text-align: center;">DECLARATION OF CONSENT</h2>
+            <p>I hereby confirm that I have been informed about the nature, significance, risks and implications of the intended study, and that I had sufficient time to consider my decision.</p>
+            <p>I have been made aware that my participation is voluntary and that I have the right to end it at any time without giving reasons, without any disadvantage arising from this.</p>
+            <p>I have understood that I may abort the study at any time without giving reasons, and that I have the right to have my data deleted.</p>
+            <p>I agree to take part in the behavioral psychological study. I agree that my behavioral data will be recorded and stored.</p>
+            <p>I agree that the data collected from me may be used in anonymized form for publication purposes.</p>
+            <div style="text-align: center; margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                Please select an option below.
+            </div>
+        </div>
+    </div>`),
+    choices: [L('Zurück zu den Informationen', 'Back to the information'), L('Nein, abbrechen', 'No, cancel'), L('Ja, ich stimme zu', 'Yes, I agree')],
     button_html: [
         '<button class="jspsych-btn" style="margin: 10px; background-color: #555;">%choice%</button>',
         '<button class="jspsych-btn" style="margin: 10px; background-color: #f44336;">%choice%</button>',
@@ -462,13 +635,13 @@ const consentTrial = {
     on_finish: function(data) {
         if (data.response === 1) {
             abort_experiment = true;
-            jsPsych.endExperiment(`<div class="instruction-text">Sie haben nicht zugestimmt. Das Experiment wird abgebrochen. Vielen Dank für Ihr Interesse.</div>`);
+            jsPsych.endExperiment(L(`<div class="instruction-text">Sie haben nicht zugestimmt. Das Experiment wird abgebrochen. Vielen Dank für Ihr Interesse.</div>`, `<div class="instruction-text">You have not given your consent. The experiment will now be aborted. Thank you very much for your interest.</div>`));
         }
     }
 };
 
 function getHeadphoneCheckTrial() {
-    return createInstructionTrial(`
+    return createInstructionTrial(L(`
         <div style="text-align: left;">
             <h2 style="color: #4da8da; margin-bottom: 20px;">Kopfhörer-Test & Lautstärke</h2>
             <p>Dieses Experiment erfordert das Tragen von Kopfhörern. Bitte stellen Sie sicher, dass Sie diese jetzt aufgesetzt haben.</p>
@@ -478,7 +651,17 @@ function getHeadphoneCheckTrial() {
                 <button class="jspsych-btn" style="margin: 20px 0; background-color: #4caf50;" onclick="document.getElementById('test-audio').play();">Testton abspielen</button>
             </div>
             <p style="color: #ff6b6b; font-weight: bold;">WICHTIG: Bitte verändern Sie die Lautstärke nach diesem Test während des restlichen Experiments nicht mehr!</p>
-        </div>`);
+        </div>`, `
+        <div style="text-align: left;">
+            <h2 style="color: #4da8da; margin-bottom: 20px;">Headphone Test & Volume</h2>
+            <p>This experiment requires wearing headphones. Please make sure that you have put them on now.</p>
+            <p>Click the button below to play a test tone. Adjust your computer's system volume so that you can hear the tone clearly and distinctly, but not uncomfortably loud.</p>
+            <div style="text-align: center;">
+                <audio id="test-audio" src="${base_url}sequences/sce-${subject}_block_0/s_0.wav" preload="auto"></audio>
+                <button class="jspsych-btn" style="margin: 20px 0; background-color: #4caf50;" onclick="document.getElementById('test-audio').play();">Play test tone</button>
+            </div>
+            <p style="color: #ff6b6b; font-weight: bold;">IMPORTANT: Please do not change the volume after this test for the rest of the experiment!</p>
+        </div>`));
 }
 
 function getScreeningTrials() {
@@ -486,7 +669,7 @@ function getScreeningTrials() {
     const screening_audio_folder = `${base_url}screening_stimuli/`;
     
     // Localization Instructions
-    screeningTimeline.push(createInstructionTrial(`
+    screeningTimeline.push(createInstructionTrial(L(`
         <div style="text-align: center;">
             <h2 style="color: #4da8da;">Kopfhörer-Screening: Teil 1 (Ortung)</h2>
             <p>Wir prüfen nun, ob Ihr System die räumlichen Klänge korrekt wiedergibt.</p>
@@ -494,12 +677,23 @@ function getScreeningTrials() {
             <br>
             <p style="color: #ff6b6b;">Wenn Sie einen Kopfhörer falsch herum aufhaben, werden Sie Fehler machen. Bitte prüfen Sie den Sitz (L/R) Ihrer Kopfhörer!</p>
         </div>
-    `));
+    `, `
+        <div style="text-align: center;">
+            <h2 style="color: #4da8da;">Headphone Screening: Part 1 (Localization)</h2>
+            <p>We will now check whether your system plays back the spatial sounds correctly.</p>
+            <p>You will hear a single spoken digit. Your task is to indicate from which <strong>direction</strong> the word came.</p>
+            <br>
+            <p style="color: #ff6b6b;">If your headphones are on the wrong way round, you will make errors. Please check that your headphones are seated correctly (L/R)!</p>
+        </div>
+    `)));
+
+    // Localized direction labels (used for both the buttons and the scoring)
+    const loc_labels = L(['Links', 'Mitte', 'Rechts'], ['Left', 'Center', 'Right']);
 
     const loc_trials = [
-        { file: '4_loc1.wav', correct_loc: 'Links' },
-        { file: '7_loc3.wav', correct_loc: 'Rechts' },
-        { file: '2_loc2.wav', correct_loc: 'Mitte' }
+        { file: '4_loc1.wav', correct_loc: loc_labels[0] },
+        { file: '7_loc3.wav', correct_loc: loc_labels[2] },
+        { file: '2_loc2.wav', correct_loc: loc_labels[1] }
     ];
 
     let screening_errors = 0;
@@ -508,23 +702,28 @@ function getScreeningTrials() {
         screeningTimeline.push({
             type: jsPsychAudioButtonResponse,
             stimulus: screening_audio_folder + t.file,
-            choices: ['Links', 'Mitte', 'Rechts'],
-            prompt: '<div style="margin-top:20px; font-size: 20px; color: white;">Aus welcher Richtung kam der Ton?</div>',
+            choices: loc_labels.slice(),
+            prompt: `<div style="margin-top:20px; font-size: 20px; color: white;">${L("Aus welcher Richtung kam der Ton?", "From which direction did the sound come?")}</div>`,
             button_html: '<button class="jspsych-btn virtual-response-box screening-btn" style="margin: 0 10px;">%choice%</button>',
             on_finish: function(data) {
-                let selected_choice = ['Links', 'Mitte', 'Rechts'][data.response];
+                let selected_choice = loc_labels[data.response];
                 if (selected_choice !== t.correct_loc) screening_errors++;
             }
         });
     }
 
     // Identification Instructions
-    screeningTimeline.push(createInstructionTrial(`
+    screeningTimeline.push(createInstructionTrial(L(`
         <div style="text-align: center;">
             <h2 style="color: #4da8da;">Kopfhörer-Screening: Teil 2 (Erkennung)</h2>
             <p>Nun prüfen wir, ob Sie die Zahlwörter gut verstehen können.</p>
             <p>Sie werden wieder einzelne Zahlwörter hören. Ihre Aufgabe ist es nun anzugeben, <strong>welche Zahl (1-9)</strong> gesprochen wurde.</p>
-        </div>`));
+        </div>`, `
+        <div style="text-align: center;">
+            <h2 style="color: #4da8da;">Headphone Screening: Part 2 (Identification)</h2>
+            <p>Now we check whether you can understand the spoken digits well.</p>
+            <p>You will again hear single spoken digits. Your task now is to indicate <strong>which number (1-9)</strong> was spoken.</p>
+        </div>`)));
 
     const id_trials = [
         { file: '8_loc2.wav', correct_id: '8' },
@@ -537,7 +736,7 @@ function getScreeningTrials() {
             type: jsPsychAudioButtonResponse,
             stimulus: screening_audio_folder + t.file,
             choices: ['1','2','3','4','5','6','7','8','9'],
-            prompt: '<div style="margin-top:20px; font-size: 20px; color: white;">Welches Zahlwort haben Sie gehört?</div>',
+            prompt: `<div style="margin-top:20px; font-size: 20px; color: white;">${L("Welches Zahlwort haben Sie gehört?", "Which digit did you hear?")}</div>`,
             button_html: '<button class="jspsych-btn virtual-response-box" style="margin: 0 5px;">%choice%</button>',
             on_finish: function(data) {
                 let selected_choice = ['1','2','3','4','5','6','7','8','9'][data.response];
@@ -546,20 +745,29 @@ function getScreeningTrials() {
         });
     }
     
-    let finish_trial = createInstructionTrial(`
+    let finish_trial = createInstructionTrial(L(`
         <div style="text-align: center;">
             <h2 style="color: #4caf50;">Screening beendet!</h2>
         </div>
-    `);
+    `, `
+        <div style="text-align: center;">
+            <h2 style="color: #4caf50;">Screening complete!</h2>
+        </div>
+    `));
     finish_trial.on_finish = function() {
         if (screening_errors > 0) {
             abort_experiment = true;
-            jsPsych.endExperiment(`<div class="instruction-text" style="text-align: center; max-width: 600px;">
+            jsPsych.endExperiment(L(`<div class="instruction-text" style="text-align: center; max-width: 600px;">
                 <h2 style="color: #ff6b6b;">Screening nicht bestanden</h2>
                 <p>Leider haben Sie einen oder mehrere Fehler im Screening gemacht.</p>
                 <p>Dies deutet darauf hin, dass Sie entweder keine Kopfhörer tragen, diese falsch herum aufhaben (L/R vertauscht), oder die räumlichen Klänge nicht richtig wahrnehmen können.</p>
                 <p>Das Experiment wird daher nun abgebrochen. Vielen Dank für Ihr Interesse.</p>
-            </div>`);
+            </div>`, `<div class="instruction-text" style="text-align: center; max-width: 600px;">
+                <h2 style="color: #ff6b6b;">Screening not passed</h2>
+                <p>Unfortunately, you made one or more errors in the screening.</p>
+                <p>This indicates that you are either not wearing headphones, are wearing them the wrong way round (L/R swapped), or cannot perceive the spatial sounds correctly.</p>
+                <p>The experiment will therefore now be aborted. Thank you very much for your interest.</p>
+            </div>`));
         }
     };
     screeningTimeline.push(finish_trial);
@@ -599,7 +807,7 @@ function getScreeningTrials() {
         for (let b = start_block; b < 6; b++) {
             let b_csv_path = `${base_url}sequences/sce-${subject}_block_${b}.csv`;
             const response = await fetch(b_csv_path);
-            if (!response.ok) throw new Error("CSV konnte nicht geladen werden: " + b_csv_path);
+            if (!response.ok) throw new Error(L("CSV konnte nicht geladen werden: ", "CSV could not be loaded: ") + b_csv_path);
             const csvText = await response.text();
             await new Promise(resolve => {
                 Papa.parse(csvText, {
@@ -616,18 +824,21 @@ function getScreeningTrials() {
         buildAndRunExperiment(all_blocks_data, start_block);
     } catch (error) {
         console.error(error);
-        document.body.innerHTML = `<h1>Fehler beim Laden der Sequenz!</h1>
+        document.body.innerHTML = `<h1>${L("Fehler beim Laden der Sequenz!", "Error loading the sequence!")}</h1>
         <p style="color:red;">${error.message}</p>`;
     }
 })();
 
 const demoTrial = {
     type: jsPsychSurveyHtmlForm,
-    preamble: `<div class="instruction-text" style="text-align: left;">
+    preamble: L(`<div class="instruction-text" style="text-align: left;">
         <h2 style="color: #4da8da;">Demographische Daten</h2>
         <p>Bitte geben Sie Ihre Daten ein:</p>
-    </div>`,
-    html: `
+    </div>`, `<div class="instruction-text" style="text-align: left;">
+        <h2 style="color: #4da8da;">Demographic Data</h2>
+        <p>Please enter your details:</p>
+    </div>`),
+    html: L(`
         <div style="text-align: left; color: white; margin-bottom: 20px; font-size: 18px;">
             <p>Alter:</p>
             <input type="number" id="age" name="age" required min="18" max="99" style="padding: 10px; border-radius: 5px; width: 100px; font-size: 16px;">
@@ -653,8 +864,34 @@ const demoTrial = {
                 <option value="external">Externe Lautsprecher</option>
             </select>
         </div>
-    `,
-    button_label: 'Weiter',
+    `, `
+        <div style="text-align: left; color: white; margin-bottom: 20px; font-size: 18px;">
+            <p>Age:</p>
+            <input type="number" id="age" name="age" required min="18" max="99" style="padding: 10px; border-radius: 5px; width: 100px; font-size: 16px;">
+            <p style="margin-top: 15px;">Gender:</p>
+            <select id="gender" name="gender" required style="padding: 10px; border-radius: 5px; font-size: 16px;">
+                <option value="" disabled selected>Please select...</option>
+                <option value="m">Male</option>
+                <option value="w">Female</option>
+                <option value="d">Diverse</option>
+            </select>
+            <p style="margin-top: 15px;">Handedness:</p>
+            <select id="handedness" name="handedness" required style="padding: 10px; border-radius: 5px; font-size: 16px;">
+                <option value="" disabled selected>Please select...</option>
+                <option value="r">Right-handed</option>
+                <option value="l">Left-handed</option>
+            </select>
+            <p style="margin-top: 15px;">Which device are you using to listen to the sounds?</p>
+            <select id="headphone_type" name="headphone_type" required style="padding: 10px; border-radius: 5px; font-size: 16px;">
+                <option value="" disabled selected>Please select...</option>
+                <option value="wired">Wired headphones</option>
+                <option value="wireless">Wireless/Bluetooth headphones</option>
+                <option value="builtin">Built-in speakers (laptop/phone)</option>
+                <option value="external">External speakers</option>
+            </select>
+        </div>
+    `),
+    button_label: L('Weiter', 'Next'),
     on_finish: function(data) {
         demo_age = data.response.age;
         demo_gender = data.response.gender;
@@ -761,7 +998,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         timeline.push({
             type: jsPsychPreload,
             audio: audio_files,
-            message: `Lade akustische Stimuli (Block ${current_block_num + 1} von 6), bitte warten...`
+            message: L(`Lade akustische Stimuli (Block ${current_block_num + 1} von 6), bitte warten...`, `Loading audio stimuli (block ${current_block_num + 1} of 6), please wait...`)
         });
 
         // 2. Instructions
@@ -800,7 +1037,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             timeline.push(createInstructionTrial(main_instructions));
 
             // DEMO BLOCK
-            let demo_instruction_trial = createInstructionTrial(`
+            let demo_instruction_trial = createInstructionTrial(L(`
                 <div style="text-align: center; color: white;">
                     <h2 style="color: #4da8da;">Zielreize</h2>
                     <p>Im Kommenden werden Sie einen Eindruck davon erhalten, wie sich die Zahlwörter anhören.</p>
@@ -808,7 +1045,15 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     <p>Dabei ertönen sie zufällig aus einer der drei Richtungen, so wie es auch im Hauptexperiment sein wird.</p>
                     <p>ACHTUNG: erschrecken Sie bitte nicht.</p>
                 </div>
-            `);
+            `, `
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4da8da;">Target Stimuli</h2>
+                    <p>In the following, you will get an impression of what the spoken digits sound like.</p>
+                    <p>Only the relevant spoken digits will be played - the ones you should attend to.</p>
+                    <p>They will sound randomly from one of the three directions, just as it will be in the main experiment.</p>
+                    <p>ATTENTION: please do not be startled.</p>
+                </div>
+            `));
 
             let demo_audio_trials = [];
             let demo_digits = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -828,7 +1073,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             let acc_correct_count = 0;
             let current_acc_trial = {};
 
-            let accuracy_instruction_trial = createInstructionTrial(`
+            let accuracy_instruction_trial = createInstructionTrial(L(`
                 <div style="text-align: center; color: white;">
                     <h2 style="color: #4da8da;">Genauigkeitstest</h2>
                     <p>Nun werden Ihnen nacheinander Zahlwörter abgespielt. Nach jedem Zahlwort müssen Sie durch Tastendruck angeben, ob es sich um ein zu identifizierendes Zahlwort (rau, kratzig) oder um ein reguläres Zahlwort handelt.</p>
@@ -836,7 +1081,15 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     <p>Sie müssen 10 Wörter <strong>hintereinander</strong> korrekt identifizieren, um mit dem Experiment beginnen zu können.</p>
                     <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
                 </div>
-            `);
+            `, `
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4da8da;">Accuracy Test</h2>
+                    <p>Now spoken digits will be played to you one after another. After each digit, you must indicate by key press whether it is a digit to be identified (rough, raspy) or a regular digit.</p>
+                    <p>Press the key <strong style="color: #4caf50;">L</strong> for the rough, raspy digit, and the key <strong style="color: #ff6b6b;">M</strong> for the regular digit.</p>
+                    <p>You must identify 10 words correctly <strong>in a row</strong> in order to be able to begin the experiment.</p>
+                    <p>If you make an error, the count starts again at 0.</p>
+                </div>
+            `));
             accuracy_instruction_trial.on_start = function() {
                 acc_correct_count = 0;
             };
@@ -856,11 +1109,11 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                         <div style="margin-top:20px; font-size: 40px; color: white; display: flex; flex-direction: column; align-items: center; gap: 20px;">
                             <div style="display: flex; justify-content: center; gap: 50px;">
                                 <div><span style="color: #4caf50;">L</span></div>
-                                <div>oder</div>
+                                <div>${L("oder", "or")}</div>
                                 <div><span style="color: #ff6b6b;">M</span></div>
                             </div>
                             <div style="font-size: 24px; color: #aaa;">
-                                Bisher korrekt: ${acc_correct_count} / 10
+                                ${L(`Bisher korrekt: ${acc_correct_count} / 10`, `Correct so far: ${acc_correct_count} / 10`)}
                             </div>
                         </div>
                     `;
@@ -876,10 +1129,10 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
                     if (last_trial_correct) {
                         acc_correct_count++;
-                        return `<div style="font-size: 30px; color: #4caf50;">Korrekt! (${acc_correct_count}/10)</div>`;
+                        return `<div style="font-size: 30px; color: #4caf50;">${L(`Korrekt! (${acc_correct_count}/10)`, `Correct! (${acc_correct_count}/10)`)}</div>`;
                     } else {
                         acc_correct_count = 0;
-                        return '<div style="font-size: 30px; color: #ff6b6b;">Falsch! Zähler zurückgesetzt.</div>';
+                        return `<div style="font-size: 30px; color: #ff6b6b;">${L("Falsch! Zähler zurückgesetzt.", "Wrong! Counter reset.")}</div>`;
                     }
                 },
                 choices: "NO_KEYS",
@@ -898,13 +1151,19 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
 
             let accuracy_result_trial = {
                 type: jsPsychHtmlKeyboardResponse,
-                stimulus: `
+                stimulus: L(`
                     <div style="text-align: center; color: white;">
                         <h2 style="color: #4caf50;">Geschafft!</h2>
                         <p>Sie haben 10 Zahlwörter hintereinander korrekt identifiziert.</p>
                         <p>Drücken Sie auf die Rechte Pfeiltaste, um weiterzublättern.</p>
                     </div>
-                `,
+                `, `
+                    <div style="text-align: center; color: white;">
+                        <h2 style="color: #4caf50;">Well done!</h2>
+                        <p>You have correctly identified 10 spoken digits in a row.</p>
+                        <p>Press the right arrow key to continue.</p>
+                    </div>
+                `),
                 choices: ['ArrowRight']
             };
 
@@ -916,7 +1175,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             let cue_correct_count = 0;
             let current_cue_trial = {};
 
-            let cue_test_instruction_trial = createInstructionTrial(`
+            let cue_test_instruction_trial = createInstructionTrial(L(`
                 <div style="text-align: center; color: white;">
                     <h2 style="color: #4da8da;">Pfeil-Test</h2>
                     <p>Nun prüfen wir, ob Sie sich die Bedeutung der farbigen Pfeile gemerkt haben.</p>
@@ -927,7 +1186,18 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     <p>Sie müssen 10 Pfeile <strong>hintereinander</strong> korrekt zuordnen.</p>
                     <p>Bei einem Fehler beginnt die Zählung wieder bei 0.</p>
                 </div>
-            `);
+            `, `
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4da8da;">Arrow Test</h2>
+                    <p>Now we test whether you have memorized the meaning of the colored arrows.</p>
+                    <p>A colored arrow will be presented to you one after another.</p>
+                    <p>Press the key <strong>Z</strong> if the arrow announces the <strong>target stimulus</strong> (rough voice).</p>
+                    <p>Press the key <strong>K</strong> if the arrow announces the <strong>child's voice</strong> (distractor).</p>
+                    <p>Press the key <strong>N</strong> if the arrow announces the <strong>normal voice</strong>.</p>
+                    <p>You must classify 10 arrows correctly <strong>in a row</strong>.</p>
+                    <p>If you make an error, the count starts again at 0.</p>
+                </div>
+            `));
             cue_test_instruction_trial.on_start = function() {
                 cue_correct_count = 0;
             };
@@ -969,20 +1239,20 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                                         let wrong_key = possible_wrongs[Math.floor(Math.random() * 2)];
                                         let display_options = [current_cue_trial.correct_key, wrong_key];
                                         
-                                        let html_z = `<div><span style="font-weight: bold;">Z</span> (Zielreiz)</div>`;
-                                        let html_k = `<div><span style="font-weight: bold;">K</span> (Kinderstimme)</div>`;
-                                        let html_n = `<div><span style="font-weight: bold;">N</span> (Normale Stimme)</div>`;
+                                        let html_z = `<div><span style="font-weight: bold;">Z</span> ${L("(Zielreiz)", "(target)")}</div>`;
+                                        let html_k = `<div><span style="font-weight: bold;">K</span> ${L("(Kinderstimme)", "(child's voice)")}</div>`;
+                                        let html_n = `<div><span style="font-weight: bold;">N</span> ${L("(Normale Stimme)", "(normal voice)")}</div>`;
                                         
                                         let final_parts = [];
                                         if (display_options.includes('z')) final_parts.push(html_z);
                                         if (display_options.includes('k')) final_parts.push(html_k);
                                         if (display_options.includes('n')) final_parts.push(html_n);
                                         
-                                        return final_parts.join(' <div>oder</div> ');
+                                        return final_parts.join(` <div>${L("oder", "or")}</div> `);
                                     })()}
                                 </div>
                                 <div style="font-size: 24px; color: #aaa;">
-                                    Bisher korrekt: ${cue_correct_count} / 10
+                                    ${L(`Bisher korrekt: ${cue_correct_count} / 10`, `Correct so far: ${cue_correct_count} / 10`)}
                                 </div>
                             </div>
                         </div>
@@ -1000,10 +1270,10 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     let last_trial_correct = jsPsych.data.get().last(1).values()[0].correct;
                     if (last_trial_correct) {
                         cue_correct_count++;
-                        return `<div style="font-size: 30px; color: #4caf50;">Korrekt! (${cue_correct_count}/10)</div>`;
+                        return `<div style="font-size: 30px; color: #4caf50;">${L(`Korrekt! (${cue_correct_count}/10)`, `Correct! (${cue_correct_count}/10)`)}</div>`;
                     } else {
                         cue_correct_count = 0;
-                        return '<div style="font-size: 30px; color: #ff6b6b;">Falsch! Zähler zurückgesetzt.</div>';
+                        return `<div style="font-size: 30px; color: #ff6b6b;">${L("Falsch! Zähler zurückgesetzt.", "Wrong! Counter reset.")}</div>`;
                     }
                 },
                 choices: "NO_KEYS",
@@ -1022,13 +1292,19 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
 
             let cue_result_trial = {
                 type: jsPsychHtmlKeyboardResponse,
-                stimulus: `
+                stimulus: L(`
                     <div style="text-align: center; color: white;">
                         <h2 style="color: #4caf50;">Geschafft!</h2>
                         <p>Sie haben 10 Pfeile hintereinander korrekt identifiziert.</p>
                         <p>Drücken Sie auf die Rechte Pfeiltaste, um weiterzublättern.</p>
                     </div>
-                `,
+                `, `
+                    <div style="text-align: center; color: white;">
+                        <h2 style="color: #4caf50;">Well done!</h2>
+                        <p>You have correctly identified 10 arrows in a row.</p>
+                        <p>Press the right arrow key to continue.</p>
+                    </div>
+                `),
                 choices: ['ArrowRight']
             };
 
@@ -1036,7 +1312,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             timeline.push(cue_dynamic_loop);
             timeline.push(cue_result_trial);
             
-            timeline.push(createInstructionTrial(`
+            timeline.push(createInstructionTrial(L(`
                 <div style="text-align: center; color: white;">
                     <h2 style="color: #4caf50;">Bereit für das Hauptexperiment</h2>
                     <p>Im Kommenden werden Ihnen einige Probe-Durchläufe präsentiert. Diese sollen Sie mit der Aufgabe vertraut machen.</p>
@@ -1044,7 +1320,15 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     <p>Bitte nutzen Sie diese Phase, um so gut wie möglich mit dem Experiment vertraut zu werden.</p>
                     <p>Nach diesem Testblock startet das Hauptexperiment.</p>
                 </div>
-            `));
+            `, `
+                <div style="text-align: center; color: white;">
+                    <h2 style="color: #4caf50;">Ready for the Main Experiment</h2>
+                    <p>In the following, some practice trials will be presented to you. These are meant to familiarize you with the task.</p>
+                    <p>You can practice and give responses; these will of course not be saved.</p>
+                    <p>Please use this phase to become as familiar as possible with the experiment.</p>
+                    <p>After this practice block, the main experiment begins.</p>
+                </div>
+            `)));
         }
 
         let indexed_trials = trial_data.map((row, idx) => ({...row, original_index: idx}));
@@ -1217,7 +1501,7 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         if (b_idx === 0) {
             let practice_intro_stage1 = {
                 type: jsPsychHtmlKeyboardResponse,
-                stimulus: `<div class="instruction-text">
+                stimulus: L(`<div class="instruction-text">
                     <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge &ndash; Teil 1: Die Grundaufgabe</h2>
                     <p>Bevor das eigentliche Experiment beginnt, üben Sie zunächst in <strong>15 Durchgängen die Grundaufgabe ohne Hinweisreize</strong>.</p>
                     <p>Sie hören in jedem Durchgang gleichzeitig drei Zahlwörter: den <strong>Zielreiz</strong> (raue Stimme), einen <strong>Störreiz</strong> (Kinderstimme) und eine <strong>normale Stimme</strong>.</p>
@@ -1225,7 +1509,15 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     <p>Alle Pfeile bleiben in diesem Übungsteil <strong>weiß</strong> und liefern keine Information &ndash; hören Sie also genau hin, welche Stimme die raue ist.</p>
                     <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Diese Durchgänge gehen nicht in die Wertung ein.</p>
                     <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit Teil 1 der Übung zu beginnen.</p>
-                </div>`,
+                </div>`, `<div class="instruction-text">
+                    <h2 style="color: #4da8da; margin-bottom: 20px;">Practice Trials &ndash; Part 1: The Basic Task</h2>
+                    <p>Before the actual experiment begins, you will first practice <strong>the basic task without cues in 15 trials</strong>.</p>
+                    <p>In every trial you will hear three spoken digits simultaneously: the <strong>target stimulus</strong> (rough voice), a <strong>distractor</strong> (child's voice) and a <strong>normal voice</strong>.</p>
+                    <p>Your task is to enter the digit of the <strong>target stimulus (the rough voice)</strong> using the response box.</p>
+                    <p>All arrows remain <strong>white</strong> in this practice part and carry no information &ndash; so listen carefully to determine which voice is the rough one.</p>
+                    <p>After each response you will immediately learn whether you were correct. These trials do not count toward your score.</p>
+                    <p style="margin-top: 30px; color: #aaa;">Press the <strong>SPACEBAR</strong> to begin part 1 of the practice.</p>
+                </div>`),
                 choices: [" "]
             };
             timeline.push(practice_intro_stage1);
@@ -1244,24 +1536,31 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             // for the REST of the trial: after the (immediately trial-ending) button
             // response it fills the unused part of the 1750 ms response window plus
             // the full ITI, so no response box is ever shown after the response.
+            // Too-slow (no response): NO text feedback - only the response box frame
+            // glows red (same error-glow styling as the late-click warning in the
+            // main experiment). Text feedback is given exclusively on the
+            // CORRECTNESS of an actual response, never on response pace.
             let practice_feedback_trial = {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: function() {
                     const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
                     if (!last || last.response === null) {
-                        return `<div class="instruction-text">
-                            <p style="font-size: 32px; color: #ff6b6b;">Zu langsam!</p>
-                            <p style="font-size: 24px;">Bitte versuchen Sie, schneller zu antworten.</p>
-                        </div>`;
+                        // Too slow: render the response box frame highlighted in red,
+                        // nothing else (no distracting text). The digits are inert
+                        // (disabled) - the red frame alone signals "respond faster".
+                        const digits = ['1','2','3','4','5','6','7','8','9']
+                            .map(d => `<button class="jspsych-btn virtual-response-box" disabled>${d}</button>`)
+                            .join('');
+                        return `<div id="jspsych-html-button-response-btngroup" class="error-glow">${digits}</div>`;
                     }
                     if (last.correct) {
                         return `<div class="instruction-text">
-                            <p style="font-size: 32px; color: #4caf50;">Richtig!</p>
+                            <p style="font-size: 32px; color: #4caf50;">${L("Richtig!", "Correct!")}</p>
                         </div>`;
                     }
                     return `<div class="instruction-text">
-                        <p style="font-size: 32px; color: #ff6b6b;">Leider falsch.</p>
-                        <p style="font-size: 24px;">Die Zielzahl war: <strong style="color: #4da8da;">${last.targetDigit}</strong></p>
+                        <p style="font-size: 32px; color: #ff6b6b;">${L("Leider falsch.", "Unfortunately wrong.")}</p>
+                        <p style="font-size: 24px;">${L(`Die Zielzahl war: <strong style="color: #4da8da;">${last.targetDigit}</strong>`, `The target digit was: <strong style="color: #4da8da;">${last.targetDigit}</strong>`)}</p>
                     </div>`;
                 },
                 choices: "NO_KEYS",
@@ -1312,13 +1611,19 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             // reminder now only appears right before the main timeline below).
             let practice_intro_stage2 = {
                 type: jsPsychHtmlKeyboardResponse,
-                stimulus: `<div class="instruction-text">
+                stimulus: L(`<div class="instruction-text">
                     <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge &ndash; Teil 2: Hinweisreize</h2>
                     <p>Im zweiten Teil der Übung folgt nun ein <strong>realer Beispielblock des eigentlichen Experiments</strong> mit 15 Durchgängen.</p>
                     <p>Anders als eben erscheint vor jedem Durchgang ein <strong>farbiger Hinweisreiz</strong>. Dabei kommen <strong>alle Hinweisarten</strong> vor: der Hinweis auf den Zielreiz, der Hinweis auf den Störreiz und der Hinweis auf die normale Stimme &ndash; genau wie im späteren Experiment.</p>
                     <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Nutzen Sie diese Rückmeldung, um die Bedeutung der Hinweisfarben zu lernen. Auch diese Durchgänge gehen nicht in die Wertung ein.</p>
                     <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit Teil 2 der Übung zu beginnen.</p>
-                </div>`,
+                </div>`, `<div class="instruction-text">
+                    <h2 style="color: #4da8da; margin-bottom: 20px;">Practice Trials &ndash; Part 2: Cues</h2>
+                    <p>In the second part of the practice, a <strong>real example block of the actual experiment</strong> with 15 trials now follows.</p>
+                    <p>Unlike just now, a <strong>colored cue</strong> appears before every trial. <strong>All cue types</strong> occur: the cue to the target stimulus, the cue to the distractor and the cue to the normal voice &ndash; exactly as in the later experiment.</p>
+                    <p>After each response you will immediately learn whether you were correct. Use this feedback to learn the meaning of the cue colors. These trials also do not count toward your score.</p>
+                    <p style="margin-top: 30px; color: #aaa;">Press the <strong>SPACEBAR</strong> to begin part 2 of the practice.</p>
+                </div>`),
                 choices: [" "]
             };
             timeline.push(practice_intro_stage2);
@@ -1331,12 +1636,17 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             
             let main_start = {
                 type: jsPsychHtmlKeyboardResponse,
-                stimulus: `<div class="instruction-text">
+                stimulus: L(`<div class="instruction-text">
                     <h2 style="color: #4caf50; margin-bottom: 20px;">Start des Hauptexperiments</h2>
                     <p>Die Übungsdurchgänge sind nun beendet.</p>
                     <p>Das eigentliche Experiment beginnt jetzt. Bitte konzentrieren Sie sich auf die Aufgabe.</p>
                     <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um zu starten.</p>
-                </div>`,
+                </div>`, `<div class="instruction-text">
+                    <h2 style="color: #4caf50; margin-bottom: 20px;">Start of the Main Experiment</h2>
+                    <p>The practice trials are now finished.</p>
+                    <p>The actual experiment begins now. Please concentrate on the task.</p>
+                    <p style="margin-top: 30px; color: #aaa;">Press the <strong>SPACEBAR</strong> to start.</p>
+                </div>`),
                 choices: [" "]
             };
             timeline.push(main_start);
@@ -1363,6 +1673,35 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         };
         timeline.push(save_mouse_data);
 
+        // Post-block mean accuracy summary (pilot v7): purely informational, so
+        // participants can see what they are actually doing - deliberately NOT
+        // framed as reward or praise. Computed from the response trials of the
+        // block that just finished (practice trials excluded via is_practice;
+        // missed/too-slow responses count as incorrect, consistent with
+        // data.correct).
+        let block_accuracy_trial = {
+            type: jsPsychHtmlKeyboardResponse,
+            stimulus: function() {
+                // Plain-JS exclusion of practice rows (is_practice === false) instead
+                // of relying on jsPsych's filter() boolean-matching semantics.
+                const block_responses = jsPsych.data.get()
+                    .filter({phase: 'response', block: current_block_num})
+                    .values()
+                    .filter(t => t.is_practice === false);
+                const n = block_responses.length;
+                const n_correct = block_responses.filter(t => t.correct === true).length;
+                const acc = n > 0 ? Math.round(100 * n_correct / n) : 0;
+                return `<div class="instruction-text">
+                    <h2 style="color: #4da8da; margin-bottom: 20px;">${L(`Block ${current_block_num + 1} von 6 abgeschlossen`, `Block ${current_block_num + 1} of 6 completed`)}</h2>
+                    <p>${L(`Ihre mittlere Genauigkeit in diesem Block: <strong>${acc} %</strong> (${n_correct} von ${n} Durchgängen korrekt).`, `Your mean accuracy in this block: <strong>${acc} %</strong> (${n_correct} of ${n} trials correct).`)}</p>
+                    <p style="color: #aaa; font-size: 18px;">${L("Diese Zusammenfassung dient lediglich Ihrer Information &uuml;ber die eigene Leistung.", "This summary is solely intended to inform you about your own performance.")}</p>
+                    <p style="margin-top: 30px; color: #aaa;">${L("Dr&uuml;cken Sie die <strong>LEERTASTE</strong>, um fortzufahren.", "Press the <strong>SPACEBAR</strong> to continue.")}</p>
+                </div>`;
+            },
+            choices: [" "]
+        };
+        timeline.push(block_accuracy_trial);
+
         if (current_block_num < 5) {
             timeline.push({
                 type: jsPsychHtmlKeyboardResponse,
@@ -1379,7 +1718,6 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                         let distractorColor = info[3].toLowerCase();
                         let controlColor = info[5].toLowerCase();
                         
-                        const colorMap = { "red": "rot", "green": "grün", "blue": "blau", "yellow": "gelb", "orange": "orange", "white": "weiß", "violet": "violett" };
                         const hexMap = { "red": "#ff6b6b", "green": "#4caf50", "blue": "#4da8da", "yellow": "#ffeb3b", "orange": "#ffa726", "white": "#ffffff", "violet": "#b388ff" };
                         
                         let active_color_eng = "";
@@ -1387,33 +1725,34 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                         
                         if (n_cue_inst.includes('target_location')) {
                             active_color_eng = targetColor;
-                            cue_desc = "den <strong>Zielreiz</strong> (raue Stimme)";
+                            cue_desc = L("den <strong>Zielreiz</strong> (raue Stimme)", "the <strong>target stimulus</strong> (rough voice)");
                         } else if (n_cue_inst.includes('distractor_location')) {
                             active_color_eng = distractorColor;
-                            cue_desc = "den <strong>Störreiz</strong> (Kinderstimme)";
+                            cue_desc = L("den <strong>Störreiz</strong> (Kinderstimme)", "the <strong>distractor</strong> (child's voice)");
                         } else if (n_cue_inst.includes('nonsingleton_location')) {
                             active_color_eng = controlColor;
-                            cue_desc = "die <strong>Normale Stimme</strong>";
+                            cue_desc = L("die <strong>Normale Stimme</strong>", "the <strong>normal voice</strong>");
                         }
                         
-                        let active_ger = colorMap[active_color_eng] || active_color_eng;
+                        let active_ger = localizeColorName(active_color_eng);
                         let active_hex = hexMap[active_color_eng] || active_color_eng;
                         let highlight = `<span style="color: ${active_hex}; font-weight: bold; text-transform: uppercase;">${active_ger}</span>`;
                         
                         next_msg = `<div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                            <p style="font-size: 18px; margin-bottom: 10px; color: #4da8da;"><strong>Erinnerung für den nächsten Block:</strong></p>
-                            <p style="font-size: 16px;">Der farbige Pfeil kündigt ${cue_desc} an.<br>
-                            Achten Sie auf den Pfeil mit der Farbe ${highlight}.</p>
+                            <p style="font-size: 18px; margin-bottom: 10px; color: #4da8da;"><strong>${L("Erinnerung für den nächsten Block:", "Reminder for the next block:")}</strong></p>
+                            <p style="font-size: 16px;">${L(`Der farbige Pfeil kündigt ${cue_desc} an.<br>
+                            Achten Sie auf den Pfeil mit der Farbe ${highlight}.`, `The colored arrow announces ${cue_desc}.<br>
+                            Pay attention to the arrow with the color ${highlight}.`)}</p>
                         </div>`;
                     }
 
                     return `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: white; background: #121212;">
                         <div class="glass-container" style="text-align: center; max-width: 600px;">
-                            <h2 style="color: #4da8da;">Dieser Block ist zu Ende.</h2>
-                            <p>Bitte machen Sie eine kurze Pause von 60 Sekunden.</p>
+                            <h2 style="color: #4da8da;">${L("Dieser Block ist zu Ende.", "This block is over.")}</h2>
+                            <p>${L("Bitte machen Sie eine kurze Pause von 60 Sekunden.", "Please take a short break of 60 seconds.")}</p>
                             ${next_msg}
-                            <p style="margin-top: 20px;">Der nächste Block startet automatisch in <strong style="font-size: 24px; color: #ff6b6b;" id="countdown">60</strong> Sekunden.</p>
+                            <p style="margin-top: 20px;">${L(`Der nächste Block startet automatisch in <strong style="font-size: 24px; color: #ff6b6b;" id="countdown">60</strong> Sekunden.`, `The next block starts automatically in <strong style="font-size: 24px; color: #ff6b6b;" id="countdown">60</strong> seconds.`)}</p>
                         </div>
                     </div>`;
                 },
