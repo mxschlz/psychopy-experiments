@@ -1576,10 +1576,16 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             //     semantics of the main experiment ITI. (pilot v9 fix: v8 glowed
             //     red on every miss even though no response had occurred, and its
             //     synthetic box rendered slightly narrower than the real one.)
-            //     Pilot v10: such a late (ITI) click now ALSO receives correctness
+            //     Pilot v10: such a late (ITI) click also receives correctness
             //     feedback - practice is for learning, so the clicked digit is
-            //     evaluated against the missed trial's target digit while the red
-            //     flash keeps flagging the timing.
+            //     evaluated against the missed trial's target digit.
+            //     Pilot v13: presentation is now fully coherent with
+            //     practice_feedback_text - first the box flashes red for 500 ms
+            //     (the identical late-click warning of the main experiment ITI,
+            //     flagging the TIMING), then the SAME feedback panel as for
+            //     in-window responses (identical verdict wording, typography
+            //     and colors, plus a too-late note) replaces the display
+            //     content and evaluates the DIGIT.
             // Both variants REPLACE the ITI in practice trials and stay on for
             // the REST of the trial (unused response window + full ITI), so
             // practice pacing stays identical to main trials. This structurally
@@ -1623,8 +1629,10 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             // flashes red (error-glow, 500 ms) ONLY when the participant clicks
             // after the response window has passed (a response outside of the
             // response interval), exactly like the main experiment's ITI warning.
-            // Pilot v10: that late click ALSO gets correctness feedback for the
-            // clicked digit (see the click handler below).
+            // Pilot v10/v13: that late click ALSO gets correctness feedback for
+            // the clicked digit - rendered after the 500 ms red flash as the
+            // same feedback panel used for in-window responses (see the click
+            // handler below).
             let practice_feedback_miss = {
                 type: jsPsychHtmlButtonResponse,
                 stimulus: '',
@@ -1654,36 +1662,55 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                             document.body.classList.add('hide-cursor');
                             const container = document.querySelector('#jspsych-html-button-response-btngroup');
                             if (container && !window.responded_in_trial) {
+                                // Disable the box right away: exactly ONE late
+                                // response is evaluated per trial (disabled
+                                // buttons stop firing clicks via CSS).
+                                btns.forEach(b => b.setAttribute('disabled', 'disabled'));
                                 container.classList.add('error-glow');
-                                setTimeout(() => {
-                                    container.classList.remove('error-glow');
-                                }, 500);
-                                // Pilot v10: correctness feedback even for responses
-                                // given during the ITI (outside the response window).
-                                // Practice is for learning, so late answers are
-                                // evaluated too - the red flash flags the TIMING,
-                                // the text evaluates the DIGIT. The clicked digit
-                                // comes from the button label; the target digit
-                                // belongs to the practice response trial that just
-                                // missed its window.
+                                // Pilot v10/v13: a late (ITI) click gets the SAME
+                                // feedback panel as a response inside the window
+                                // (see practice_feedback_text): identical verdict
+                                // wording, typography and colors, plus a too-late
+                                // note. Sequence: the box flashes red for 500 ms -
+                                // the identical late-click warning of the main
+                                // experiment ITI, flagging the TIMING - then the
+                                // standard panel replaces the display content and
+                                // evaluates the DIGIT. The clicked digit comes
+                                // from the button label; the target digit belongs
+                                // to the practice response trial that just missed
+                                // its window.
                                 const clickedDigit = parseInt(btn.innerText, 10);
                                 const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
                                 const targetDigit = (last && last.targetDigit !== undefined && last.targetDigit !== null) ? last.targetDigit : null;
                                 let fb;
                                 if (targetDigit === null) {
                                     // Defensive: no target digit available -> timing info only.
-                                    fb = `<div class="instruction-text"><p style="font-size: 24px; color: #ff6b6b;">${L("Zu spät!", "Too late!")}</p></div>`;
+                                    fb = `<div class="instruction-text"><p style="font-size: 32px; color: #ff6b6b;">${L("Zu spät!", "Too late!")}</p></div>`;
                                 } else if (clickedDigit === targetDigit) {
-                                    fb = `<div class="instruction-text"><p style="font-size: 24px; color: #4caf50;">${L("Zu spät &ndash; aber richtig!", "Too late &ndash; but correct!")}</p></div>`;
+                                    fb = `<div class="instruction-text">
+                                        <p style="font-size: 32px; color: #4caf50;">${L("Richtig!", "Correct!")}</p>
+                                        <p style="font-size: 24px;">${L("Aber zu spät &ndash; die Zeit war bereits abgelaufen.", "But too late &ndash; the time had already run out.")}</p>
+                                    </div>`;
                                 } else {
                                     fb = `<div class="instruction-text">
-                                        <p style="font-size: 24px; color: #ff6b6b;">${L("Zu spät &ndash; und leider falsch.", "Too late &ndash; and unfortunately wrong.")}</p>
+                                        <p style="font-size: 32px; color: #ff6b6b;">${L("Leider falsch.", "Unfortunately wrong.")}</p>
                                         <p style="font-size: 24px;">${L(`Die Zielzahl war: <strong style="color: #4da8da;">${targetDigit}</strong>`, `The target digit was: <strong style="color: #4da8da;">${targetDigit}</strong>`)}</p>
+                                        <p style="font-size: 24px;">${L("Außerdem zu spät &ndash; die Zeit war bereits abgelaufen.", "Also too late &ndash; the time had already run out.")}</p>
                                     </div>`;
                                 }
-                                // Replace the box with the feedback text; the red
-                                // glow keeps flashing around it for the next 500 ms.
-                                container.innerHTML = fb;
+                                // After the 500 ms warning flash: swap the WHOLE
+                                // display content for the feedback panel - NOT
+                                // the button group itself, whose 3-column grid
+                                // layout would squeeze the panel into a single
+                                // grid cell. If the trial has already ended and
+                                // the next one is on screen (very late click),
+                                // leave the DOM untouched.
+                                setTimeout(() => {
+                                    container.classList.remove('error-glow');
+                                    if (container.isConnected === false) return;   // trial already over
+                                    const content = document.querySelector('#jspsych-content') || container.parentElement;
+                                    if (content) content.innerHTML = fb;
+                                }, 500);
                             }
                         });
                     });
