@@ -1202,6 +1202,10 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             // procedure that is used exclusively for the practice timeline below.
             // This structurally guarantees: feedback during practice, none in the
             // main experiment.
+            // The feedback screen REPLACES the ITI in practice trials and stays on
+            // for the REST of the trial: after the (immediately trial-ending) button
+            // response it fills the unused part of the 1750 ms response window plus
+            // the full ITI, so no response box is ever shown after the response.
             let practice_feedback_trial = {
                 type: jsPsychHtmlKeyboardResponse,
                 stimulus: function() {
@@ -1223,14 +1227,37 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
                     </div>`;
                 },
                 choices: "NO_KEYS",
-                trial_duration: 800,
+                trial_duration: function() {
+                    // Remaining trial time after the response: the unused part of the
+                    // 1750 ms response window plus the full ITI. Together with the
+                    // (early-ending) response trial this keeps practice pacing
+                    // identical to main trials: response + feedback span exactly
+                    // 1750 ms + ITI, but filled entirely with feedback.
+                    const RESPONSE_WINDOW_MS = 1750;
+                    const last = jsPsych.data.get().filter({phase: 'response'}).last(1).values()[0];
+                    const rt = (last && typeof last.rt === 'number') ? last.rt : 0;
+                    const iti_ms = jsPsych.timelineVariable('ITI-Jitter', true) * 1000;
+                    return Math.max((RESPONSE_WINDOW_MS - rt) + iti_ms, 800);
+                },
                 data: { phase: 'practice_feedback', is_practice: true, block: current_block_num }
             };
 
-            // Practice procedure = copy of the main trial procedure with the feedback
-            // trial inserted right before the ITI trial (the last element).
-            let practice_procedure = trial_timeline.timeline.slice();
-            practice_procedure.splice(practice_procedure.length - 1, 0, practice_feedback_trial);
+            // Practice procedure: cue -> delay -> response -> feedback, where the
+            // feedback fills the REST of the trial. In practice the response trial
+            // ends IMMEDIATELY on the button click (response_ends_trial = true), so
+            // the feedback comes on straight after the response and stays on until
+            // the nominal end of the trial (response window + ITI). The ITI screen
+            // with its response box is deliberately NOT part of practice trials:
+            // nothing but the feedback is shown after the response.
+            // NOTE: indexes refer to the main trial_timeline.timeline order:
+            // [0]=cue, [1]=delay, [2]=response, [3]=iti.
+            let practice_procedure = [];
+            practice_procedure.push(trial_timeline.timeline[0]);  // cue
+            practice_procedure.push(trial_timeline.timeline[1]);  // delay
+            let practice_response_trial = Object.assign({}, trial_timeline.timeline[2]);  // response (copy)
+            practice_response_trial.response_ends_trial = true;   // click ends trial -> feedback follows immediately
+            practice_procedure.push(practice_response_trial);
+            practice_procedure.push(practice_feedback_trial);     // feedback = rest of the trial (replaces ITI)
 
             let practice_timeline = {
                 timeline: practice_procedure,
