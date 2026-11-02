@@ -960,29 +960,27 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
         
         // 1b. Single-cue-type practice set (experiment start only, i.e. first block
         // of this session). Stage 2 of the two-stage training: 100% informative
-        // cues, but only of the ONE cue type that is actually informative in the
-        // first block of this session (for a session starting at block 0 that is
-        // the target cue; for one starting at block 1 the distractor cue, etc.).
-        // Pilot v10: all three cue types were dropped - training them proved
-        // confusing and is pointless anyway, since each block uses exactly one
-        // informative cue type (announced by the block reminder). 15 informative-
-        // cue trials sampled from the subject's real trials across all loaded
-        // blocks, so the cue->role mapping can be learned with feedback before
-        // the first measured block. Neutral trials are deliberately excluded:
-        // they teach nothing about the cue->role mapping.
+        // cues, but ONLY target cues - independent of which informative cue type
+        // the session's first block happens to use. The target cue ("this color
+        // announces the rough voice I must report") is the most intuitive way to
+        // make cue usage clear. Pilot v10: all three cue types were dropped -
+        // training them proved confusing and is pointless anyway, since each
+        // block uses exactly one informative cue type (announced by the block
+        // reminder). 15 target-cue trials sampled from the subject's real trials
+        // across all loaded blocks, so the cue->role mapping can be learned with
+        // feedback before the first measured block. Neutral trials are
+        // deliberately excluded: they teach nothing about the cue->role mapping.
+        // Graceful degradation: if the loaded blocks contain no target-cue trials
+        // at all (only possible for mid-session starts), stage 2 is skipped -
+        // jsPsych executes a timeline with empty timeline_variables zero times.
         let practice_rows = [];
         let stage1_rows = [];   // stage 1: cue-free basic-task training (filled in 1c below)
-        let practice_cue_type = null;   // the ONE informative cue type trained in stage 2 (set below)
         if (b_idx === 0) {
-            // The one informative (non-neutral) cue type of the first block of
-            // this session - the cue type the participant is about to need.
-            const firstBlockCueTypes = new Set(all_blocks_data[0].data.map(r => r.CueInstruction));
-            practice_cue_type = ['cue_target_location', 'cue_distractor_location', 'cue_nonsingleton_location']
-                .find(ct => firstBlockCueTypes.has(ct));
+            const PRACTICE_CUE_TYPE = 'cue_target_location';   // ALWAYS target cues, whatever block 0 uses
             const cuePool = [];
             for (let item of all_blocks_data) {
                 item.data.forEach(function(row, idx) {
-                    if (row.CueInstruction === practice_cue_type) {
+                    if (row.CueInstruction === PRACTICE_CUE_TYPE) {
                         cuePool.push({ row: row, src_block: item.block, original_index: idx });
                     }
                 });
@@ -1739,34 +1737,26 @@ function buildAndRunExperiment(all_blocks_data, start_block) {
             };
             timeline.push(stage1_timeline);
 
-            // Stage 2 intro: a real-task example restricted to the ONE informative
-            // cue type that the following block will actually use (pilot v10:
-            // all three cue types were dropped - too confusing and pointless,
-            // since each block contains exactly one informative cue type anyway;
-            // the block reminder below announces the concrete color).
+            // Stage 2 intro: a real-task example with ONLY target cues (pilot
+            // v10: all three cue types were dropped - too confusing and
+            // pointless, since each block contains exactly one informative cue
+            // type anyway; the block reminder below announces the concrete
+            // color of the cue type that the following block actually uses).
             let practice_intro_stage2 = {
                 type: jsPsychHtmlKeyboardResponse,
-                stimulus: function() {
-                    const cue_desc =
-                        practice_cue_type === 'cue_distractor_location'
-                            ? L("den <strong>Störreiz</strong> (Kinderstimme)", "the <strong>distractor</strong> (child's voice)")
-                            : practice_cue_type === 'cue_nonsingleton_location'
-                                ? L("die <strong>normale Stimme</strong>", "the <strong>normal voice</strong>")
-                                : L("den <strong>Zielreiz</strong> (raue Stimme)", "the <strong>target stimulus</strong> (rough voice)");
-                    return L(`<div class="instruction-text">
+                stimulus: L(`<div class="instruction-text">
                     <h2 style="color: #4da8da; margin-bottom: 20px;">Übungsdurchgänge &ndash; Teil 2: Hinweisreize</h2>
                     <p>Im zweiten Teil der Übung folgt nun ein <strong>realer Beispielblock des eigentlichen Experiments</strong> mit 15 Durchgängen.</p>
-                    <p>Anders als eben erscheint vor jedem Durchgang ein <strong>farbiger Hinweisreiz</strong>. In diesem Übungsteil kommt <strong>ausschließlich der Hinweis auf ${cue_desc}</strong> vor &ndash; genau der Hinweistyp, der auch im ersten Block des eigentlichen Experiments verwendet wird.</p>
+                    <p>Anders als eben erscheint vor jedem Durchgang ein <strong>farbiger Hinweisreiz</strong>. In diesem Übungsteil kommt <strong>ausschließlich der Hinweis auf den Zielreiz</strong> (raue Stimme) vor &ndash; er zeigt Ihnen an, aus welcher Richtung die raue Stimme kommen wird.</p>
                     <p>Nach jeder Antwort erfahren Sie sofort, ob Sie richtig lagen. Nutzen Sie diese Rückmeldung, um die Bedeutung der Hinweisfarbe zu lernen. Auch diese Durchgänge gehen nicht in die Wertung ein.</p>
                     <p style="margin-top: 30px; color: #aaa;">Drücken Sie die <strong>LEERTASTE</strong>, um mit Teil 2 der Übung zu beginnen.</p>
                 </div>`, `<div class="instruction-text">
                     <h2 style="color: #4da8da; margin-bottom: 20px;">Practice Trials &ndash; Part 2: Cues</h2>
                     <p>In the second part of the practice, a <strong>real example block of the actual experiment</strong> with 15 trials now follows.</p>
-                    <p>Unlike just now, a <strong>colored cue</strong> appears before every trial. In this practice part, <strong>only the cue to ${cue_desc}</strong> occurs &ndash; exactly the cue type that is also used in the first block of the actual experiment.</p>
+                    <p>Unlike just now, a <strong>colored cue</strong> appears before every trial. In this practice part, <strong>only the cue to the target stimulus</strong> (rough voice) occurs &ndash; it tells you from which direction the rough voice will come.</p>
                     <p>After each response you will immediately learn whether you were correct. Use this feedback to learn the meaning of the cue color. These trials also do not count toward your score.</p>
                     <p style="margin-top: 30px; color: #aaa;">Press the <strong>SPACEBAR</strong> to begin part 2 of the practice.</p>
-                </div>`);
-                },
+                </div>`),
                 choices: [" "]
             };
             timeline.push(practice_intro_stage2);
