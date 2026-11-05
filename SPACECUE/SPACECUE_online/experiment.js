@@ -3,7 +3,7 @@ let current_block_global = 0;
 let abort_experiment = false;
 let exited_early = false;
 let demo_headphone_type = null; // pilot v2: track playback device (Bluetooth/mono-downmix risk)
-const datapipe_id = "p6rmFV5NMVaw";
+const datapipe_id = "9IervdK8M8su";
 
 // --- LANGUAGE FLAG ---------------------------------------------------------
 // 'de' (default) or 'en'. Controls ALL instruction, feedback and UI text
